@@ -4,7 +4,7 @@
   <url>
     <loc>http://example.com/2022/12/21/csapp/</loc>
     
-    <lastmod>2022-12-24</lastmod>
+    <lastmod>2023-02-24</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -31,7 +31,7 @@
 
   <url>
     <loc>http://example.com/</loc>
-    <lastmod>2022-12-24</lastmod>
+    <lastmod>2023-03-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>

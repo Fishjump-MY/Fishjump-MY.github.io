@@ -27,10 +27,13 @@
 <meta property="og:site_name" content="fishjump&#39;s blog">
 <meta property="og:description" content="前言记录一些自己的看法和心得。 第一章 计算机系统漫游不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png">
+<meta property="og:image" content="http://example.com/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png">
 <meta property="article:published_time" content="2022-12-21T08:57:21.000Z">
-<meta property="article:modified_time" content="2022-12-24T07:21:10.727Z">
+<meta property="article:modified_time" content="2023-02-24T17:13:30.882Z">
 <meta property="article:author" content="fishjump">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png">
 
 <link rel="canonical" href="http://example.com/2022/12/21/csapp/">
 
@@ -181,7 +184,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-12-24 15:21:10" itemprop="dateModified" datetime="2022-12-24T15:21:10+08:00">2022-12-24</time>
+                <time title="修改时间：2023-02-25 01:13:30" itemprop="dateModified" datetime="2023-02-25T01:13:30+08:00">2023-02-25</time>
               </span>
 
           
@@ -209,6 +212,11 @@
 <h6 id="3-主存"><a href="#3-主存" class="headerlink" title="3.主存"></a>3.主存</h6><p>主存是一个临时存储设备，在处理器执行程序时，用来存放程序和程序处理的数据。</p>
 <h6 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4.处理器"></a>4.处理器</h6><p>中央处理单元（CPU），简称处理器，世界是（或执行）存储在主存中指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向主存中的某条机器语言指令（即含有该指令的地址）。</p>
 <h5 id="不大不小的疑惑"><a href="#不大不小的疑惑" class="headerlink" title="不大不小的疑惑"></a>不大不小的疑惑</h5><p>此时年轻懵懂的我不明白为什么有很多很多人念着Linux系统的好，Windows这种图形化控着与此相比有什么难以弥补的劣势？据说以后工作实践中，项目大多也是基于Linux完成的，有时间了一定好好了解一下其中的内幕。</p>
+<h1 id="第二章-信息的表示和处理"><a href="#第二章-信息的表示和处理" class="headerlink" title="第二章 信息的表示和处理"></a>第二章 信息的表示和处理</h1><h6 id="研究数字的实际表示的意义"><a href="#研究数字的实际表示的意义" class="headerlink" title="研究数字的实际表示的意义"></a>研究数字的实际表示的意义</h6><p> 能够了解可以表时得知和不同算术运算的属性。从而使程序正确工作，更具可移植性，更安全。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png"></p>
+<h6 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h6><p>大多数计算机使用8位的块（字节）作为最小的可寻址的内存单元。机器级的程序将内存视为一个非常大的字节数组，称为虚拟内存。内存的每个字节都由一个唯一的数字来标识，称为它的地址。所有可能地址的集合称为虚拟地址空间。</p>
+<h6 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h6><p>二进制表示起来过用冗长，而十进制与二进制的转化很麻烦，十六进制表示起来很方便。如果二进制位数不是4的倍数，最左侧补0。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png"></p>
 
     </div>
 
@@ -289,7 +297,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8"><span class="nav-number">2.</span> <span class="nav-text">第一章 计算机系统漫游</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E5%B0%B1%E6%98%AF%E4%BD%8D-%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-number">2.0.0.0.1.</span> <span class="nav-text">信息就是位+上下文</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%86%E8%A7%A3%E7%BC%96%E8%AF%91%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84%E7%9B%8A%E5%A4%84%EF%BC%88%E4%B9%A6%E4%B8%8A%E8%BF%99%E4%B9%88%E5%86%99%E7%9A%84%E4%B8%8D%E6%98%AF%E6%88%91%E6%80%BB%E7%BB%93%E7%9A%84%EF%BC%89"><span class="nav-number">2.0.0.0.2.</span> <span class="nav-text">了解编译系统如何工作的益处（书上这么写的不是我总结的）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%86%E8%A7%A3shell"><span class="nav-number">2.0.0.0.3.</span> <span class="nav-text">了解shell</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%98%AF%E7%A1%AC%E4%BB%B6%E5%92%8C%E8%BD%AF%E4%BB%B6%E4%BA%92%E7%9B%B8%E4%BA%A4%E7%BB%87%E7%9A%84%E9%9B%86%E5%90%88%E4%BD%93%EF%BC%88%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D%E4%B8%80%E4%B8%8B%E7%A1%AC%E4%BB%B6%EF%BC%89"><span class="nav-number">2.0.0.0.4.</span> <span class="nav-text">系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1-%E6%80%BB%E7%BA%BF"><span class="nav-number">2.0.0.0.4.1.</span> <span class="nav-text">1.总线</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-I-x2F-O%E8%AE%BE%E5%A4%87"><span class="nav-number">2.0.0.0.4.2.</span> <span class="nav-text">2.I&#x2F;O设备</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#3-%E4%B8%BB%E5%AD%98"><span class="nav-number">2.0.0.0.4.3.</span> <span class="nav-text">3.主存</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#4-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-number">2.0.0.0.4.4.</span> <span class="nav-text">4.处理器</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%8D%E5%A4%A7%E4%B8%8D%E5%B0%8F%E7%9A%84%E7%96%91%E6%83%91"><span class="nav-number">2.0.0.0.5.</span> <span class="nav-text">不大不小的疑惑</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8"><span class="nav-number">2.</span> <span class="nav-text">第一章 计算机系统漫游</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E5%B0%B1%E6%98%AF%E4%BD%8D-%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-number">2.0.0.0.1.</span> <span class="nav-text">信息就是位+上下文</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%86%E8%A7%A3%E7%BC%96%E8%AF%91%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84%E7%9B%8A%E5%A4%84%EF%BC%88%E4%B9%A6%E4%B8%8A%E8%BF%99%E4%B9%88%E5%86%99%E7%9A%84%E4%B8%8D%E6%98%AF%E6%88%91%E6%80%BB%E7%BB%93%E7%9A%84%EF%BC%89"><span class="nav-number">2.0.0.0.2.</span> <span class="nav-text">了解编译系统如何工作的益处（书上这么写的不是我总结的）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%86%E8%A7%A3shell"><span class="nav-number">2.0.0.0.3.</span> <span class="nav-text">了解shell</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%98%AF%E7%A1%AC%E4%BB%B6%E5%92%8C%E8%BD%AF%E4%BB%B6%E4%BA%92%E7%9B%B8%E4%BA%A4%E7%BB%87%E7%9A%84%E9%9B%86%E5%90%88%E4%BD%93%EF%BC%88%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D%E4%B8%80%E4%B8%8B%E7%A1%AC%E4%BB%B6%EF%BC%89"><span class="nav-number">2.0.0.0.4.</span> <span class="nav-text">系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1-%E6%80%BB%E7%BA%BF"><span class="nav-number">2.0.0.0.4.1.</span> <span class="nav-text">1.总线</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-I-x2F-O%E8%AE%BE%E5%A4%87"><span class="nav-number">2.0.0.0.4.2.</span> <span class="nav-text">2.I&#x2F;O设备</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#3-%E4%B8%BB%E5%AD%98"><span class="nav-number">2.0.0.0.4.3.</span> <span class="nav-text">3.主存</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#4-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-number">2.0.0.0.4.4.</span> <span class="nav-text">4.处理器</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%8D%E5%A4%A7%E4%B8%8D%E5%B0%8F%E7%9A%84%E7%96%91%E6%83%91"><span class="nav-number">2.0.0.0.5.</span> <span class="nav-text">不大不小的疑惑</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%A4%84%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">第二章 信息的表示和处理</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E6%95%B0%E5%AD%97%E7%9A%84%E5%AE%9E%E9%99%85%E8%A1%A8%E7%A4%BA%E7%9A%84%E6%84%8F%E4%B9%89"><span class="nav-number">3.0.0.0.0.1.</span> <span class="nav-text">研究数字的实际表示的意义</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E5%AD%98%E5%82%A8"><span class="nav-number">3.0.0.0.0.2.</span> <span class="nav-text">信息存储</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%8D%81%E5%85%AD%E8%BF%9B%E5%88%B6%E8%A1%A8%E7%A4%BA%E6%B3%95"><span class="nav-number">3.0.0.0.0.3.</span> <span class="nav-text">十六进制表示法</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -331,7 +339,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2022</span>
+  <span itemprop="copyrightYear">2023</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
