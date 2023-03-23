@@ -1,3 +1,4 @@
+http://example.com/2023/03/24/csapp-lab/
 http://example.com/2022/12/21/csapp/
 http://example.com/2022/12/18/hello-world/
 http://example.com/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/

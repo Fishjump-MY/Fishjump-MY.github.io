@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1.datalab-handout测试命令1234make clean&#x2F;&#x2F;每次更改都要重新编译make btest&#x2F;&#x2F;进行测试.&#x2F;btest -g&#x2F;&#x2F;以紧凑形式进行测试.&#x2F;dlc -e bits.c&#x2F;&#x2F;检测是否符合编码准则">
+<meta property="og:type" content="article">
+<meta property="og:title" content="csapp.lab">
+<meta property="og:url" content="http://example.com/2023/03/24/csapp-lab/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="1.datalab-handout测试命令1234make clean&#x2F;&#x2F;每次更改都要重新编译make btest&#x2F;&#x2F;进行测试.&#x2F;btest -g&#x2F;&#x2F;以紧凑形式进行测试.&#x2F;dlc -e bits.c&#x2F;&#x2F;检测是否符合编码准则">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png">
+<meta property="og:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png">
+<meta property="article:published_time" content="2023-03-23T16:53:08.000Z">
+<meta property="article:modified_time" content="2023-03-23T16:53:08.472Z">
+<meta property="article:author" content="fishjump">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png">
+
+<link rel="canonical" href="http://example.com/2023/03/24/csapp-lab/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>csapp.lab | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/03/24/csapp-lab/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          csapp.lab
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-03-24 00:53:08" itemprop="dateCreated datePublished" datetime="2023-03-24T00:53:08+08:00">2023-03-24</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h2 id="int"><a href="#int" class="headerlink" title="int"></a>int</h2><h3 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h3><p>x^y using only ~ and &amp;,用按位运算~和&amp;实现异或。</p>
+<p>&amp;是1、1的时候返回1，^是0、1的时候返回1,就拿4和5举例子吧</p>
+<p>4：0100  0100 1011 1010 0101 1011</p>
+<p>5：0101  0100 1010 1010 0101 1011</p>
+<p>x、y是未知的，所以进行~运算的时候一定是对他两个同时。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> z=<span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> w=<span class="number">0</span>;</span><br><span class="line">  z=x&amp;y;<span class="comment">//0100</span></span><br><span class="line">  x=~x;<span class="comment">//1011</span></span><br><span class="line">  y=~y;<span class="comment">//1010</span></span><br><span class="line">  w=x&amp;y;<span class="comment">//1010</span></span><br><span class="line">  w=~w;<span class="comment">//0101</span></span><br><span class="line">  z=~z;<span class="comment">//1011</span></span><br><span class="line">  z=z&amp;w;<span class="comment">//0001</span></span><br><span class="line">  <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png"></p>
+<p>成功，其实很大程度是连蒙带猜的，毕竟就这两种运算。看看大佬是怎么分析的<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png"></p>
+<p>思路：用(x&amp;y)定位出共同的1所在，用(<del>x&amp;</del>y)定位出共同的0所在，其余部位就是既有1又有0啦，然后非全0部位和非全1部位进行&amp;运算<del>(x&amp;y)&amp;</del>(<del>x&amp;</del>y)</p>
+<h3 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h3><p>return minimum two’s complement integer，返回补码最小值。</p>
+<p>对于一个正数，它的二进制形式就是它的原码，正数的原码补码反码相同。</p>
+<p>对于一个负数，反码是将除符号位以外的位全部取反，补码就是将反码加上1。</p>
+<p>对于-1</p>
+<p>原码：1000 0001</p>
+<p>反码：1111 1110</p>
+<p>补码：1111 1111</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png"></p>
+<p>补码最小值，及第32位为1，其余位为0</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">   <span class="type">int</span> min =<span class="number">1</span>;</span><br><span class="line">   min=min&lt;&lt;<span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h3><p>returns 1 if x is the maximum, two’s complement number,and 0 otherwise，传来的参数是补码的最大值则返回1，其余情况返回0。</p>
+<p>从上图我们可以看到，补码的最大值紧挨着补码的最小值，所以我们只要将最小值减1即可，可是题目不允许使用移位操作符。</p>
+<p>经过很长时间的思考，发现根本表示不出最大值，参考了一下，豁然开朗，可以假设传入的参数就是就是最大值。我们可以看出最大值有一个特性，那就是max+1&#x3D;<del>(max+1),也不能完全说是特性吧，因为-1也拥有这个属性，仅此两个。首先我们可以通过max^(</del>(max+1)),如果其值返回0那我们可以锁定-1和max这两种情况,接下来我们在排除其是-1这种情况。我们只要找出-1的特性即可，(-1+1)&amp;-1&#x3D;0,其他的任何数都满足不了这一点。这种做法可以实现函数功能，却没有满足操作符的数量，使用了11个操作符，题目规定不能大于10。参考过后修改一下操作数变成9啦。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">isMax</span><span class="params">(<span class="type">int</span> x)</span><span class="comment">//如果是max则返回1，其余返回0</span></span><br><span class="line">&#123; <span class="comment">//int a=((x+1)&amp;~0);//如果x等于-1则返回0，其余的所有数都是非零</span></span><br><span class="line">  <span class="type">int</span> a=x+<span class="number">1</span>;<span class="comment">//这样也能判断是否为-1</span></span><br><span class="line">  <span class="type">int</span> b=(x^(~(x+<span class="number">1</span>)));<span class="comment">//如果是max或—1则返回0，其余的会返回非0</span></span><br><span class="line">  <span class="type">int</span> c=!!(!a)^(!b);！！可以使非零值返回<span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参考一下<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png"></p>
+<h3 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h3><p>return 1 if all odd-numbered bits in word set to 1，如果所有的奇数位都为1则返回1，最左侧为第31位，最右侧为第0位。</p>
+<p>我们可以看看奇数位为1的数有什么共同点。<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png"></p>
+<p>额，这我只能说是毫无头绪好吧。奇数位必须为1，偶数位不做要求。灵光一现：左移偶数位，得到的数一定是负数。然而并没有什么卵用。直接选择参考。data&#x3D;1010 1010(32位)，参数x^data,如果x满足要求，则返回data。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//题目要求可以使用的最大的数为0xff即1010 1010 我们要通过移位操作构造出32位奇数位全为1的data</span></span><br><span class="line"><span class="type">int</span> a=<span class="number">0xAA</span>;<span class="comment">//1010 1010</span></span><br><span class="line"><span class="type">int</span> a2=a&lt;&lt;<span class="number">8</span>|a;<span class="comment">//1010 1010 x 2</span></span><br><span class="line"><span class="type">int</span> data=((a2&lt;&lt;<span class="number">16</span>)|a2);<span class="comment">//1010 1010 x 4 32位</span></span><br><span class="line"><span class="type">int</span> mid=x&amp;data;<span class="comment">//x的偶数位全部变成0，奇数位是1则1，是0则0,即如果x奇数位全部为1则返回data</span></span><br><span class="line"><span class="type">int</span> final=mid^data；<span class="comment">//如果x为符合，则mid==data，则异或结果为0</span></span><br><span class="line"><span class="keyword">return</span> !final;<span class="comment">//final为0则符合，题目让返回1    </span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>可以这么说，这题要是不看点提示，想一天也想不来。还是按位操作这里有所欠缺。</p>
+<h3 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h3><p>return -x ，返回-x。即返回一个数的相反数</p>
+<p>这题比较简单，我们直接看一个数和他的相反数在二进制形式上有什么异同点。可以看出，只要按位取反再加上1即可</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//0000 0001   1</span></span><br><span class="line"><span class="comment">//1111 1111  -1</span></span><br><span class="line"><span class="comment">//0000 0010   2</span></span><br><span class="line"><span class="comment">//1111 1110  -2</span></span><br><span class="line"><span class="comment">//0111 1111   127</span></span><br><span class="line"><span class="comment">//1000 0001  -127</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x)+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h3><p>return 1 if 0x30 &lt;&#x3D; x &lt;&#x3D; 0x39 (ASCII codes for characters ‘0’ to ‘9’)，如果传来的参数是数字则反回1</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment">//0x30  0011 0000</span></span><br><span class="line"><span class="comment">//0x31  0011 0001</span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="comment">//0x39  0011 1001</span></span><br><span class="line"><span class="type">int</span> a=(x&gt;&gt;<span class="number">4</span>)^<span class="number">3</span>(<span class="number">0011b</span>);<span class="comment">//若a为0，则说明前28位相同，我们只用再判断后四位即可,若不同则返回值非零</span></span><br><span class="line"><span class="type">int</span> b=(x&gt;&gt;<span class="number">4</span>)^(x+((~<span class="number">10</span>)+<span class="number">1</span>)&gt;&gt;<span class="number">4</span>);<span class="comment">//后四位如果是0~9则返回非零，如果不是则返回0</span></span><br><span class="line"><span class="keyword">return</span> !(a|(!b));<span class="comment">//如果前28位相同，且后四位小于10则返回1</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>解释一下最后一行，假设x是数字，则a&#x3D;0，b≠0，c&#x3D;!b&#x3D;0，所以a|(!b)&#x3D;0，反之a|(!b)≠0，所以在前面加上一个！。</p>
+<h3 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h3><p>same as x ? y : z   如果x非零则返回y如果x为零则返回z。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a=!!x;<span class="comment">//如果x为零则返回0，如果x非零则返回1</span></span><br><span class="line"><span class="type">int</span> b=(~a)+<span class="number">1</span>;<span class="comment">//如果a=0则返回0(全0)，如果a＝1则返回—1(全1)</span></span><br><span class="line"><span class="keyword">return</span> ((b&amp;y)+((~b)&amp;z));<span class="comment">//如果x为零则b为零，则返回z，反之返回y</span></span><br><span class="line"><span class="comment">//最后的return 也可以写成这样：return (b&amp;y)|((~b)&amp;z)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h3><p>if x &lt;&#x3D; y  then return 1, else return 0  如果x&lt;&#x3D;y,返回1，反之返回0</p>
+<p>Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a=x+((~y)+<span class="number">1</span>);<span class="comment">//a=x-y,如果a&lt;0，则a的最高位为1，如果a&gt;=0,最高位时0，这样有点不好实现，因为小于和等于没在一起</span></span><br><span class="line"><span class="type">int</span> b=y+((~x)+<span class="number">1</span>);<span class="comment">//b=y-x,如果y&gt;=x,则b的最高位为0，反之b的最高位为1</span></span><br><span class="line"><span class="type">int</span> c=b&gt;&gt;<span class="number">31</span>;<span class="comment">//如果成立则返回全0，如果不成立则返回全1</span></span><br><span class="line"><span class="keyword">return</span> c+<span class="number">1</span>；</span><br></pre></td></tr></table></figure>
+
+<p>本来以为简简单单大功告成，进行测试发现没分，cao,上面的方法只适合同符号比较。   y&gt;&#x3D;x等价于y-x&gt;&#x3D;0在数学是行得通的，可是在计算机中要考虑 溢出问题。也就是可能会出现一些比较诡异的情况：</p>
+<p>当y&lt;0,x&gt;0时，可能出现y-x&gt;0的情况，比如1000 0000-0000 0001<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png"></p>
+<p>可以看到，由于第一位的1变成了0，所以就变成了正数。</p>
+<p>当y&gt;0,x&lt;0时，可能出现y-x&lt;0的情况，比如0000 0001-1000 0000<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png"></p>
+<p>有什么是可以肯定的呢，符号不同时，正数肯定比负数大，符号相同时看差值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//我测真的烦</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> singX=(x&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//如果不&amp;1，负数情况下就会返回-1</span></span><br><span class="line">    <span class="type">int</span> signY=(y&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="type">int</span> signY_X=((y+(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//y-x如果大于等于则返回0，小于则返回1</span></span><br><span class="line">    <span class="type">int</span> checknSign=signX^signY;<span class="comment">//相同为0，不同为1</span></span><br><span class="line">    <span class="keyword">return</span> (!checkSign&amp;!signY_X)|(checkSign&amp;signX)</span><br><span class="line">&#125;          符号相同，看差的符号         符号不同时，x&lt;<span class="number">0</span>则返回<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这个return比较长，我们分开来看一下其实很简单，</p>
+<p>左半部分：!checkSign&amp;!signY_X，符号相等的情况，符号相等不用考虑溢出的问题，我们可以直接根据差值的符号进行大小的判断，符号相等则check为0，signY_X如果满足则为0，否则为1，这里我们倒换一下，也就是满足时返回1，不满足时返回0，如果出现符号不相等，则左半部分返回0</p>
+<p>右半部分：如果符号相同则右半部分返回0，如果符号不同，那么我们只需要看x的符号即可，如果x是负数，一定满足条件则返回他的符号1</p>
+<p>反思：卡在这里很久很久，因为什么？？？一个很重要的原因对按位运算|掌握得不够熟悉，看到很多师傅的解前面有很多都使用了|，从这一题往后很难不用到|，不能再简单的使用加减。</p>
+<h3 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h3><p>implement the ! operator, using all of   the legal operators except !</p>
+<p> Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<p>使用其他合规操作符实现！，也就是传入的参数为0则返回1，非零则返回0</p>
+<p>思路零：未完成</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//0   0000 0000     0的相反数是0 相反数和自身异或取其符号位，为零则为零，非零则为1</span></span><br><span class="line"><span class="comment">//正数 0000 1110</span></span><br><span class="line"><span class="comment">//负数 1000 0100</span></span><br><span class="line"><span class="comment">//0 异或0为0</span></span><br><span class="line">   <span class="type">int</span> signX=(X&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取x的符号，负数则为1</span></span><br><span class="line">   <span class="type">int</span> _signX=((~x+<span class="number">1</span>)&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取-x的符号</span></span><br><span class="line">   <span class="keyword">return</span> signX^_signX^<span class="number">1</span>;</span><br><span class="line">   <span class="comment">//零异或上自己的相反数为0，其他数为1，在异或上1，改变符号</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="type">int</span> xor0=(<span class="number">0</span>^x)&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;x为零和正数则为<span class="number">0</span>，负数返回<span class="number">1</span></span><br><span class="line">    <span class="comment">//我们需要这样一个数，等于零时返回1，其余时候返回0 死循环</span></span><br></pre></td></tr></table></figure>
+
+<p>运行失败，看以下错误原因</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png"></p>
+<p>0x80000也就是最小数10000000这里出现了错误，我们知道对于有符号整型，负数范围比正数大一，所以表示不出来最小数的相反数，这个数和零一样，相反数等于自身。收到一位师傅的启发，我们可以给符号位取反，这样0x80000的符号位就变成0，不造成影响</p>
+<p>思路一：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> _x=~x+<span class="number">1</span>;</span><br><span class="line">   <span class="type">int</span> sign=(((~x&amp;~_x))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign;</span><br><span class="line">   取反后非零数相反数进行&amp;运算符号位为<span class="number">0</span>，如果不进行取反操作则不能绕过<span class="number">0x8000</span>这个存在，它的相反数和自身符号相同都为<span class="number">1</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p>思路二：</p>
+<p>一个非零数或上自己的相反数其符号位总是1，最小值0x8000也不例外，虽然它的相反数无法表示，但其最高位都是1</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> sign=(x|(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>;如果是零则返回<span class="number">0000</span>，非零则返回<span class="number">1111</span></span><br><span class="line">    <span class="keyword">return</span> sign+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>都是用到相反数，只是如果使用异或的话不可行，因为0和min的相反数最高位相同，所以只能考虑使用|或&amp;。</p>
+<h3 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h3><p>return the minimum number of bits required to represent x in   two’s complement    返回用二进制补码表示x的最小位数，比如1、0只用一位即可表示</p>
+<p>负数以补码的形式储存，正数的原码补码反码相同</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> twocom=</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/" rel="prev" title="2022极客大挑战">
+      <i class="fa fa-chevron-left"></i> 2022极客大挑战
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-datalab-handout"><span class="nav-number">1.</span> <span class="nav-text">1.datalab-handout</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E5%91%BD%E4%BB%A4"><span class="nav-number">1.0.1.</span> <span class="nav-text">测试命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#int"><span class="nav-number">1.1.</span> <span class="nav-text">int</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bitXor"><span class="nav-number">1.1.1.</span> <span class="nav-text">bitXor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tmin"><span class="nav-number">1.1.2.</span> <span class="nav-text">tmin</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isTmax"><span class="nav-number">1.1.3.</span> <span class="nav-text">isTmax</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#allOddBits"><span class="nav-number">1.1.4.</span> <span class="nav-text">allOddBits</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#negate"><span class="nav-number">1.1.5.</span> <span class="nav-text">negate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isAsciiDigit"><span class="nav-number">1.1.6.</span> <span class="nav-text">isAsciiDigit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#conditional"><span class="nav-number">1.1.7.</span> <span class="nav-text">conditional</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isLessOrEqual"><span class="nav-number">1.1.8.</span> <span class="nav-text">isLessOrEqual</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logicalNeg"><span class="nav-number">1.1.9.</span> <span class="nav-text">logicalNeg</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#howManyBits"><span class="nav-number">1.1.10.</span> <span class="nav-text">howManyBits</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
