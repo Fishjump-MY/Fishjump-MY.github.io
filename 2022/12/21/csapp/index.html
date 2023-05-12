@@ -17,7 +17,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="前言记录一些自己的看法和心得。 第一章 计算机系统漫游不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。">
@@ -56,8 +56,10 @@
 <meta property="og:image" content="http://example.com/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405220431.png">
 <meta property="og:image" content="http://example.com/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230406093404.png">
 <meta property="article:published_time" content="2022-12-21T08:57:21.000Z">
-<meta property="article:modified_time" content="2023-04-09T12:11:30.379Z">
+<meta property="article:modified_time" content="2023-05-12T16:34:01.369Z">
 <meta property="article:author" content="fishjump">
+<meta property="article:tag" content="阅读">
+<meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png">
 
@@ -129,10 +131,12 @@
       <h1 class="site-title">fishjump's blog</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
   </div>
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -147,16 +151,48 @@
     <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
 
 </div>
     </header>
@@ -183,7 +219,7 @@
     <link itemprop="mainEntityOfPage" href="http://example.com/2022/12/21/csapp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/uploads/dog.jpg">
       <meta itemprop="name" content="fishjump">
       <meta itemprop="description" content="一万年太久，只争朝夕">
     </span>
@@ -210,10 +246,24 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-04-09 20:11:30" itemprop="dateModified" datetime="2023-04-09T20:11:30+08:00">2023-04-09</time>
+                <time title="修改时间：2023-05-13 00:34:01" itemprop="dateModified" datetime="2023-05-13T00:34:01+08:00">2023-05-13</time>
               </span>
 
-          
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
 
         </div>
       </header>
@@ -267,7 +317,7 @@
 <h6 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h6><p>截断无符号数：</p>
 <p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324001954.png"></p>
 <h6 id="对于整数运算最后的思考-模运算"><a href="#对于整数运算最后的思考-模运算" class="headerlink" title="对于整数运算最后的思考 模运算"></a>对于整数运算最后的思考 模运算</h6><p>计算机执行整数运算实际上是一种模运算，什么是模运算呢？模运算也就是求余运算，在前面我们可以看到几乎所有的溢出都采取了模最高位取余数的方法。补码的表示，可以使正数加上负数的补码等于减去其原码比如</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">3-2</span><br><span class="line">0000 0011-0000 0010=  0000 0001</span><br><span class="line">0000 0011+1111 1110=1 0000 0001//最高位舍去</span><br></pre></td></tr></table></figure>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">3</span>-<span class="number">2</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>-<span class="number">0000</span> <span class="number">0010</span>=  <span class="number">0000</span> <span class="number">0001</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>+<span class="number">1111</span> <span class="number">1110</span>=<span class="number">1</span> <span class="number">0000</span> <span class="number">0001</span>//最高位舍去</span><br></pre></td></tr></table></figure>
 
 <h5 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h5><h6 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h6><p>二进制小数，小数点左边是二的非负权（非负幂），小数点右边是二的负权，这一点和十进制小数并无区别。</p>
 <p>二进制小数只能精确的表示形如（x*2的y次幂）的数</p>
@@ -288,7 +338,7 @@
 <h6 id="浮点数运算"><a href="#浮点数运算" class="headerlink" title="浮点数运算"></a>浮点数运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210735.png"></p>
 <p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210747.png"></p>
 <p>下面是对3丢失的解释，所以说浮点数计算不符合结合律</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">对于float 符号位 阶码 尾数分别为 1 8 23</span><br><span class="line">1e10 = 0010 0101 0100 0000 1011 1110 010（0 0000 0000）</span><br><span class="line">     =1.0 0101 0100 0000 1011 1110 0100 0000 0000 X 2^33</span><br><span class="line">表示成浮点数   bias=127 所以E=127+33=160=1010 0000</span><br><span class="line">1e10</span><br><span class="line">浮点数：0 1010 0000 0010 1010 0000 0101 1111 0010 </span><br><span class="line">1e10+3= 0010 0101 0100 0000 1011 1110 010（0 0000 0011）</span><br><span class="line">      =1.0 0101 0100 0000 1011 1110 0100 0000 0011 X 2^33</span><br><span class="line">浮点数 =0 1010 0000 0010 1010 0000 0101 1111 0010</span><br><span class="line">可以看出后面括号里的的3=0 0000 0011直接被舍掉了</span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">对于float</span> <span class="string">符号位</span> <span class="string">阶码</span> <span class="string">尾数分别为</span> <span class="number">1</span> <span class="number">8</span> <span class="number">23</span></span><br><span class="line"><span class="number">1e10</span> <span class="string">=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0000</span><span class="string">）</span></span><br><span class="line">     <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0000 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">表示成浮点数</span>   <span class="string">bias=127</span> <span class="string">所以E=127+33=160=1010</span> <span class="number">0000</span></span><br><span class="line"><span class="number">1e10</span></span><br><span class="line"><span class="string">浮点数：0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span> </span><br><span class="line"><span class="number">1e10</span><span class="string">+3=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">）</span></span><br><span class="line">      <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0011 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">浮点数</span> <span class="string">=0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span></span><br><span class="line"><span class="string">可以看出后面括号里的的3=0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">直接被舍掉了</span></span><br></pre></td></tr></table></figure>
 
 <h1 id="第三章-程序的机器级表示"><a href="#第三章-程序的机器级表示" class="headerlink" title="第三章  程序的机器级表示"></a>第三章  程序的机器级表示</h1><h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>从十六位过渡到64位不显得突兀，在指令后面加了字符后缀，确定大小<img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114357.png"></p>
 <p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114424.png"></p>
@@ -308,6 +358,10 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%98%85%E8%AF%BB/" rel="tag"># 阅读</a>
+              <a href="/tags/CSAPP/" rel="tag"># CSAPP</a>
+          </div>
 
         
 
@@ -386,6 +440,8 @@
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
   <p class="site-author-name" itemprop="name">fishjump</p>
   <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
 </div>
@@ -398,8 +454,22 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
   </nav>
 </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
 
 
 
@@ -427,6 +497,16 @@
     <i class="fa fa-heart"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">14k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">51 分钟</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
   </div>
@@ -467,6 +547,10 @@
 
 
 
+  
+<script src="/js/local-search.js"></script>
+
+
 
 
 
@@ -482,5 +566,11 @@
 
   
 
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
 </body>
 </html>
