@@ -1,3 +1,4 @@
+http://example.com/2023/06/02/bomblab/
 http://example.com/2023/05/28/angr%E5%AD%A6%E4%B9%A0/
 http://example.com/2023/05/21/%E7%BC%96%E5%86%99%E8%99%9A%E6%8B%9F%E6%9C%BA/
 http://example.com/2022/12/21/csapp/
