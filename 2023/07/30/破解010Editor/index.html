@@ -20,14 +20,13 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。 去官网按照自己的需求下载 我是win64  不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。 直接字符串搜索，就搜索下面的文本就行“thank you” 双击之后x交叉引用 进入了流程图界面，按一下tab即可进入">
+  <meta name="description" content="刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。 去官网按照自己的需求下载">
 <meta property="og:type" content="article">
 <meta property="og:title" content="破解010Editor">
 <meta property="og:url" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/index.html">
 <meta property="og:site_name" content="fishjump&#39;s blog">
-<meta property="og:description" content="刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。 去官网按照自己的需求下载 我是win64  不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。 直接字符串搜索，就搜索下面的文本就行“thank you” 双击之后x交叉引用 进入了流程图界面，按一下tab即可进入">
+<meta property="og:description" content="刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。 去官网按照自己的需求下载">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115114.png">
 <meta property="og:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png">
 <meta property="og:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png">
 <meta property="og:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png">
@@ -50,10 +49,10 @@
 <meta property="og:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png">
 <meta property="og:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png">
 <meta property="article:published_time" content="2023-07-30T04:42:57.000Z">
-<meta property="article:modified_time" content="2023-07-30T04:42:57.232Z">
+<meta property="article:modified_time" content="2023-07-30T04:44:58.058Z">
 <meta property="article:author" content="fishjump">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115114.png">
+<meta name="twitter:image" content="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png">
 
 <link rel="canonical" href="http://example.com/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/">
 
@@ -230,8 +229,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2023-07-30 12:42:57" itemprop="dateCreated datePublished" datetime="2023-07-30T12:42:57+08:00">2023-07-30</time>
+              <time title="创建时间：2023-07-30 12:42:57 / 修改时间：12:44:58" itemprop="dateCreated datePublished" datetime="2023-07-30T12:42:57+08:00">2023-07-30</time>
             </span>
 
           
@@ -247,7 +247,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>672</span>
+              <span>673</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -267,7 +267,9 @@
 
       
         <p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115114.png"></p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
+
 <p>我是win64</p>
 <p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
 <p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>

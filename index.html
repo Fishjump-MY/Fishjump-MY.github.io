@@ -205,8 +205,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2023-07-30 12:42:57" itemprop="dateCreated datePublished" datetime="2023-07-30T12:42:57+08:00">2023-07-30</time>
+              <time title="创建时间：2023-07-30 12:42:57 / 修改时间：12:44:58" itemprop="dateCreated datePublished" datetime="2023-07-30T12:42:57+08:00">2023-07-30</time>
             </span>
 
           <br>
@@ -215,7 +216,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>672</span>
+              <span>673</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -235,42 +236,15 @@
 
       
           <p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115114.png"></p>
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-
+<p>去官网按照自己的需求下载</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
