@@ -1062,4 +1062,57 @@
 <p><a href="https://www.jmeiners.com/lc3-vm/"><a href="https://www.jmeiners.com/lc3-vm/">Write your Own Virtual Machine (jmeiners.com)</a></a></p>
 ]]></content>
   </entry>
+  <entry>
+    <title>gcc常用命令</title>
+    <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure>
+
+<p>默认生成a.out的可执行文件，main.c经历了<strong>预处理</strong>、<strong>汇编</strong>、<strong>编译</strong>、<strong>链接</strong>操作</p>
+<span id="more"></span>
+
+<p><strong>2.</strong> 指定输出文件的文件名 <strong>-o</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成可执行文件main</p>
+<p><strong>3.</strong> 预处理 -E</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -E main.c -o main.i</span><br></pre></td></tr></table></figure>
+
+<p>最简单的打印hello，world都要大几百行代码。预处理的作用是直接将#include&lt;xxx.h&gt;、#include”xxx.h”还有宏进行直接的复制粘贴操作.尖括号&lt;&gt;和双引号”“的区别在于，尖括号包含的头文件预处理器会直接搜索指定目录，双引号包含的头文件预处理器则优先在当前目录下查找。也就是系统的头文件我们一般都使用尖括号&lt;&gt;,自己定义的则使用双引号。gcc有选项可以更改目录，这里不再多说。</p>
+<p><strong>4.</strong> 编译生成汇编代码</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -S main.i</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main.s的文本文件，里面是汇编语言。</p>
+<p><strong>5.</strong> 汇编</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c main.s</span><br></pre></td></tr></table></figure>
+
+<p>汇编器将汇编代码转换成目标文件main.o</p>
+<p><strong>6.</strong> 链接</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.o -o main</span><br></pre></td></tr></table></figure>
+
+<p>链接器将目标文件链接为可执行文件-o为优化等级，-O1、-O2、-O3，级别越大优化效果越好。</p>
+<h3 id="多文件编译方法"><a href="#多文件编译方法" class="headerlink" title="多文件编译方法"></a>多文件编译方法</h3><p>对于add.h、add.c、main.c三个文件</p>
+<p>add.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>add.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>1.直接源码到可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c add.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main的可执行文件</p>
+<p><strong>2.分别编译各个源文件，然后进行链接</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c add.c    #生成add.o</span><br><span class="line">gcc -c main.c   #生成main.o</span><br><span class="line">gcc -o add.o main.o -o main     #链接生成可执行文件</span><br></pre></td></tr></table></figure>
+
+<p>两种方法各有优缺点，第一种简便但是需要对所有文件进行重新编译，第二种方法可以只重新编译修改的文件，而不需要浪费时间重新编译整个工程。（详情请看另一篇介绍编译与链接的文章）</p>
+<p>参考文章：<a href="https://blog.csdn.net/yinjiabin/article/details/7731817">linux gcc编译多个源文件的方法_yinjiabin的博客-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>gcc</tag>
+      </tags>
+  </entry>
 </search>
