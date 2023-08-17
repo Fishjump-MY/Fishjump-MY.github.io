@@ -6,6 +6,53 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>AES算法</title>
+    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
+<span id="more"></span>
+
+<p>下面以明文和密钥都是128位来举例。</p>
+<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
+<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
+<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
+<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
+<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
+<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
+<p>比如初始矩阵为</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
+<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
+<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
+<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
+<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
+<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
+<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
+<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
+<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
+<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
+<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
+<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
+<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
+<p>字节代换：查S盒进行代换</p>
+<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
+<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
+<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
+<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>GoogleCTF</title>
     <url>/2023/06/27/GoogleCTF/</url>
     <content><![CDATA[<h1 id="oldschool"><a href="#oldschool" class="headerlink" title="oldschool"></a>oldschool</h1><p>当时做的时候就很奇怪，为什么单步调试输入相应的用户名和密码就显示success，而直接运行程序提交相同的数据就是错误，更奇怪的是当时写的脚本能更正确解除第一组，而后面的矩阵用z3求逆都出现了问题，当时只是怀疑加了反调试修改了数据，但又不知从何处检查。。。。。。</p>
@@ -334,91 +381,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>csapp笔记</title>
-    <url>/2022/12/21/csapp/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
-<h1 id="第一章-计算机系统漫游"><a href="#第一章-计算机系统漫游" class="headerlink" title="第一章 计算机系统漫游"></a>第一章 计算机系统漫游</h1><p>不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。</p>
-<span id="more"></span>
-
-<h5 id="信息就是位-上下文"><a href="#信息就是位-上下文" class="headerlink" title="信息就是位+上下文"></a>信息就是位+上下文</h5><p>0和1组成位，也成为比特，八个位组成一组称为字节。系统之中所有的信息都是由一串比特表示的，区分不同数据对象的唯一方法就是对照上下文。举个简单的例子，0110 0100，这么一串比特，它既能表示二进制数，又能表示ASCII对应的值d，具体表示什么要联系上下文。</p>
-<h5 id="了解编译系统如何工作的益处（书上这么写的不是我总结的）"><a href="#了解编译系统如何工作的益处（书上这么写的不是我总结的）" class="headerlink" title="了解编译系统如何工作的益处（书上这么写的不是我总结的）"></a>了解编译系统如何工作的益处（书上这么写的不是我总结的）</h5><p>1.优化程序性能</p>
-<p>2.理解链接时出现的错误</p>
-<p>3.避免安全漏洞</p>
-<h5 id="了解shell"><a href="#了解shell" class="headerlink" title="了解shell"></a>了解shell</h5><p>第一章中不停的在提及shell。shell是一个命令解释器，他输出一个提示符，等待输入一个命令符，然后执行这个命令。简单的理解一下，Windows系统中我们打开一个程序需要点击其图像，Linux则需要我们输入命令行来打开，shell就是那个供用户输入命令行的程序。shell是一个应用程序，连接了用户和linux内核。参考：(<a href="http://c.biancheng.net/view/706.html">http://c.biancheng.net/view/706.html</a>)</p>
-<h5 id="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"><a href="#系统是硬件和软件互相交织的集合体（简单介绍一下硬件）" class="headerlink" title="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"></a>系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</h5><h6 id="1-总线"><a href="#1-总线" class="headerlink" title="1.总线"></a>1.总线</h6><p>像神经一样，贯穿于整个系统，携带信息字节并负责在各个部门传递</p>
-<h6 id="2-I-x2F-O设备"><a href="#2-I-x2F-O设备" class="headerlink" title="2.I&#x2F;O设备"></a>2.I&#x2F;O设备</h6><p>及输入&#x2F;输出设备，键盘、鼠标为输入设备，显示器和磁盘为输出设备。</p>
-<h6 id="3-主存"><a href="#3-主存" class="headerlink" title="3.主存"></a>3.主存</h6><p>主存是一个临时存储设备，在处理器执行程序时，用来存放程序和程序处理的数据。</p>
-<h6 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4.处理器"></a>4.处理器</h6><p>中央处理单元（CPU），简称处理器，世界是（或执行）存储在主存中指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向主存中的某条机器语言指令（即含有该指令的地址）。</p>
-<h5 id="不大不小的疑惑"><a href="#不大不小的疑惑" class="headerlink" title="不大不小的疑惑"></a>不大不小的疑惑</h5><p>此时年轻懵懂的我不明白为什么有很多很多人念着Linux系统的好，Windows这种图形化控着与此相比有什么难以弥补的劣势？据说以后工作实践中，项目大多也是基于Linux完成的，有时间了一定好好了解一下其中的内幕。</p>
-<h1 id="第二章-信息的表示和处理"><a href="#第二章-信息的表示和处理" class="headerlink" title="第二章 信息的表示和处理"></a>第二章 信息的表示和处理</h1><h6 id="研究数字的实际表示的意义"><a href="#研究数字的实际表示的意义" class="headerlink" title="研究数字的实际表示的意义"></a>研究数字的实际表示的意义</h6><p> 能够了解可以表时得知和不同算术运算的属性。从而使程序正确工作，更具可移植性，更安全。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png"></p>
-<h6 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h6><p>大多数计算机使用8位的块（字节）作为最小的可寻址的内存单元。机器级的程序将内存视为一个非常大的字节数组，称为虚拟内存。内存的每个字节都由一个唯一的数字来标识，称为它的地址。所有可能地址的集合称为虚拟地址空间。</p>
-<h6 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h6><p>二进制表示起来过用冗长，而十进制与二进制的转化很麻烦，十六进制表示起来很方便。如果二进制位数不是4的倍数，最左侧补0。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png"></p>
-<p>j代表的是16进制0的数量。前面的i是1的数量，注意只能是1,11,111,1111这四种表示。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307203238.png"></p>
-<h5 id="整型"><a href="#整型" class="headerlink" title="整型"></a>整型</h5><h6 id="字数据大小"><a href="#字数据大小" class="headerlink" title="字数据大小"></a>字数据大小</h6><p>字长决定虚拟地址空间的最大大小，我们常说的32位64位都是指的字长，32位字长虚拟地址空间为2的32次方及4GB。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204456.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204729.png"></p>
-<p>#include&lt;stdint.h&gt;中有关于int32_t等的宏定义，确定的大小可以避免很多麻烦，程序的可移植性也更高。</p>
-<h6 id="寻址和字节顺序"><a href="#寻址和字节顺序" class="headerlink" title="寻址和字节顺序"></a>寻址和字节顺序</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307205643.png"></p>
-<p>可以这样说，大端是更符合我们日常思维的那一种。两种端序没有优劣之分，选择哪种字节顺序没有技术上的理由。我们只需选择一种并且始终如一地坚持。</p>
-<h6 id="C语言中的逻辑运算"><a href="#C语言中的逻辑运算" class="headerlink" title="C语言中的逻辑运算"></a>C语言中的逻辑运算</h6><p>逻辑运算和按位运算有很大的不同，其一逻辑运算中所有的非零参数都表示TRUE，0参表FALSE，其二，如果对第一个参数求值就能确定表达式的结果，那么逻辑运算就不会对第二个参数求值。</p>
-<h6 id="C语言中的移位运算"><a href="#C语言中的移位运算" class="headerlink" title="C语言中的移位运算"></a>C语言中的移位运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307222226.png"></p>
-<p>几乎所有的编译器都对有符号数使用算数右移（保留最高位），对于无符号数，右移必须是逻辑的。Java中x&gt;&gt;&gt;k是逻辑右移，x&gt;&gt;k是算数右移。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307223156.png"></p>
-<h6 id="强制类型转换"><a href="#强制类型转换" class="headerlink" title="强制类型转换"></a>强制类型转换</h6><p>强制类型转换结果保持位不变，改变的是对位的解析方式</p>
-<h6 id="有符号和无符号处理"><a href="#有符号和无符号处理" class="headerlink" title="有符号和无符号处理"></a>有符号和无符号处理</h6><p>当表达式中同时出现也有符号和无符号，那么C语言会隐式的将有符号数转换为无符号数（位不变），例如表达式-1&lt;0u返回的结果是0，也就是表达式错误，因为将-1的补码按照无符号数来解析。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324010451.png"></p>
-<p>看着好像没什么问题，但是当len等于0，在运算0-1时，计算机会当作0+(-1),因为默认是有符号，而len是无符号的。所以(-1)要从补码转换成无符号数也就是T2U，也就是UMax，所以程序会进入死循环，并且访问到a的非法元素。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324012052.png"></p>
-<p>A.当s比t短的时候会错误的返回1</p>
-<p>B.两数相减得到负数会当作无符号数处理，最高位为1也就是一个很大的数大于零</p>
-<p>C.改为return strlen(s)&gt;strlen(t)</p>
-<h6 id="扩展一个数字的位表示"><a href="#扩展一个数字的位表示" class="headerlink" title="扩展一个数字的位表示"></a>扩展一个数字的位表示</h6><p>如果想扩展一个数字，只需要在它的最高位补上n个符号位，比如说101表示-3，在最左侧加1变为1101还是表示-3，我们可以看到它最高位与后一位的和-8+4&#x3D;-4这也是扩展前符号位的值，我们再给它扩展一位变为11101它还是表示-3，对于非负数我们只需在其前面补上0即可，正好今天在做datalab的howManyBits，和这个正好是相关的，刚开始看到网上师傅举得例子还有点懵，为啥101和1101代表的都是-3，所以我们可以知道有无数种形式的补码可以表示-3，而101是最短的一种。</p>
-<h6 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h6><p>截断无符号数：</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324001954.png"></p>
-<h6 id="对于整数运算最后的思考-模运算"><a href="#对于整数运算最后的思考-模运算" class="headerlink" title="对于整数运算最后的思考 模运算"></a>对于整数运算最后的思考 模运算</h6><p>计算机执行整数运算实际上是一种模运算，什么是模运算呢？模运算也就是求余运算，在前面我们可以看到几乎所有的溢出都采取了模最高位取余数的方法。补码的表示，可以使正数加上负数的补码等于减去其原码比如</p>
-<figure class="highlight basic"><table><tr><td class="code"><pre><span class="line"><span class="number">3</span>-<span class="number">2</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>-<span class="number">0000</span> <span class="number">0010</span>=  <span class="number">0000</span> <span class="number">0001</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>+<span class="number">1111</span> <span class="number">1110</span>=<span class="number">1</span> <span class="number">0000</span> <span class="number">0001</span>//最高位舍去</span><br></pre></td></tr></table></figure>
-
-<h5 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h5><h6 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h6><p>二进制小数，小数点左边是二的非负权（非负幂），小数点右边是二的负权，这一点和十进制小数并无区别。</p>
-<p>二进制小数只能精确的表示形如（x*2的y次幂）的数</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091512.png"></p>
-<h6 id="IEEE浮点数表示"><a href="#IEEE浮点数表示" class="headerlink" title="IEEE浮点数表示"></a>IEEE浮点数表示</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091842.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327092231.png"></p>
-<p>正如书中提到的，浮点数看起来比较深奥难懂，但它是建立在小而一致的原则之上的。</p>
-<p>根据exp的值，可以分为三种不同的情况，规格化的、非规格化的或特殊值</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093637.png"></p>
-<h6 id="规格化得值"><a href="#规格化得值" class="headerlink" title="规格化得值"></a>规格化得值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093742.png"></p>
-<p>小数点在f段最高位的左侧，隐含的以1开头表示。</p>
-<h6 id="偏置值"><a href="#偏置值" class="headerlink" title="偏置值"></a>偏置值</h6><p>这个师傅讲的比较简单明了：</p>
-<p>拿单精度来说，（规格化）e的取值范围是0000 0001<del>1111 1110也就是1</del>254，肯定不能只使用无符号表示，因为这样只能表示非负数，所以使用E&#x3D;e-Bias，其范围就是-126<del>127，那么为什么不直接用补码表示e呢？这样E的范围就是1111 1111</del>0111 1111&#x3D;（-128~127），可以看出使用偏置和使用补码表示的范围相差不大，还可以不用考虑符号</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327134820.png"></p>
-<h6 id="非规格化的值"><a href="#非规格化的值" class="headerlink" title="非规格化的值"></a>非规格化的值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327094556.png"></p>
-<h6 id="特殊值"><a href="#特殊值" class="headerlink" title="特殊值"></a>特殊值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327095039.png"></p>
-<h6 id="舍入"><a href="#舍入" class="headerlink" title="舍入"></a>舍入</h6><p>浮点数浮点数采用向偶数最接近的偶数舍入的方法，这样对与那些处在中间的数在50%的时间里会向上舍入(1.5—&gt;2)，在另外的50%的时间会向下舍入(2.5—&gt;2)。</p>
-<h6 id="浮点数运算"><a href="#浮点数运算" class="headerlink" title="浮点数运算"></a>浮点数运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210735.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210747.png"></p>
-<p>下面是对3丢失的解释，所以说浮点数计算不符合结合律</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">对于float</span> <span class="string">符号位</span> <span class="string">阶码</span> <span class="string">尾数分别为</span> <span class="number">1</span> <span class="number">8</span> <span class="number">23</span></span><br><span class="line"><span class="number">1e10</span> <span class="string">=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0000</span><span class="string">）</span></span><br><span class="line">     <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0000 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">表示成浮点数</span>   <span class="string">bias=127</span> <span class="string">所以E=127+33=160=1010</span> <span class="number">0000</span></span><br><span class="line"><span class="number">1e10</span></span><br><span class="line"><span class="string">浮点数：0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span> </span><br><span class="line"><span class="number">1e10</span><span class="string">+3=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">）</span></span><br><span class="line">      <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0011 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">浮点数</span> <span class="string">=0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span></span><br><span class="line"><span class="string">可以看出后面括号里的的3=0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">直接被舍掉了</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="第三章-程序的机器级表示"><a href="#第三章-程序的机器级表示" class="headerlink" title="第三章  程序的机器级表示"></a>第三章  程序的机器级表示</h1><h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>从十六位过渡到64位不显得突兀，在指令后面加了字符后缀，确定大小<img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114357.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114424.png"></p>
-<h2 id="访问信息"><a href="#访问信息" class="headerlink" title="访问信息"></a>访问信息</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405120704.png"></p>
-<h2 id="ATT和Intel"><a href="#ATT和Intel" class="headerlink" title="ATT和Intel"></a>ATT和Intel</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405122311.png"></p>
-<p>之前接触的是intel的导致我以为这里出现了错误</p>
-<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><p>更新一点对栈的认知，之前一直以为将栈顶的值pop之后，内存中的值会消失，原来值会一直存在，直到被覆盖。</p>
-<h2 id="算术和逻辑操作"><a href="#算术和逻辑操作" class="headerlink" title="算术和逻辑操作"></a>算术和逻辑操作</h2><h3 id="算术操作"><a href="#算术操作" class="headerlink" title="算术操作"></a>算术操作</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405214930.png"></p>
-<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405220431.png"></p>
-<h2 id="函数传参和寄存器的关系"><a href="#函数传参和寄存器的关系" class="headerlink" title="函数传参和寄存器的关系"></a>函数传参和寄存器的关系</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230406093404.png"></p>
-<p>是按照这个顺序进行传参，并且返回值默认是ax。</p>
-]]></content>
-      <tags>
-        <tag>阅读</tag>
-        <tag>CSAPP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>csapp.lab</title>
     <url>/2023/03/24/csapp-lab/</url>
     <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
@@ -539,6 +501,144 @@
 ]]></content>
       <tags>
         <tag>lab</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>gcc常用命令</title>
+    <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure>
+
+<p>默认生成a.out的可执行文件，main.c经历了<strong>预处理</strong>、<strong>汇编</strong>、<strong>编译</strong>、<strong>链接</strong>操作</p>
+<span id="more"></span>
+
+<p><strong>2.</strong> 指定输出文件的文件名 <strong>-o</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成可执行文件main</p>
+<p><strong>3.</strong> 预处理 -E</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -E main.c -o main.i</span><br></pre></td></tr></table></figure>
+
+<p>最简单的打印hello，world都要大几百行代码。预处理的作用是直接将#include&lt;xxx.h&gt;、#include”xxx.h”还有宏进行直接的复制粘贴操作.尖括号&lt;&gt;和双引号”“的区别在于，尖括号包含的头文件预处理器会直接搜索指定目录，双引号包含的头文件预处理器则优先在当前目录下查找。也就是系统的头文件我们一般都使用尖括号&lt;&gt;,自己定义的则使用双引号。gcc有选项可以更改目录，这里不再多说。</p>
+<p><strong>4.</strong> 编译生成汇编代码</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -S main.i</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main.s的文本文件，里面是汇编语言。</p>
+<p><strong>5.</strong> 汇编</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c main.s</span><br></pre></td></tr></table></figure>
+
+<p>汇编器将汇编代码转换成目标文件main.o</p>
+<p><strong>6.</strong> 链接</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.o -o main</span><br></pre></td></tr></table></figure>
+
+<p>链接器将目标文件链接为可执行文件-o为优化等级，-O1、-O2、-O3，级别越大优化效果越好。</p>
+<h3 id="多文件编译方法"><a href="#多文件编译方法" class="headerlink" title="多文件编译方法"></a>多文件编译方法</h3><p>对于add.h、add.c、main.c三个文件</p>
+<p>add.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>add.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>1.直接源码到可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c add.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main的可执行文件</p>
+<p><strong>2.分别编译各个源文件，然后进行链接</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c add.c    #生成add.o</span><br><span class="line">gcc -c main.c   #生成main.o</span><br><span class="line">gcc -o add.o main.o -o main     #链接生成可执行文件</span><br></pre></td></tr></table></figure>
+
+<p>两种方法各有优缺点，第一种简便但是需要对所有文件进行重新编译，第二种方法可以只重新编译修改的文件，而不需要浪费时间重新编译整个工程。（详情请看另一篇介绍编译与链接的文章）</p>
+<p>参考文章：<a href="https://blog.csdn.net/yinjiabin/article/details/7731817">linux gcc编译多个源文件的方法_yinjiabin的博客-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>gcc</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>csapp笔记</title>
+    <url>/2022/12/21/csapp/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
+<h1 id="第一章-计算机系统漫游"><a href="#第一章-计算机系统漫游" class="headerlink" title="第一章 计算机系统漫游"></a>第一章 计算机系统漫游</h1><p>不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。</p>
+<span id="more"></span>
+
+<h5 id="信息就是位-上下文"><a href="#信息就是位-上下文" class="headerlink" title="信息就是位+上下文"></a>信息就是位+上下文</h5><p>0和1组成位，也成为比特，八个位组成一组称为字节。系统之中所有的信息都是由一串比特表示的，区分不同数据对象的唯一方法就是对照上下文。举个简单的例子，0110 0100，这么一串比特，它既能表示二进制数，又能表示ASCII对应的值d，具体表示什么要联系上下文。</p>
+<h5 id="了解编译系统如何工作的益处（书上这么写的不是我总结的）"><a href="#了解编译系统如何工作的益处（书上这么写的不是我总结的）" class="headerlink" title="了解编译系统如何工作的益处（书上这么写的不是我总结的）"></a>了解编译系统如何工作的益处（书上这么写的不是我总结的）</h5><p>1.优化程序性能</p>
+<p>2.理解链接时出现的错误</p>
+<p>3.避免安全漏洞</p>
+<h5 id="了解shell"><a href="#了解shell" class="headerlink" title="了解shell"></a>了解shell</h5><p>第一章中不停的在提及shell。shell是一个命令解释器，他输出一个提示符，等待输入一个命令符，然后执行这个命令。简单的理解一下，Windows系统中我们打开一个程序需要点击其图像，Linux则需要我们输入命令行来打开，shell就是那个供用户输入命令行的程序。shell是一个应用程序，连接了用户和linux内核。参考：(<a href="http://c.biancheng.net/view/706.html">http://c.biancheng.net/view/706.html</a>)</p>
+<h5 id="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"><a href="#系统是硬件和软件互相交织的集合体（简单介绍一下硬件）" class="headerlink" title="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"></a>系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</h5><h6 id="1-总线"><a href="#1-总线" class="headerlink" title="1.总线"></a>1.总线</h6><p>像神经一样，贯穿于整个系统，携带信息字节并负责在各个部门传递</p>
+<h6 id="2-I-x2F-O设备"><a href="#2-I-x2F-O设备" class="headerlink" title="2.I&#x2F;O设备"></a>2.I&#x2F;O设备</h6><p>及输入&#x2F;输出设备，键盘、鼠标为输入设备，显示器和磁盘为输出设备。</p>
+<h6 id="3-主存"><a href="#3-主存" class="headerlink" title="3.主存"></a>3.主存</h6><p>主存是一个临时存储设备，在处理器执行程序时，用来存放程序和程序处理的数据。</p>
+<h6 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4.处理器"></a>4.处理器</h6><p>中央处理单元（CPU），简称处理器，世界是（或执行）存储在主存中指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向主存中的某条机器语言指令（即含有该指令的地址）。</p>
+<h5 id="不大不小的疑惑"><a href="#不大不小的疑惑" class="headerlink" title="不大不小的疑惑"></a>不大不小的疑惑</h5><p>此时年轻懵懂的我不明白为什么有很多很多人念着Linux系统的好，Windows这种图形化控着与此相比有什么难以弥补的劣势？据说以后工作实践中，项目大多也是基于Linux完成的，有时间了一定好好了解一下其中的内幕。</p>
+<h1 id="第二章-信息的表示和处理"><a href="#第二章-信息的表示和处理" class="headerlink" title="第二章 信息的表示和处理"></a>第二章 信息的表示和处理</h1><h6 id="研究数字的实际表示的意义"><a href="#研究数字的实际表示的意义" class="headerlink" title="研究数字的实际表示的意义"></a>研究数字的实际表示的意义</h6><p> 能够了解可以表时得知和不同算术运算的属性。从而使程序正确工作，更具可移植性，更安全。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png"></p>
+<h6 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h6><p>大多数计算机使用8位的块（字节）作为最小的可寻址的内存单元。机器级的程序将内存视为一个非常大的字节数组，称为虚拟内存。内存的每个字节都由一个唯一的数字来标识，称为它的地址。所有可能地址的集合称为虚拟地址空间。</p>
+<h6 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h6><p>二进制表示起来过用冗长，而十进制与二进制的转化很麻烦，十六进制表示起来很方便。如果二进制位数不是4的倍数，最左侧补0。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png"></p>
+<p>j代表的是16进制0的数量。前面的i是1的数量，注意只能是1,11,111,1111这四种表示。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307203238.png"></p>
+<h5 id="整型"><a href="#整型" class="headerlink" title="整型"></a>整型</h5><h6 id="字数据大小"><a href="#字数据大小" class="headerlink" title="字数据大小"></a>字数据大小</h6><p>字长决定虚拟地址空间的最大大小，我们常说的32位64位都是指的字长，32位字长虚拟地址空间为2的32次方及4GB。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204456.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204729.png"></p>
+<p>#include&lt;stdint.h&gt;中有关于int32_t等的宏定义，确定的大小可以避免很多麻烦，程序的可移植性也更高。</p>
+<h6 id="寻址和字节顺序"><a href="#寻址和字节顺序" class="headerlink" title="寻址和字节顺序"></a>寻址和字节顺序</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307205643.png"></p>
+<p>可以这样说，大端是更符合我们日常思维的那一种。两种端序没有优劣之分，选择哪种字节顺序没有技术上的理由。我们只需选择一种并且始终如一地坚持。</p>
+<h6 id="C语言中的逻辑运算"><a href="#C语言中的逻辑运算" class="headerlink" title="C语言中的逻辑运算"></a>C语言中的逻辑运算</h6><p>逻辑运算和按位运算有很大的不同，其一逻辑运算中所有的非零参数都表示TRUE，0参表FALSE，其二，如果对第一个参数求值就能确定表达式的结果，那么逻辑运算就不会对第二个参数求值。</p>
+<h6 id="C语言中的移位运算"><a href="#C语言中的移位运算" class="headerlink" title="C语言中的移位运算"></a>C语言中的移位运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307222226.png"></p>
+<p>几乎所有的编译器都对有符号数使用算数右移（保留最高位），对于无符号数，右移必须是逻辑的。Java中x&gt;&gt;&gt;k是逻辑右移，x&gt;&gt;k是算数右移。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307223156.png"></p>
+<h6 id="强制类型转换"><a href="#强制类型转换" class="headerlink" title="强制类型转换"></a>强制类型转换</h6><p>强制类型转换结果保持位不变，改变的是对位的解析方式</p>
+<h6 id="有符号和无符号处理"><a href="#有符号和无符号处理" class="headerlink" title="有符号和无符号处理"></a>有符号和无符号处理</h6><p>当表达式中同时出现也有符号和无符号，那么C语言会隐式的将有符号数转换为无符号数（位不变），例如表达式-1&lt;0u返回的结果是0，也就是表达式错误，因为将-1的补码按照无符号数来解析。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324010451.png"></p>
+<p>看着好像没什么问题，但是当len等于0，在运算0-1时，计算机会当作0+(-1),因为默认是有符号，而len是无符号的。所以(-1)要从补码转换成无符号数也就是T2U，也就是UMax，所以程序会进入死循环，并且访问到a的非法元素。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324012052.png"></p>
+<p>A.当s比t短的时候会错误的返回1</p>
+<p>B.两数相减得到负数会当作无符号数处理，最高位为1也就是一个很大的数大于零</p>
+<p>C.改为return strlen(s)&gt;strlen(t)</p>
+<h6 id="扩展一个数字的位表示"><a href="#扩展一个数字的位表示" class="headerlink" title="扩展一个数字的位表示"></a>扩展一个数字的位表示</h6><p>如果想扩展一个数字，只需要在它的最高位补上n个符号位，比如说101表示-3，在最左侧加1变为1101还是表示-3，我们可以看到它最高位与后一位的和-8+4&#x3D;-4这也是扩展前符号位的值，我们再给它扩展一位变为11101它还是表示-3，对于非负数我们只需在其前面补上0即可，正好今天在做datalab的howManyBits，和这个正好是相关的，刚开始看到网上师傅举得例子还有点懵，为啥101和1101代表的都是-3，所以我们可以知道有无数种形式的补码可以表示-3，而101是最短的一种。</p>
+<h6 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h6><p>截断无符号数：</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324001954.png"></p>
+<h6 id="对于整数运算最后的思考-模运算"><a href="#对于整数运算最后的思考-模运算" class="headerlink" title="对于整数运算最后的思考 模运算"></a>对于整数运算最后的思考 模运算</h6><p>计算机执行整数运算实际上是一种模运算，什么是模运算呢？模运算也就是求余运算，在前面我们可以看到几乎所有的溢出都采取了模最高位取余数的方法。补码的表示，可以使正数加上负数的补码等于减去其原码比如</p>
+<figure class="highlight basic"><table><tr><td class="code"><pre><span class="line"><span class="number">3</span>-<span class="number">2</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>-<span class="number">0000</span> <span class="number">0010</span>=  <span class="number">0000</span> <span class="number">0001</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>+<span class="number">1111</span> <span class="number">1110</span>=<span class="number">1</span> <span class="number">0000</span> <span class="number">0001</span>//最高位舍去</span><br></pre></td></tr></table></figure>
+
+<h5 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h5><h6 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h6><p>二进制小数，小数点左边是二的非负权（非负幂），小数点右边是二的负权，这一点和十进制小数并无区别。</p>
+<p>二进制小数只能精确的表示形如（x*2的y次幂）的数</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091512.png"></p>
+<h6 id="IEEE浮点数表示"><a href="#IEEE浮点数表示" class="headerlink" title="IEEE浮点数表示"></a>IEEE浮点数表示</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091842.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327092231.png"></p>
+<p>正如书中提到的，浮点数看起来比较深奥难懂，但它是建立在小而一致的原则之上的。</p>
+<p>根据exp的值，可以分为三种不同的情况，规格化的、非规格化的或特殊值</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093637.png"></p>
+<h6 id="规格化得值"><a href="#规格化得值" class="headerlink" title="规格化得值"></a>规格化得值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093742.png"></p>
+<p>小数点在f段最高位的左侧，隐含的以1开头表示。</p>
+<h6 id="偏置值"><a href="#偏置值" class="headerlink" title="偏置值"></a>偏置值</h6><p>这个师傅讲的比较简单明了：</p>
+<p>拿单精度来说，（规格化）e的取值范围是0000 0001<del>1111 1110也就是1</del>254，肯定不能只使用无符号表示，因为这样只能表示非负数，所以使用E&#x3D;e-Bias，其范围就是-126<del>127，那么为什么不直接用补码表示e呢？这样E的范围就是1111 1111</del>0111 1111&#x3D;（-128~127），可以看出使用偏置和使用补码表示的范围相差不大，还可以不用考虑符号</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327134820.png"></p>
+<h6 id="非规格化的值"><a href="#非规格化的值" class="headerlink" title="非规格化的值"></a>非规格化的值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327094556.png"></p>
+<h6 id="特殊值"><a href="#特殊值" class="headerlink" title="特殊值"></a>特殊值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327095039.png"></p>
+<h6 id="舍入"><a href="#舍入" class="headerlink" title="舍入"></a>舍入</h6><p>浮点数浮点数采用向偶数最接近的偶数舍入的方法，这样对与那些处在中间的数在50%的时间里会向上舍入(1.5—&gt;2)，在另外的50%的时间会向下舍入(2.5—&gt;2)。</p>
+<h6 id="浮点数运算"><a href="#浮点数运算" class="headerlink" title="浮点数运算"></a>浮点数运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210735.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210747.png"></p>
+<p>下面是对3丢失的解释，所以说浮点数计算不符合结合律</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">对于float</span> <span class="string">符号位</span> <span class="string">阶码</span> <span class="string">尾数分别为</span> <span class="number">1</span> <span class="number">8</span> <span class="number">23</span></span><br><span class="line"><span class="number">1e10</span> <span class="string">=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0000</span><span class="string">）</span></span><br><span class="line">     <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0000 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">表示成浮点数</span>   <span class="string">bias=127</span> <span class="string">所以E=127+33=160=1010</span> <span class="number">0000</span></span><br><span class="line"><span class="number">1e10</span></span><br><span class="line"><span class="string">浮点数：0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span> </span><br><span class="line"><span class="number">1e10</span><span class="string">+3=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">）</span></span><br><span class="line">      <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0011 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">浮点数</span> <span class="string">=0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span></span><br><span class="line"><span class="string">可以看出后面括号里的的3=0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">直接被舍掉了</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="第三章-程序的机器级表示"><a href="#第三章-程序的机器级表示" class="headerlink" title="第三章  程序的机器级表示"></a>第三章  程序的机器级表示</h1><h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>从十六位过渡到64位不显得突兀，在指令后面加了字符后缀，确定大小<img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114357.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114424.png"></p>
+<h2 id="访问信息"><a href="#访问信息" class="headerlink" title="访问信息"></a>访问信息</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405120704.png"></p>
+<h2 id="ATT和Intel"><a href="#ATT和Intel" class="headerlink" title="ATT和Intel"></a>ATT和Intel</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405122311.png"></p>
+<p>之前接触的是intel的导致我以为这里出现了错误</p>
+<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><p>更新一点对栈的认知，之前一直以为将栈顶的值pop之后，内存中的值会消失，原来值会一直存在，直到被覆盖。</p>
+<h2 id="算术和逻辑操作"><a href="#算术和逻辑操作" class="headerlink" title="算术和逻辑操作"></a>算术和逻辑操作</h2><h3 id="算术操作"><a href="#算术操作" class="headerlink" title="算术操作"></a>算术操作</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405214930.png"></p>
+<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405220431.png"></p>
+<h2 id="函数传参和寄存器的关系"><a href="#函数传参和寄存器的关系" class="headerlink" title="函数传参和寄存器的关系"></a>函数传参和寄存器的关系</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230406093404.png"></p>
+<p>是按照这个顺序进行传参，并且返回值默认是ax。</p>
+]]></content>
+      <tags>
+        <tag>阅读</tag>
+        <tag>CSAPP</tag>
       </tags>
   </entry>
   <entry>
@@ -1061,103 +1161,5 @@
 <p>将二进制(机器码)翻译成高级语言，我们可以再套一层虚拟机，将我们的c语言转变成这个汇编。通过这次虚拟机的实现过程，对计算机行为有了更进一步的了解。</p>
 <p><a href="https://www.jmeiners.com/lc3-vm/"><a href="https://www.jmeiners.com/lc3-vm/">Write your Own Virtual Machine (jmeiners.com)</a></a></p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>gcc常用命令</title>
-    <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure>
-
-<p>默认生成a.out的可执行文件，main.c经历了<strong>预处理</strong>、<strong>汇编</strong>、<strong>编译</strong>、<strong>链接</strong>操作</p>
-<span id="more"></span>
-
-<p><strong>2.</strong> 指定输出文件的文件名 <strong>-o</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure>
-
-<p>生成可执行文件main</p>
-<p><strong>3.</strong> 预处理 -E</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -E main.c -o main.i</span><br></pre></td></tr></table></figure>
-
-<p>最简单的打印hello，world都要大几百行代码。预处理的作用是直接将#include&lt;xxx.h&gt;、#include”xxx.h”还有宏进行直接的复制粘贴操作.尖括号&lt;&gt;和双引号”“的区别在于，尖括号包含的头文件预处理器会直接搜索指定目录，双引号包含的头文件预处理器则优先在当前目录下查找。也就是系统的头文件我们一般都使用尖括号&lt;&gt;,自己定义的则使用双引号。gcc有选项可以更改目录，这里不再多说。</p>
-<p><strong>4.</strong> 编译生成汇编代码</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -S main.i</span><br></pre></td></tr></table></figure>
-
-<p>生成名为main.s的文本文件，里面是汇编语言。</p>
-<p><strong>5.</strong> 汇编</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c main.s</span><br></pre></td></tr></table></figure>
-
-<p>汇编器将汇编代码转换成目标文件main.o</p>
-<p><strong>6.</strong> 链接</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.o -o main</span><br></pre></td></tr></table></figure>
-
-<p>链接器将目标文件链接为可执行文件-o为优化等级，-O1、-O2、-O3，级别越大优化效果越好。</p>
-<h3 id="多文件编译方法"><a href="#多文件编译方法" class="headerlink" title="多文件编译方法"></a>多文件编译方法</h3><p>对于add.h、add.c、main.c三个文件</p>
-<p>add.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>add.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>main.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>1.直接源码到可执行文件</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c add.c -o main</span><br></pre></td></tr></table></figure>
-
-<p>生成名为main的可执行文件</p>
-<p><strong>2.分别编译各个源文件，然后进行链接</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c add.c    #生成add.o</span><br><span class="line">gcc -c main.c   #生成main.o</span><br><span class="line">gcc -o add.o main.o -o main     #链接生成可执行文件</span><br></pre></td></tr></table></figure>
-
-<p>两种方法各有优缺点，第一种简便但是需要对所有文件进行重新编译，第二种方法可以只重新编译修改的文件，而不需要浪费时间重新编译整个工程。（详情请看另一篇介绍编译与链接的文章）</p>
-<p>参考文章：<a href="https://blog.csdn.net/yinjiabin/article/details/7731817">linux gcc编译多个源文件的方法_yinjiabin的博客-CSDN博客</a></p>
-]]></content>
-      <tags>
-        <tag>gcc</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>AES算法</title>
-    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
-<p>下面以明文和密钥都是128位来举例。</p>
-<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
-<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
-<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
-<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
-<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
-<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
-<p>比如初始矩阵为</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
-<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
-<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
-<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
-<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
-<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
-<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
-<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
-<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
-<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
-<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
-<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
-<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
-<p>字节代换：查S盒进行代换</p>
-<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
-<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
-<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
-<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
-]]></content>
-      <tags>
-        <tag>密码学</tag>
-      </tags>
   </entry>
 </search>
