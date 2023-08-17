@@ -1115,4 +1115,49 @@
         <tag>gcc</tag>
       </tags>
   </entry>
+  <entry>
+    <title>AES算法</title>
+    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
+<p>下面以明文和密钥都是128位来举例。</p>
+<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
+<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
+<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
+<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
+<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
+<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
+<p>比如初始矩阵为</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
+<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
+<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
+<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
+<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
+<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
+<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
+<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
+<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
+<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
+<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
+<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
+<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
+<p>字节代换：查S盒进行代换</p>
+<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
+<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
+<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
+<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+      </tags>
+  </entry>
 </search>
