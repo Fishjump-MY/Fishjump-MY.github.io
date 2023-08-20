@@ -1,3 +1,4 @@
+http://example.com/2023/08/20/RC4/
 http://example.com/2023/08/18/AES%E7%AE%97%E6%B3%95/
 http://example.com/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/
 http://example.com/2023/05/28/angr%E5%AD%A6%E4%B9%A0/
@@ -19,3 +20,4 @@ http://example.com/tags/gcc/
 http://example.com/tags/%E9%98%85%E8%AF%BB/
 http://example.com/tags/CSAPP/
 http://example.com/tags/%E6%B1%87%E7%BC%96/
+http://example.com/tags/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/

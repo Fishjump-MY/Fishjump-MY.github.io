@@ -1162,4 +1162,33 @@
 <p><a href="https://www.jmeiners.com/lc3-vm/"><a href="https://www.jmeiners.com/lc3-vm/">Write your Own Virtual Machine (jmeiners.com)</a></a></p>
 ]]></content>
   </entry>
+  <entry>
+    <title>RC4</title>
+    <url>/2023/08/20/RC4/</url>
+    <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>RC4是<strong>对称密码</strong>算法中的<strong>流密码</strong>加密算法，对称及加解密的密钥相同，流密码意思是加密是逐字节进行的与之对应的就是<strong>块加密</strong>。</p>
+<span id="more"></span>
+
+<h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h2><p>RC4生成一种称为密钥流的伪随机流（S表），他与明文通过异或操作混合，以达到加密的目的，解密时与明文进行异或操作。其密钥流由两部分组成，分别是KSA和PRGA。可以简单的理解为RC4由这两部分组成。</p>
+<p><strong>KSA</strong> 部分的代码。密钥的长度一般为5<del>16字节及40</del>128位，通常不超过256位。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    j=(j+S[i]+key[i % keylength]) % <span class="number">256</span>;  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>PRGA</strong> 根据待加密的data进行置换，得到的子密码k与data进行异或即可得到密文</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">i,j,t=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(m=<span class="number">0</span>;j&lt;datalength;m++)</span><br><span class="line">&#123;</span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>合并起来的代码</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Swap</span><span class="params">(<span class="type">int</span>*a,<span class="type">int</span>*b)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    t=*a;</span><br><span class="line">    *a=*b;</span><br><span class="line">    *b=t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> key[]=<span class="string">&quot;fishjump&quot;</span>;</span><br><span class="line">    <span class="type">int</span> keylength=<span class="built_in">strlen</span>(key);</span><br><span class="line">    <span class="type">int</span> S[<span class="number">255</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      j=((j+S[i]+key[i % keylength]) % <span class="number">256</span>);  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">      Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    j=<span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span> data[]=<span class="string">&quot;mzyloveyy&quot;</span>;</span><br><span class="line">    <span class="type">int</span> datalength=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> m=<span class="number">0</span>;m&lt;datalength;m++)</span><br><span class="line">  &#123; </span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    <span class="type">int</span> k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%x\n&quot;</span>,data[m]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>验证一下成果</p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234509.png"></p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234535.png"></p>
+<p>okk。</p>
+<h2 id="特征"><a href="#特征" class="headerlink" title="特征"></a><strong>特征</strong></h2><p>总结一下，如何在茫茫人海中一眼认出RC4？<strong>256位的数组</strong>，<strong>交换函数</strong>，异或，over。</p>
+<p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+        <tag>对称加密</tag>
+      </tags>
+  </entry>
 </search>
