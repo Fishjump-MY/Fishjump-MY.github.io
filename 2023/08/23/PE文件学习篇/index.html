@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在《逆向工程核心原理》这本书接触到了PE文件，但是当时学不进去，感觉很晦涩，虽然是一个结构体一个结构体的进行分析，但还是掌握不了。今天在YouTube上找到了一个视频，看了一下有种恍然大明白的感觉。正巧今天看了一期关于国产大飞机C919的视频很有感想，我们的策略是先整体后局部，即不过分死抠细节，不把国产化率排在首位，先造出来一个大飞机，于是我们就有了一张蓝图，知道方向在哪里。学习PE文件这里也是，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PE文件学习篇">
+<meta property="og:url" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="在《逆向工程核心原理》这本书接触到了PE文件，但是当时学不进去，感觉很晦涩，虽然是一个结构体一个结构体的进行分析，但还是掌握不了。今天在YouTube上找到了一个视频，看了一下有种恍然大明白的感觉。正巧今天看了一期关于国产大飞机C919的视频很有感想，我们的策略是先整体后局部，即不过分死抠细节，不把国产化率排在首位，先造出来一个大飞机，于是我们就有了一张蓝图，知道方向在哪里。学习PE文件这里也是，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608020344.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608015737.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/1379525-20191026162607168-1322217015.jpg">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/1379525-20191026162634249-935893360.jpg">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/1379525-20191030090458584-97459483.jpg">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608021806.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608022014.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608022309.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608023411.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608024443.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608025007.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608025535.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608025929.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608030333.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608030430.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608030736.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608031239.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608034852.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608032628.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608040613.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608024443.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141251.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608140246.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608140218.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141338.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141402.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141938.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608142002.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608142256.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608142319.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143400.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143227.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143423.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143754.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143744.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608145505.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608145426.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608150619.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151039.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151300.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151311.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151717.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608153437.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608154414.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608154708.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608152911.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608155130.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608155207.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608195924.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608200001.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608214913.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608213320.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608214948.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608213615.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608221450.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608221509.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609012703.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609013111.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609022947.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609023025.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609212516.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609212915.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213106.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213538.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213626.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213703.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610021138.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610021641.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610022933.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610023052.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610031033.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610031802.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610034056.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610034457.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230612183816.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230612184514.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143105.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143154.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143402.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143559.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143749.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143805.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626142054.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608032628.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613030824.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613032013.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613032216.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613032917.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230616021827.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230616022003.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230616022108.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817165959.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817170505.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817170614.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817170716.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817172218.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821154814.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821155029.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821155734.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821163246.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821163637.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822005247.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822003801.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822010616.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822123240.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822121355.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822121737.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822123421.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822122250.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822124731.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822154619.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822161736.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230823003816.png">
+<meta property="og:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230823004102.png">
+<meta property="article:published_time" content="2023-08-22T17:20:20.000Z">
+<meta property="article:modified_time" content="2023-08-22T17:20:20.579Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="PE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608020344.png">
+
+<link rel="canonical" href="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>PE文件学习篇 | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PE文件学习篇
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-08-23 01:20:20" itemprop="dateCreated datePublished" datetime="2023-08-23T01:20:20+08:00">2023-08-23</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>22 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在《逆向工程核心原理》这本书接触到了PE文件，但是当时学不进去，感觉很晦涩，虽然是一个结构体一个结构体的进行分析，但还是掌握不了。今天在YouTube上找到了一个视频，看了一下有种恍然大明白的感觉。正巧今天看了一期关于国产大飞机C919的视频很有感想，我们的策略是先整体后局部，即不过分死抠细节，不把国产化率排在首位，先造出来一个大飞机，于是我们就有了一张蓝图，知道方向在哪里。学习PE文件这里也是，先整体的过一遍，知道个轮廓，在学起来会容易和有趣不少。</p>
+<span id="more"></span>
+
+<p>强烈推荐这个<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=oSpeXGHaKAk&t=15123s">PE教程</a></p>
+<h2 id="PE基础"><a href="#PE基础" class="headerlink" title="PE基础"></a>PE基础</h2><h3 id="PE文件概念"><a href="#PE文件概念" class="headerlink" title="PE文件概念"></a>PE文件概念</h3><p>PE文件(Portable Executable file)，是一种可执行文件格式，满足此格式的文件都可以在Windows操作系统运行。在Linux系统运行的文件是ELF。</p>
+<h4 id="识别PE文件"><a href="#识别PE文件" class="headerlink" title="识别PE文件"></a>识别PE文件</h4><p>通过后缀名判断文件格式是不靠谱的，因为后缀名是可以随意更改的，我们用一个十六进制编辑器打开一个文件，如果他的开头是MZ，且0x3c–0x3f所指示的偏移地址处的值是PE那么我们几乎可以肯定这是个PE文件。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608020344.png"></p>
+<h3 id="PE文件格式"><a href="#PE文件格式" class="headerlink" title="PE文件格式"></a>PE文件格式</h3><p>从DOS头到节区头是PE头部分，其下的节区合成PE体。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608015737.png"></p>
+<p>来几张高清大图</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/1379525-20191026162607168-1322217015.jpg"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/1379525-20191026162634249-935893360.jpg"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/1379525-20191030090458584-97459483.jpg"></p>
+<p>我们学习PE文件就是学习这些结构体，先对结构体来个介绍。我们可以通过PEView查看pe文件，将notepad.exe拖入。我们先来分析一下存储时的PE文件，没错PE文件运行时和在硬盘中存储时是不同的。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608021806.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608022014.png"></p>
+<h3 id="概括"><a href="#概括" class="headerlink" title="概括"></a>概括</h3><p><strong>DOS部分</strong>（早期为了兼容DOS所设计）</p>
+<ul>
+<li><p><strong>IMAGE_DOS_HEADER</strong>(64字节)<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608022309.png"></p>
+</li>
+<li><p><strong>MS_DOS Stu</strong>，DOS存根，大小是不固定的，链接器会在这里插入数据，不影响程序运行，病毒程序可以插入在这里。虽然倒下不固定，但我们可以通过IMAGE_DOS_HEADER结构体的最后一个成员PE头开始的位置，用这个值减去64即DOS存根的大小。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608023411.png"></p>
+</li>
+<li><p>​</p>
+</li>
+</ul>
+<p><strong>PE文件头</strong></p>
+<ul>
+<li><p><strong>IMAGE_NT_HEADERS</strong>即PE头结构体，包括三个部分<strong>PE标识</strong>，<strong>标准PE头</strong>，<strong>扩展PE头</strong><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608024443.png"></p>
+</li>
+<li><p><strong>IMAGE_FILE_HEADER</strong>(20字节)<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608025007.png"></p>
+</li>
+<li><p><strong>IMAGE_OPTIONAL_HEADER</strong>（32位）(224字节)（可扩展），IMAGE_FILE_HEADER结构体的一个成员记录该结构体的大小。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608025535.png"></p>
+</li>
+</ul>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608025929.png"></p>
+<p><strong>节表</strong> （记录节的信息）</p>
+<ul>
+<li><p><strong>IMAGE_SECTION_HEADER</strong> (40字节)</p>
+<p>有几个节区就有几个这样的结构体</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608030333.png"></p>
+</li>
+</ul>
+<p>​        IMAGE_SECTION_HEADER .text<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608030430.png"></p>
+<p>节表后面是一些意义不大的数据，我们可以有效利用这些空间，所以节表和节表数据是不相邻的。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608030736.png"></p>
+<p>在可选头结构体中有一个成员记录<strong>PE头</strong>(DOS头+PE文件头+节表)的大小<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608031239.png"></p>
+<h4 id="文件对齐"><a href="#文件对齐" class="headerlink" title="文件对齐"></a>文件对齐</h4><p>大小要满足是最小单位的整数倍，这样做可以提高效率。牺牲一定空间换取时间。节数据也要满足文件对齐。文件对齐上面的成员记录着内存对齐的大小，即程序加载到内存中后的对齐单位<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608034852.png"></p>
+<h4 id="PE文件有两种状态："><a href="#PE文件有两种状态：" class="headerlink" title="PE文件有两种状态："></a>PE文件有两种状态：</h4><p>磁盘状态（存储）</p>
+<p>内存状态（运行）</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608032628.png"></p>
+<h4 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q &amp; A"></a>Q &amp; A</h4><p>Q:为什么文件对齐参数与内存对齐参数不相同？</p>
+<p>A:因为它们分别用于优化文件I&#x2F;O和虚拟内存管理。</p>
+<h3 id="DOS头属性说明"><a href="#DOS头属性说明" class="headerlink" title="DOS头属性说明"></a>DOS头属性说明</h3><p>IMAGE_DOS_HEADER结构体是为了早期16位程序而准备的，现在已经弃用除了头尾两个成员，其余的都是可以更改的<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608040613.png"></p>
+<p>更改之后不影响程序运行。</p>
+<h3 id="PE头属性说明"><a href="#PE头属性说明" class="headerlink" title="PE头属性说明"></a>PE头属性说明</h3><p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608024443.png"></p>
+<h4 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h4><p>4个字节的签名。更改之后不可运行。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141251.png"></p>
+<h4 id="IMAGE-FILE-HEADER-（标准PE头）"><a href="#IMAGE-FILE-HEADER-（标准PE头）" class="headerlink" title="IMAGE_FILE_HEADER   （标准PE头）"></a>IMAGE_FILE_HEADER   （标准PE头）</h4><p>长度20字节。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608140246.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608140218.png"></p>
+<h5 id="Machine"><a href="#Machine" class="headerlink" title="Machine"></a><strong>Machine</strong></h5><p>两个字节，标记可以程序可以运行在什么样的CPU上。                                                           任意：<strong>0</strong> ；Intel 386以及后续：<strong>14C</strong>；x64：<strong>8664</strong></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141338.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141402.png"></p>
+<h5 id="Number-of-Section"><a href="#Number-of-Section" class="headerlink" title="Number of Section"></a>Number of Section</h5><p>两个字节记录节的数目。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608141938.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608142002.png"></p>
+<h5 id="TimeDateStamp"><a href="#TimeDateStamp" class="headerlink" title="TimeDateStamp"></a>TimeDateStamp</h5><p>时间戳，四个字节，在我的工具尚未能显示，我没有权限。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608142256.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608142319.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143400.png"></p>
+<p>程序的时间戳是指在Windows操作系统上编译或链接可执行文件时，由编译器或链接器自动插入的一个时间戳。它通常存储为32位无符号整数，表示从1970年1月1日00:00:00（格林威治时间）开始的秒数。可以更改。</p>
+<h5 id="Pointer-to-Symbol-Table-amp-Number-of-Symbol"><a href="#Pointer-to-Symbol-Table-amp-Number-of-Symbol" class="headerlink" title="Pointer to Symbol Table &amp;Number of Symbol"></a>Pointer to Symbol Table &amp;Number of Symbol</h5><p>调试相关，不关注，共8个字节<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143227.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143423.png"></p>
+<h5 id="Size-of-Optional-Header"><a href="#Size-of-Optional-Header" class="headerlink" title="Size of Optional  Header"></a>Size of Optional  Header</h5><p>两个字节，因为可选头长度是不固定的，该成员记录MAGE_OPTIONAL_HEADER的大小，32位默认是0xE0,64位默认是0xF0。如果可选头长度更改，也要对应修改这里。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143754.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608143744.png"></p>
+<h5 id="Characteristics"><a href="#Characteristics" class="headerlink" title="Characteristics"></a>Characteristics</h5><p>两个字节，记录文件属性<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608145505.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608145426.png"></p>
+<p>010F –&gt;0000 0001 0000 1111,每一个位都有意义，比如下标为1的地方是1，那么代表该文件是可执行文件。</p>
+<h4 id="IMAGE-OPTIONAL-HEADER-（扩展PE头）"><a href="#IMAGE-OPTIONAL-HEADER-（扩展PE头）" class="headerlink" title="IMAGE_OPTIONAL_HEADER （扩展PE头）"></a>IMAGE_OPTIONAL_HEADER （扩展PE头）<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608150619.png"></h4><p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151039.png"></p>
+<h5 id="Magic"><a href="#Magic" class="headerlink" title="Magic"></a>Magic</h5><p>两个字节，标志程序是32位还是64位（最准确）。PE32：10B ；PE32+:20B<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151300.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151311.png"></p>
+<h5 id="Address-of-Entry-Point"><a href="#Address-of-Entry-Point" class="headerlink" title="Address of Entry Point"></a>Address of Entry Point</h5><p>4个字节，程序的入口。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608151717.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608153437.png"></p>
+<p>记录代码开始的位置，记录的是相对Image Base的距离。PE文件在内存中展开后最前面都是数据，需要一个值告诉操作系统从哪里开始运行。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608154414.png"></p>
+<p>那么么该程序就从01000000+0000739D&#x3D;0100739D,     OD会在程序开始设置一个断点，地址就是这里。对这里进行修饰会增加逆向分析的难度，因为调试机器找不到程序入口。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608154708.png"></p>
+<h5 id="Image-Base"><a href="#Image-Base" class="headerlink" title="Image Base"></a>Image Base</h5><p>4字节，<strong>内存</strong>镜像基址。对于32位机器，操作系统会位每个进程分配一个4GB的虚拟地址空间，之所以是4GB，是因为32位操作系统指针长度为4字节32为，所以寻址能力是2的32次方。该成员指明程序在虚拟地址空间的何处展开，即基地址。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608152911.png"></p>
+<h5 id="Section-Alignment"><a href="#Section-Alignment" class="headerlink" title="Section Alignment"></a>Section Alignment</h5><p>内存对齐大小。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608155130.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608155207.png"></p>
+<h5 id="File-Alignment"><a href="#File-Alignment" class="headerlink" title="File Alignment"></a>File Alignment</h5><p>文件对齐大小。</p>
+<h5 id="Size-of-Image"><a href="#Size-of-Image" class="headerlink" title="Size of Image"></a>Size of Image</h5><p>文件在内存中展开时的大小。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608195924.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608200001.png"></p>
+<h5 id="Size-of-Header"><a href="#Size-of-Header" class="headerlink" title="Size of Header"></a>Size of Header</h5><p>四字节，所有头+节表按照文件对齐后的大小。</p>
+<h5 id="Checksum"><a href="#Checksum" class="headerlink" title="Checksum"></a>Checksum</h5><p>校验和，以两字节为单位，将所有的数据相加。用来判断程序是否受到修改，但是我们可以通过修改其他数值来平衡，所以意义不大。</p>
+<h3 id="PE节表"><a href="#PE节表" class="headerlink" title="PE节表"></a>PE节表</h3><p>学习节表之前首先要知道PE文件的两种状态</p>
+<p>即<strong>文件</strong>状态和<strong>内存</strong>状态<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608214913.png"></p>
+<p>节表以结构体的形式描述节的信息，每个节表40字节<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608213320.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608214948.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608213615.png"></p>
+<h5 id="Name"><a href="#Name" class="headerlink" title="Name"></a>Name</h5><p>8字节，当前节的名字，可以随意更改。</p>
+<h5 id="Vitual-Size"><a href="#Vitual-Size" class="headerlink" title="Vitual Size"></a>Vitual Size</h5><p>当前这个节未对齐时的大小，即实际大小。实际大小有可能会比Size of Raw Data大，因为未初始化的全局变量在文件中是不占空间的。在内存中展开时以什么为基准呢？答案是谁大按谁，如果Vitual Size&gt;Size of Raw Data,则按照Vitual Size展开，反之则按照Size of Raw Data。</p>
+<h5 id="VirtualAddress"><a href="#VirtualAddress" class="headerlink" title="VirtualAddress"></a>VirtualAddress</h5><p>在内存中的偏移地址，加上ImageBase则是内存中的真实地址。</p>
+<h5 id="Size-of-Raw-Data"><a href="#Size-of-Raw-Data" class="headerlink" title="Size of Raw Data"></a>Size of Raw Data</h5><p>文件对齐后的大小，Vitual Size的值是7748，文件对其大小是100，Size of Raw Data的值为7800。</p>
+<h5 id="Pointer-to-Raw-Data"><a href="#Pointer-to-Raw-Data" class="headerlink" title="Pointer to Raw Data"></a>Pointer to Raw Data</h5><p>当前节在文件中从何处开始<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608221450.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608221509.png"></p>
+<h5 id="Charactenstics"><a href="#Charactenstics" class="headerlink" title="Charactenstics"></a>Charactenstics</h5><p>四字节，节的属性。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609012703.png"></p>
+<p>60 00 00 20 –&gt;0110 0000 0000 0000 0000 0000 0010 0000<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609013111.png"></p>
+<p>可以看到下标为5的位是1，代表该节中含有代码。</p>
+<h3 id="RVA与FOA的转换"><a href="#RVA与FOA的转换" class="headerlink" title="RVA与FOA的转换"></a>RVA与FOA的转换</h3><p>用一个简单的程序开始RVA.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;Windows.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> c = <span class="number">123456</span>;</span><br><span class="line">    <span class="type">int</span> a, b;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;全局变量的地址是：%p\n&quot;</span>, &amp;c);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;全局变量的值是：%d\n&quot;</span>, c);</span><br><span class="line">    getchar();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们的任务是通过地址找到该全局变量，然后改变它的值。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609022947.png"></p>
+<p>我们运行程序，看到其地址是00bca000，这是在内存中的地址，我们知道PE文件在内存中和在文件中展开是不一样的，我们就是要通过内存中的这个地址找到文件中对应的位置。</p>
+<h4 id="RVA"><a href="#RVA" class="headerlink" title="RVA"></a>RVA</h4><p>相对虚拟地址(Relative virtual address) <strong>RVA</strong>&#x3D;内存地址-ImageBase <img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609023025.png"></p>
+<p>查看其Image Base得到 RVA&#x3D;D0A000-400000&#x3D;90 A000</p>
+<h4 id="FOA"><a href="#FOA" class="headerlink" title="FOA"></a>FOA</h4><p>文件偏移地址(File offset address) <strong>FOA</strong></p>
+<h4 id="转换过程"><a href="#转换过程" class="headerlink" title="转换过程"></a>转换过程</h4><ol>
+<li>判断RVA是否在PE头部，如果在则<strong>RVA&#x3D;FOA</strong>，因为头部没有被拉伸</li>
+<li>如果不在头部，判断RVA位于哪个节中 ，求出 差值&#x3D;RVA-节.VA,也就是该地址相对节头的距离。为什么要求差值？因为在文件和在内存中差值是相同的。                           FOA&#x3D;节.PointerToData+差值</li>
+</ol>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609212516.png"></p>
+<p>他的位置是在00CAA000处，这里的位置即内存中的位置，不用想，他肯定不在头中。我们必须将运行中的程序进行分析，因为基地址也是随机化的。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609212915.png"></p>
+<p>Image Base&#x3D;00C90000，全局变量的地址是00CAA000<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213106.png"></p>
+<p>此处的RVA即在文件中的偏移量，由此我们确定全局变量在data节中，差值为0，那么我们查看该节在文件中的位置即Point to Raw Data&#x3D;8000.跳转到此处，其值为0001E240即十六进制的123456<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213538.png"></p>
+<p>修改并保存<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213626.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230609213703.png"></p>
+<p>我大为震惊。其实这个过程遇到了很多麻烦，基地址随机是在这个过程中认识到的。这个过程挺美妙的，虽然是个很简单的东西，却体现出了逆向的的思想与魅力。</p>
+<h2 id="修改PE文件"><a href="#修改PE文件" class="headerlink" title="修改PE文件"></a>修改PE文件</h2><h3 id="在空白区域添加代码"><a href="#在空白区域添加代码" class="headerlink" title="在空白区域添加代码"></a>在空白区域添加代码</h3><p>我们要插入这样一个代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    MessageBox(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610021138.png"></p>
+<p>功能呢就是弹出一个这样的错误窗口。这个程序的核心就是调用了一个messagebox函数弹出了一个窗口。由于我们是要对pe文件进行操作，所以肯定不是将代码写入，而是要将机器码插入。就是利于栈传第四个参数0，然后call。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610021641.png"></p>
+<ol>
+<li><p>构造要写入的代码 6A 00 6A 00 6A 00 6A 00 E8（call）xx xx，我们看到的FF是(near jump)要使用一个什么导入表（后面会学），而我们插入的时候E8利用相对便宜量调用函数。E8后面跟四个字节的相对偏移量offset，怎么计算？还好了解过汇编，offset&#x3D;要跳转的地方的地址-call指令下面一条指令的地址。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610022933.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610023052.png"></p>
+<p>将图一标记位置改为call 1c1023 得到图二，后面的0A&#x3D;1c1023-1c1019.我们的目标指示让他弹出窗口，不能破坏程序运行，所以弹出之后我们还要跳回到初始位置，让程序正常运行，我们使用JMP（E9）指令来实现该操作，E9后面也是跟偏移量，用法与E8相同。找到messagebox的地址75858A70。根据call指令的位置来计算。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610031033.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610031802.png"></p>
+<p>E8所在的位置是3A8，这是文件中的位置，我们要考虑的是运行时的位置，所以要把这个地址加上Image Base &#x3D;01000000,所以最后得到的                                    offset&#x3D;75858A70-010003A8-5&#x3D;7485 86C3.最后跳转到程序的入口处，查看可选头的成员入口值为739D加上Image Base得到0100739D.                                  offset&#x3D;0100739D-010003AD-5&#x3D;6FEB<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610034056.png"></p>
+</li>
+<li><p>将程序入口点指向我们插入的代码，</p>
+<p>也就是修改扩展pe头里的入口值</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610034457.png"></p>
+</li>
+</ol>
+<p>在108处占4个字节，我们插入的程序起始位置是000003A0.然后，然后就没然后了，程序运行不起，ida和od看到的东西都很奇怪，延误了两天，这里我直接说一下才的坑，我随意找了一个空白处填充机器码，但后来发现不是所有的位置都能发生跳转，然后就将指令插入在了text段的末尾，然后发现跳转的有些差异，不会跳转在我设置的地方，后知后觉的发现，视频里的老哥演示的的时候拿的是一个文件对齐和内存对齐相同大小的程序，我用的程序是一个不同的，所以就要计算一下 用我们前面学习到的知识。下面理一下步骤</p>
+<ol>
+<li>首先在文件中确定一段空间，然后运行程序的时候查看 是否为空</li>
+<li>插入，根据内存中的位置计算</li>
+<li>改入口，内存中代码的起始位置<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230612183816.png"></li>
+</ol>
+<p>第一次尝试的时候成功弹出了窗口，但是关闭之后没有出现记事本，由此我们可以判断执行完我们的代码后，没有成功的返回原入口。此时才想起来补码写错了，插入的位置是87b0，入口点是739d，739d-83b0-5&#x3D;<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230612184514.png"></p>
+<p>然后我就在e9后面填充了E8 EF 00 00,意识到返回出现问题后，想到了有符号数的符号扩展，应该扩展其符号位即1，所以正确的补码形式是FF FF EF E8,填充进去就是E8 EF FF FF.</p>
+<h3 id="删除节"><a href="#删除节" class="headerlink" title="删除节"></a>删除节</h3><p>删除一个节比较简单，尤其是删除最后一个节，.reloc节区是基址重定位表，删除这个节区对程序的正常运行没有影响，而且删除这个节区可以将文件的大小缩减。下面说一下步骤：</p>
+<ol>
+<li>将.reloc节区头用0覆盖</li>
+<li>删除reloc节区</li>
+<li>修改Image_FILE_HEADER中的numberofsection成员</li>
+<li>修改IMAGE_OPTIONAL_HEADER中的SizeofImage</li>
+</ol>
+<h4 id="覆盖-reloc节区头"><a href="#覆盖-reloc节区头" class="headerlink" title="覆盖.reloc节区头"></a>覆盖.reloc节区头</h4><p>28个字节</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143105.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143154.png"></p>
+<h4 id="删除节区"><a href="#删除节区" class="headerlink" title="删除节区"></a>删除节区</h4><p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143402.png"></p>
+<p>因为是最后一个节区，所以我们只要将C000即后面的东西删除即可</p>
+<h4 id="修改Image-FILE-HEADER"><a href="#修改Image-FILE-HEADER" class="headerlink" title="修改Image_FILE_HEADER"></a>修改Image_FILE_HEADER</h4><p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143559.png"></p>
+<p>将5改成4即可</p>
+<h4 id="修改IMAGE-OPTIONAL-HEADER"><a href="#修改IMAGE-OPTIONAL-HEADER" class="headerlink" title="修改IMAGE_OPTIONAL_HEADER"></a>修改IMAGE_OPTIONAL_HEADER</h4><p>原来程序在内存中展开的大小为11000</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143749.png"></p>
+<p>减去删除的节在内存中展开的大小即可<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626143805.png"></p>
+<p>尝试运行，一切正常。左边是删除roloc节区的程序，可以看到大小发生了改变。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230626142054.png"></p>
+<h3 id="扩大节"><a href="#扩大节" class="headerlink" title="扩大节"></a>扩大节</h3><p><strong>为什么要扩大节？</strong></p>
+<p>前面演示插入的代码很短，如果要插入一段比较长的代码，可能找不到合适的空间。常见的解决方案就是扩大节，那么扩大哪一个节呢？<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230608032628.png"></p>
+<p>根据这个图不难看出，最好是扩大最后一个节，因为扩大前面的节如果想不影响程序的正常运行，还要去修改节表里的属性。</p>
+<p><strong>扩大节的步骤</strong></p>
+<ol>
+<li>分配空间</li>
+<li>修改SizeofRawData和VirtualSize</li>
+<li>修改SizeofImage（内存对齐大小）</li>
+<li>如果扩展的节没有可执行属性，我们可以在节表结构体更改其属性。</li>
+</ol>
+<p>1.分配一块新的空间,大小为S，这里我们选择在最后一个节后面分配0x1000byte的空间<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613030824.png"></p>
+<p>2.修改该节节表信息。要修改Size of Raw Data（实际大小）和Virtual Size（文件对齐后的大小），将这两个值修改为N。从前面的学习，我们了解到文件对其后的大小不一定大于实际大小，我们只需选择其中那个大的值max，N&#x3D;max+S。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613032013.png"></p>
+<p>将这两个位置改为9400</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613032216.png"></p>
+<p>3.修改Size of Image（扩展pe头成员）即文件在内存中展开后的大小。SizeofImage就是内存对其后的大小。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230613032917.png"></p>
+<p>将该值按照内存对齐之后，再加上新增的0x1000即可，修改完保存，程序正常运行。</p>
+<h3 id="新增节"><a href="#新增节" class="headerlink" title="新增节"></a>新增节</h3><h3 id="合并节"><a href="#合并节" class="headerlink" title="合并节"></a>合并节</h3><h2 id="详解导入导出表"><a href="#详解导入导出表" class="headerlink" title="详解导入导出表"></a>详解导入导出表</h2><h3 id="导出表"><a href="#导出表" class="headerlink" title="导出表"></a>导出表</h3><p>前置知识，一个可执行程序是有<strong>多个pe文件组成</strong>的。</p>
+<p><strong>导入表</strong>：描述pe文件引用了哪些文件，相当于进货清单。</p>
+<p><strong>导出表</strong>：当前pe文件提供哪些函数供其他文件使用，相当于饭店的菜单。</p>
+<h4 id="导出表在哪里？"><a href="#导出表在哪里？" class="headerlink" title="导出表在哪里？"></a>导出表在哪里？</h4><p>在扩展pe头，最后一个成员，是个结构体数组，这个结构体的第一个成员就存放着导出表的相关信息。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230616021827.png"></p>
+<p>第一个成员名字就叫导出表，用peview查看<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230616022003.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230616022108.png"></p>
+<p>导出表的第一个成员<strong>VirtualAddress</strong>记录着内存偏移地址(RVA)，<strong>Size</strong>记录着导出表的大小。</p>
+<p>我们动一下手，拿keyHook.dll试试手<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817165959.png"></p>
+<p>RVA是80B0，查了一下在rdata段，rdata段的起始RVA为6000，所以相对地址就是20B0，rdata段的pointer to raw data及文件偏移地址为5000，所以他的FOA为70B0，大小是5B字节。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817170505.png"></p>
+<p>导出表的成分是非常复杂的<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817170614.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817170716.png">它还含有三张子表格，我们可以看到这是40字节的内容，而我们刚才查看的是5B字节，其实这个5B是算上子表之后的大小。</p>
+<h4 id="Name-1"><a href="#Name-1" class="headerlink" title="Name"></a>Name</h4><p>name指针，对应的值是000080EC，对应的FOA是70EC<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230817172218.png"></p>
+<p>指向一个ascii字符串（当前dll的名称），0表示结尾。</p>
+<h4 id="NumberOfFunctions"><a href="#NumberOfFunctions" class="headerlink" title="NumberOfFunctions"></a>NumberOfFunctions</h4><p>所有导出函数的个数</p>
+<h4 id="NumberOfNames"><a href="#NumberOfNames" class="headerlink" title="NumberOfNames"></a>NumberOfNames</h4><p>根据函数名到处函数的个数，除了根据函数名导出函数，还能根据序号，也就是启用函数名定义一套序号规则，在一定程度上，通过序号导出函数能够增加程序的分析难度。</p>
+<h4 id="AddressOfFunctions"><a href="#AddressOfFunctions" class="headerlink" title="AddressOfFunctions"></a>AddressOfFunctions</h4><p>导出函数地址表RVA，又是一张表，表的成员每一个都是<strong>四字节</strong>大小，代表的是函数所在的地址。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821154814.png"></p>
+<h4 id="AddressOfNames"><a href="#AddressOfNames" class="headerlink" title="AddressOfNames"></a>AddressOfNames</h4><p>导出函数名称表。存储的函数名称所在的地址。每个成员<strong>四字节</strong>大小。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821155029.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821155734.png"></p>
+<p>首先查到AddressOfNames的RVA为80D0，那么FOA是70D0，第一个成员80F8注意这是RVA，换算成FOA是70F8，对应可以看到“HookStart”，后面一个是8102,换算成FOA是7102，对应“Hookstop”</p>
+<h4 id="AddressOfNamesOrdinals"><a href="#AddressOfNamesOrdinals" class="headerlink" title="AddressOfNamesOrdinals"></a>AddressOfNamesOrdinals</h4><p>导出函数序列号表。有几个根据函数名称导出的函数，该表就有几个成员。每个成员二字节大小。</p>
+<p>这是一个API，它有两个参数，<strong>DLL的句柄</strong>就是该DLL在内存展开时的地址，<strong>函数名</strong></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821163246.png"></p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230821163637.png"></p>
+<p>当API通过函数名调用函数，比如说它调用了hookstart，那么它会前往函数名称列表获得hookstart的索引值0，之后会去序号列表，序号列表下标为零的值是0，拿到这个0再去函数地址列表充当索引最终找到函数的地址。有时候不是通过函数名而是通过函数序号查找函数，这就要用到刚才没介绍的一个成员Base,它的值是函数地址列表的起始序号，如果其实序号为10，所调用的函数的序号是11，那么第二个成员hookstop的序号对应为11，完成调用。</p>
+<h3 id="导入表"><a href="#导入表" class="headerlink" title="导入表"></a>导入表</h3><p>导入几个模块就有几张导入表，每个表记录该模块的信息。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822005247.png"></p>
+<p>导入表信息位置：在扩展pe头的最后一个成员（结构体数组），该结构体数组的第二个成员记录着导入表信息。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822003801.png"></p>
+<p>两个成员分别是导入表的<strong>地址</strong>和导入表的<strong>大小</strong>。有没有指明导入表数量的成员？答案是没有，我们可以通过查看16进制数据判断，每个导入表的大小是20个字节，从起始位置划分每20字节一组，直到出现一组20字节全部为0即代表结束，从而可以判断数量。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822010616.png"></p>
+<h4 id="Name-2"><a href="#Name-2" class="headerlink" title="Name"></a>Name</h4><p>该成员是一个RVA，指向一个字符串，即该模块的名字。</p>
+<h4 id="characteristic-x2F-originalfirstthunk"><a href="#characteristic-x2F-originalfirstthunk" class="headerlink" title="characteristic&#x2F;originalfirstthunk"></a>characteristic&#x2F;originalfirstthunk</h4><p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822123240.png"></p>
+<p>这个联合指向的是IMAGE_THUNK_DATA结构体，这些结构体组成<strong>INT（import name table）</strong>，要用到该模块的几个函数，就有几个IMAGE_THUNK_DATA结构体，每个结构体大小是4字节，当出现连续的4字节为0，则说明INT截止。</p>
+<p>导入表的地址是6B24,6B24处的第一个成员的值是7b60,转换成foa是6b60，IMAGE_THUNK_DATA结构体就在6B60处</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822121355.png"></p>
+<p>IMAGE_THUNK_DATA结构体：<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822121737.png"></p>
+<p>这个结构体看着很复杂，其实他只有一个四字节的成员，联合只是给这一个成员起了多个名字方便理解。</p>
+<p>如果，IMAGE_THUNK_DATA第一位为1，则说明它是序号，是前面导出表提到的<strong>函数序号列表</strong>的内容，对应的是要导入的函数没有名字只提供了序号。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822123421.png"></p>
+<p>如果不为1，则是一个RVA，指向importbyname：该表仅三字节大小，如果第一个hint不为0，则说明是<strong>函数地址列表</strong>的序号。<strong>Name</strong>只有一个字节，显然不可能，因为函数的名称长度是不确定的，所以只记录它的第一个字符，遇到0则表示结束。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822122250.png"></p>
+<p>完整的理一遍，首先通过扩展pe头的左后一个成员import table找到了导入表，导入表的第四个成员是个RVA指向了kernel32.dll字符串,这是导入的模块的名称，通过导入表的第一个成员（一个RVA指向）IMAGE_THUNK_DATA，该成员的最高位不为1，说明是个RVA，通过这个RVA找到了importbyname，通过该成员的第三个字节找到了导入的这个模块所使用的一个函数GetModuleFileNameA</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822124731.png"></p>
+<p>PE文件加载前后，IAT（import address table）导入地址表发生变化，IAT不在指向函数名称，而是已经根据函数名称更换了表格。INT那里相当于一层保险，当程序IAT被修改（脱壳时就要修复导入表），无法找到函数时，可以根据INT和相关函数得到函数地址，从而修复IAT。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822154619.png"></p>
+<h3 id="重定位表"><a href="#重定位表" class="headerlink" title="重定位表"></a>重定位表</h3><p><strong>重定位表的作用</strong>：如果可执行文件中的全部的地址相关的数值都是RVA即相对imagebase来的，那么重定位表可有可无。但是有的全局变量他的地址是硬编码，只有文件被加载到了内存中特定的位置在能正常使用，但是可执行文件往往要加载多个dll，原来那个位置可能已经被占了，这时候只能再选一个空闲的地址，此时imagebase就不是预期的值了，这种情况就要根据重定位表进行修改。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> x=<span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    x=<span class="number">11</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码的汇编码如下，mov 【00427e34】，11h   由于全局变量使用了硬编码，显然只有加载的特定的位置该代码才能生效。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230822161736.png"></p>
+<p><strong>位置</strong>：还是在扩展PE头最后一个结构体数组，第六个成员。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230823003816.png"></p>
+<p><strong>成员：</strong> 根据名字就可以看出，第一个是地址，第二个是大小，不过这个大小，指的是该结构体的大小。</p>
+<p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230823004102.png"></p>
+<p>上图代表的就是这个结构体，x表示第一个成员，y表示大小，第一个结构体的y为16，所以该结构体16字节大小，再往下就是下一个，下一个是20字节大小，再往下是12字节大小，当遇到连续的八个字节为0，也就是x和y都为0时，代表该表格结束。解释一下为什么要这样设计，其实这个表存放的是要进行重定位的成员的地址，X代表的相当于一个基地址，Y后的每一个成员即从第九个字节开始，每两个字节为一个成员，比如X的值为80 00 00 00,后面的字节为12，16，18，则代表         80 00 00 12、80 00 00 16、80 00 00 16需要进行重定位，可以看到存放一个实际的地址需要4个字节，存放10个是40字节，而我们采用基地址加偏移的方法只使用了24个字节，需要重定位的值越多，节省的空间就越多。（这个区块是根据内存页进行划分的，每个页4KB，每个页有一个重定位表，而两个字节的偏移地址能表示0~ffff，足够对一个页进行寻址，若要寻址至少需要12个位，一字节不够，所以选择二字节作为偏移地址的单位）。</p>
+<p><strong>重点：</strong> Y后的成员，两字节即16位一组，其实表示有效地址的是低12位，高四位并非没有作用，当高四位位0011的时候，才代表该处的值需要进行修复，比如说第一个成员为0011 0011 1111 1111，前四位为0011，代表该成员需要被修复，取低12位加上X基地址即是真正需要修改的。若高4位不是0011，则该处数据无作用，可以理解为用来内存对齐的垃圾数据。</p>
+<p>完结撒花了！！！！！！！！！！！！！！！！！！！！！！ hhh</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Windows/" rel="tag"># Windows</a>
+              <a href="/tags/PE/" rel="tag"># PE</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/08/21/%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%EF%BC%88DLL%EF%BC%89%E5%8F%8A%E5%85%B6%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/" rel="prev" title="动态链接库（DLL）及其工作原理">
+      <i class="fa fa-chevron-left"></i> 动态链接库（DLL）及其工作原理
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/mzy/" rel="next" title="">
+       <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#PE%E5%9F%BA%E7%A1%80"><span class="nav-number">1.</span> <span class="nav-text">PE基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PE%E6%96%87%E4%BB%B6%E6%A6%82%E5%BF%B5"><span class="nav-number">1.1.</span> <span class="nav-text">PE文件概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%86%E5%88%ABPE%E6%96%87%E4%BB%B6"><span class="nav-number">1.1.1.</span> <span class="nav-text">识别PE文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.2.</span> <span class="nav-text">PE文件格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E6%8B%AC"><span class="nav-number">1.3.</span> <span class="nav-text">概括</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%AF%B9%E9%BD%90"><span class="nav-number">1.3.1.</span> <span class="nav-text">文件对齐</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PE%E6%96%87%E4%BB%B6%E6%9C%89%E4%B8%A4%E7%A7%8D%E7%8A%B6%E6%80%81%EF%BC%9A"><span class="nav-number">1.3.2.</span> <span class="nav-text">PE文件有两种状态：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Q-amp-A"><span class="nav-number">1.3.3.</span> <span class="nav-text">Q &amp; A</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DOS%E5%A4%B4%E5%B1%9E%E6%80%A7%E8%AF%B4%E6%98%8E"><span class="nav-number">1.4.</span> <span class="nav-text">DOS头属性说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PE%E5%A4%B4%E5%B1%9E%E6%80%A7%E8%AF%B4%E6%98%8E"><span class="nav-number">1.5.</span> <span class="nav-text">PE头属性说明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Signature"><span class="nav-number">1.5.1.</span> <span class="nav-text">Signature</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IMAGE-FILE-HEADER-%EF%BC%88%E6%A0%87%E5%87%86PE%E5%A4%B4%EF%BC%89"><span class="nav-number">1.5.2.</span> <span class="nav-text">IMAGE_FILE_HEADER   （标准PE头）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Machine"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">Machine</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Number-of-Section"><span class="nav-number">1.5.2.2.</span> <span class="nav-text">Number of Section</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#TimeDateStamp"><span class="nav-number">1.5.2.3.</span> <span class="nav-text">TimeDateStamp</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Pointer-to-Symbol-Table-amp-Number-of-Symbol"><span class="nav-number">1.5.2.4.</span> <span class="nav-text">Pointer to Symbol Table &amp;Number of Symbol</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Size-of-Optional-Header"><span class="nav-number">1.5.2.5.</span> <span class="nav-text">Size of Optional  Header</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Characteristics"><span class="nav-number">1.5.2.6.</span> <span class="nav-text">Characteristics</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IMAGE-OPTIONAL-HEADER-%EF%BC%88%E6%89%A9%E5%B1%95PE%E5%A4%B4%EF%BC%89"><span class="nav-number">1.5.3.</span> <span class="nav-text">IMAGE_OPTIONAL_HEADER （扩展PE头）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Magic"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">Magic</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Address-of-Entry-Point"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">Address of Entry Point</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Image-Base"><span class="nav-number">1.5.3.3.</span> <span class="nav-text">Image Base</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Section-Alignment"><span class="nav-number">1.5.3.4.</span> <span class="nav-text">Section Alignment</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#File-Alignment"><span class="nav-number">1.5.3.5.</span> <span class="nav-text">File Alignment</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Size-of-Image"><span class="nav-number">1.5.3.6.</span> <span class="nav-text">Size of Image</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Size-of-Header"><span class="nav-number">1.5.3.7.</span> <span class="nav-text">Size of Header</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Checksum"><span class="nav-number">1.5.3.8.</span> <span class="nav-text">Checksum</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PE%E8%8A%82%E8%A1%A8"><span class="nav-number">1.6.</span> <span class="nav-text">PE节表</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Name"><span class="nav-number">1.6.0.1.</span> <span class="nav-text">Name</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Vitual-Size"><span class="nav-number">1.6.0.2.</span> <span class="nav-text">Vitual Size</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#VirtualAddress"><span class="nav-number">1.6.0.3.</span> <span class="nav-text">VirtualAddress</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Size-of-Raw-Data"><span class="nav-number">1.6.0.4.</span> <span class="nav-text">Size of Raw Data</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Pointer-to-Raw-Data"><span class="nav-number">1.6.0.5.</span> <span class="nav-text">Pointer to Raw Data</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Charactenstics"><span class="nav-number">1.6.0.6.</span> <span class="nav-text">Charactenstics</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RVA%E4%B8%8EFOA%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="nav-number">1.7.</span> <span class="nav-text">RVA与FOA的转换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RVA"><span class="nav-number">1.7.1.</span> <span class="nav-text">RVA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FOA"><span class="nav-number">1.7.2.</span> <span class="nav-text">FOA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BD%AC%E6%8D%A2%E8%BF%87%E7%A8%8B"><span class="nav-number">1.7.3.</span> <span class="nav-text">转换过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9PE%E6%96%87%E4%BB%B6"><span class="nav-number">2.</span> <span class="nav-text">修改PE文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E7%A9%BA%E7%99%BD%E5%8C%BA%E5%9F%9F%E6%B7%BB%E5%8A%A0%E4%BB%A3%E7%A0%81"><span class="nav-number">2.1.</span> <span class="nav-text">在空白区域添加代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E8%8A%82"><span class="nav-number">2.2.</span> <span class="nav-text">删除节</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A6%86%E7%9B%96-reloc%E8%8A%82%E5%8C%BA%E5%A4%B4"><span class="nav-number">2.2.1.</span> <span class="nav-text">覆盖.reloc节区头</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E8%8A%82%E5%8C%BA"><span class="nav-number">2.2.2.</span> <span class="nav-text">删除节区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9Image-FILE-HEADER"><span class="nav-number">2.2.3.</span> <span class="nav-text">修改Image_FILE_HEADER</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9IMAGE-OPTIONAL-HEADER"><span class="nav-number">2.2.4.</span> <span class="nav-text">修改IMAGE_OPTIONAL_HEADER</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A9%E5%A4%A7%E8%8A%82"><span class="nav-number">2.3.</span> <span class="nav-text">扩大节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B0%E5%A2%9E%E8%8A%82"><span class="nav-number">2.4.</span> <span class="nav-text">新增节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E8%8A%82"><span class="nav-number">2.5.</span> <span class="nav-text">合并节</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%A6%E8%A7%A3%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA%E8%A1%A8"><span class="nav-number">3.</span> <span class="nav-text">详解导入导出表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%87%BA%E8%A1%A8"><span class="nav-number">3.1.</span> <span class="nav-text">导出表</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%BC%E5%87%BA%E8%A1%A8%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F"><span class="nav-number">3.1.1.</span> <span class="nav-text">导出表在哪里？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Name-1"><span class="nav-number">3.1.2.</span> <span class="nav-text">Name</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NumberOfFunctions"><span class="nav-number">3.1.3.</span> <span class="nav-text">NumberOfFunctions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NumberOfNames"><span class="nav-number">3.1.4.</span> <span class="nav-text">NumberOfNames</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AddressOfFunctions"><span class="nav-number">3.1.5.</span> <span class="nav-text">AddressOfFunctions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AddressOfNames"><span class="nav-number">3.1.6.</span> <span class="nav-text">AddressOfNames</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AddressOfNamesOrdinals"><span class="nav-number">3.1.7.</span> <span class="nav-text">AddressOfNamesOrdinals</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%85%A5%E8%A1%A8"><span class="nav-number">3.2.</span> <span class="nav-text">导入表</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Name-2"><span class="nav-number">3.2.1.</span> <span class="nav-text">Name</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#characteristic-x2F-originalfirstthunk"><span class="nav-number">3.2.2.</span> <span class="nav-text">characteristic&#x2F;originalfirstthunk</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8"><span class="nav-number">3.3.</span> <span class="nav-text">重定位表</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">45k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:42</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
