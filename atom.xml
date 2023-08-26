@@ -32,9 +32,9 @@
     
     
     
-    <category term="lab" scheme="http://example.com/tags/lab/"/>
-    
     <category term="csapp" scheme="http://example.com/tags/csapp/"/>
+    
+    <category term="lab" scheme="http://example.com/tags/lab/"/>
     
   </entry>
   
