@@ -1,12 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Attack_lab</title>
-    <url>/2023/08/26/Attack-lab/</url>
-    <content><![CDATA[<p><strong>文件信息：</strong></p>
-<p>argetk中的文件包括:<br>README.txt：描述目录内容的文件<br>ctarget：易受代码注入攻击的可执行程序<br>rtarget：易受面向返回编程攻击的可执行程序<br>cookie.txt：8位十六进制代码，您将在攻击中使用它作为唯一标识符。<br>farm.c：目标“gadget farm”的源代码，您将使用它生成面向返回的编程攻击。<br>hex2raw：生成攻击字符串的实用程序。</p>
+    <title>2022极客大挑战</title>
+    <url>/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>AES算法</title>
+    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
 <span id="more"></span>
 
+<p>下面以明文和密钥都是128位来举例。</p>
+<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
+<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
+<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
+<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
+<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
+<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
+<p>比如初始矩阵为</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
+<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
+<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
+<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
+<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
+<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
+<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
+<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
+<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
+<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
+<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
+<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
+<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
+<p>字节代换：查S盒进行代换</p>
+<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
+<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
+<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
+<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Attack_lab</title>
+    <url>/2023/08/26/Attack-lab/</url>
+    <content><![CDATA[<p>这个实验非常有意思，了解一下缓冲区溢出相关的知识就可以开始了。</p>
+<p>​                                                        !  ^_^ !</p>
+<span id="more"></span>
+
+<p><strong>文件信息：</strong></p>
+<p>argetk中的文件包括:<br>README.txt：描述目录内容的文件<br>ctarget：易受代码注入攻击的可执行程序<br>rtarget：易受面向返回编程攻击的可执行程序<br>cookie.txt：8位十六进制代码，您将在攻击中使用它作为唯一标识符。<br>farm.c：目标“gadget farm”的源代码，您将使用它生成面向返回的编程攻击。<br>hex2raw：生成攻击字符串的实用程序。</p>
 <p><a href="https://blog.csdn.net/weixin_43362650/article/details/121084611">《深入理解计算机系统》实验三Attack Lab下载和官方文档机翻_Addyz的博客-CSDN博客</a></p>
 <p>看官方文档说是要以csapp3.10.3–3.10.4作为参考，这两个小节主要讲了<strong>缓冲区溢出</strong>和保护机制。</p>
 <h3 id="缓冲区溢出："><a href="#缓冲区溢出：" class="headerlink" title="缓冲区溢出："></a>缓冲区溢出：</h3><h3 id="对抗缓冲区溢出攻击："><a href="#对抗缓冲区溢出攻击：" class="headerlink" title="对抗缓冲区溢出攻击："></a>对抗缓冲区溢出攻击：</h3><h4 id="栈随机化："><a href="#栈随机化：" class="headerlink" title="栈随机化："></a>栈随机化：</h4><p>栈的位置每次运行都有变化，因此很多地址不能确定，代码不能实现跳转。实现的方法是在程序开始时，在栈上分配一段0~n字节之间随机大小的空间。</p>
@@ -134,56 +188,71 @@
       </tags>
   </entry>
   <entry>
-    <title>2022极客大挑战</title>
-    <url>/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>AES算法</title>
-    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
+    <title>C语言-链接与编译</title>
+    <url>/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/</url>
+    <content><![CDATA[<p><strong>编译</strong> </p>
+<p>源文件生成目标文件的过程及main.c–main.o</p>
 <span id="more"></span>
 
-<p>下面以明文和密钥都是128位来举例。</p>
-<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
-<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
-<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
-<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
-<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
-<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
-<p>比如初始矩阵为</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
-<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
-<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
-<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
-<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
-<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
-<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
-<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
-<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
-<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
-<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
-<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
-<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
-<p>字节代换：查S盒进行代换</p>
-<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
-<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
-<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
-<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011918.png"></p>
+<p><strong>链接</strong></p>
+<p>目标文件生成可执行文件的过程及main.o–main。详细点说链接是将编译之后的所有目标文件连同用到的一些静态库、运行时库组件而拼装成一个可执行文件的过程。其中有地址修复的过程，如上图所示call后面的地址暂时被设置为0，修复时就是链接器根据目标文件或者静态库中的重定位表找到那些需要被重定位的函数和全局变量从而修正他们的地址。</p>
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011750.png"></p>
+<p>对于add.h 、add.c、main.c三个文件</p>
+<p>add.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>add.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译器是完全不知道printf和add函数的存在的（位于哪个区块、函数的定义），因此编译器只能将两个函数的跳转先暂时设置为0.使用odjdump对目标文件进行反汇编</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -s -d main.o &gt; main.o.txt</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818013635.png"></p>
+<p>这里的0会在后面链接的时候被修正</p>
+<p>查看目标文件的重定位信息</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -r main.o</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818014305.png"></p>
+<p>函数add、printf的偏移量分别为25、3b。</p>
+<p>一直手工编译显然效率不高，学习了一点makefile的知识</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim makefile</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">all:main</span><br><span class="line">main:main.o add.o</span><br><span class="line">        gcc main.o add.o -o main</span><br><span class="line">main.o:main.c</span><br><span class="line">        gcc -c main.c</span><br><span class="line">add.o:add.c</span><br><span class="line">        gcc -c add.c</span><br><span class="line">clean:</span><br><span class="line">        rm main main.o add.o</span><br></pre></td></tr></table></figure>
+
+<p>然后make main即可，他会自动根据依赖树递归地去构建可执行文件main</p>
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818020241.png"></p>
+<p>参考：<a href="https://www.youtube.com/watch?v=1IIUvVrCSF0">https://www.youtube.com/watch?v=1IIUvVrCSF0</a></p>
 ]]></content>
       <tags>
-        <tag>密码学</tag>
+        <tag>C语言</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>GoogleCTF</title>
+    <url>/2023/06/27/GoogleCTF/</url>
+    <content><![CDATA[<h1 id="oldschool"><a href="#oldschool" class="headerlink" title="oldschool"></a>oldschool</h1><p>当时做的时候就很奇怪，为什么单步调试输入相应的用户名和密码就显示success，而直接运行程序提交相同的数据就是错误，更奇怪的是当时写的脚本能更正确解除第一组，而后面的矩阵用z3求逆都出现了问题，当时只是怀疑加了反调试修改了数据，但又不知从何处检查。。。。。。</p>
+<span id="more"></span>
+
+<p>查看交叉引用，发现第一处反调试</p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162148.png"></p>
+<p>如果检查到正在调试该值加上7。</p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162100.png"></p>
+<p>直接查看负责检查调试的那个函数的交叉引用，即可将所有的反调试一网打尽。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162706.png"></p>
+<p>下一处是<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162948.png"></p>
+<p>如果检查到调试，会对选中的这个数组进行异或处理，正常情况下是异或上2，这里是异或上了4。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627163209.png"></p>
+<p>第三处在这里<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162651.png"></p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627164040.png"></p>
+<p>找到这三处反调试，在运算之前下一个断点，ida动态调试，找的if——debug这个参数，可以看到他的值为1，我们直接将其改成0即可，后面的数据就全都是正确的了。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627182900.png"></p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627181844.png"></p>
+<p>这个脚本和之前的脚本只有两处区别，其一是填充的matx矩阵不同，也就是v18的值，我们只要在v18之后设置断点，然后读出数据即可(v18的数据收到反调试的影响)，其二就是xor_arr这个异或矩阵，这个异或矩阵也是收到了反调试的影响。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">matx = [[<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x10</span>, <span class="number">0x13</span>, <span class="number">0x1B</span>],</span><br><span class="line">        [<span class="number">0x8</span>, <span class="number">0x1F</span>, <span class="number">0x8</span>, <span class="number">0x17</span>, <span class="number">0x1E</span>],</span><br><span class="line">        [<span class="number">0x1D</span>, <span class="number">0x3</span>, <span class="number">0x1C</span>, <span class="number">0xA</span>, <span class="number">0x15</span>],</span><br><span class="line">        [<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x08</span>, <span class="number">0x10</span>, <span class="number">0x1C</span>],</span><br><span class="line">        [<span class="number">0x0B</span>, <span class="number">0x1E</span>, <span class="number">0x07</span>, <span class="number">0x14</span>, <span class="number">0x07</span>],]  <span class="comment">#这里填v18，username加密后的数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">rows = <span class="number">5</span></span><br><span class="line">cols = <span class="number">5</span></span><br><span class="line"></span><br><span class="line">arr = [[z3.BitVec(<span class="string">f&#x27;arr_<span class="subst">&#123;i&#125;</span>_<span class="subst">&#123;j&#125;</span>&#x27;</span>, <span class="number">6</span>) <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows)]</span><br><span class="line">s = Solver() </span><br><span class="line"></span><br><span class="line"><span class="comment"># for i in range(5):</span></span><br><span class="line"><span class="comment">#     for j in range(5):</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &gt;= 0)</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &lt;= 0x7f)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        v28 = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">            v28 = ((arr[i][m]&amp;<span class="number">0xff</span>) * (matx[k][i]&amp;<span class="number">0xff</span>) + (v28&amp;<span class="number">0xff</span>)) &amp; <span class="number">0x1f</span></span><br><span class="line">        <span class="keyword">if</span> k == m:</span><br><span class="line">            s.add(v28 == <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">if</span> k != m:</span><br><span class="line">            s.add(v28 == <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">inv = []</span><br><span class="line"><span class="keyword">if</span> s.check() == sat:</span><br><span class="line">    model = s.model()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows):</span><br><span class="line">        row = [model.evaluate(arr[i][j]).as_long() <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)]</span><br><span class="line">        inv.append(row)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;err&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;v18的逆矩阵为:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第n列循环右移n字节</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(inv)):</span><br><span class="line">    <span class="keyword">if</span> i == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">4</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">3</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">2</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">1</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;调换位置后的逆矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">xor_arr = [[<span class="number">0x1B</span>, <span class="number">0x00</span>, <span class="number">0x0A</span>, <span class="number">0x0D</span>, <span class="number">0x08</span>],</span><br><span class="line">           [<span class="number">0x18</span>, <span class="number">0x0F</span>, <span class="number">0x1C</span>, <span class="number">0x06</span>, <span class="number">0x07</span>],</span><br><span class="line">           [<span class="number">0x12</span>, <span class="number">0x05</span>, <span class="number">0x0C</span>, <span class="number">0x02</span>, <span class="number">0x04</span>],</span><br><span class="line">           [<span class="number">0x1D</span>, <span class="number">0x1F</span>, <span class="number">0x09</span>, <span class="number">0x13</span>, <span class="number">0x01</span>],</span><br><span class="line">           [<span class="number">0x1E</span>, <span class="number">0x11</span>, <span class="number">0x0B</span>, <span class="number">0x16</span>, <span class="number">0x19</span>]]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] ^= xor_arr[k][m]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;异或后的矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">index_arr = [<span class="number">0x00000010</span>, <span class="number">0x0000000E</span>, <span class="number">0x0000000D</span>, <span class="number">0x00000002</span>, <span class="number">0x0000000B</span>, <span class="number">0x00000011</span>, <span class="number">0x00000015</span>, <span class="number">0x0000001E</span>, <span class="number">0x00000007</span>, <span class="number">0x00000018</span>, <span class="number">0x00000012</span>, <span class="number">0x0000001C</span>, <span class="number">0x0000001A</span>, <span class="number">0x00000001</span>, <span class="number">0x0000000C</span>, <span class="number">0x00000006</span>, <span class="number">0x0000001F</span>, <span class="number">0x00000019</span>, <span class="number">0x00000000</span>, <span class="number">0x00000017</span>, <span class="number">0x00000014</span>, <span class="number">0x00000016</span>, <span class="number">0x00000008</span>, <span class="number">0x0000001B</span>, <span class="number">0x00000004</span>, <span class="number">0x00000003</span>, <span class="number">0x00000013</span>, <span class="number">0x00000005</span>, <span class="number">0x00000009</span>, <span class="number">0x0000000A</span>, <span class="number">0x0000001D</span>, <span class="number">0x0000000F</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] = index_arr.index(inv[k][m])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;索引:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">chr_arr = [<span class="number">0x32</span>, <span class="number">0x33</span>, <span class="number">0x34</span>, <span class="number">0x35</span>, <span class="number">0x36</span>, <span class="number">0x37</span>, <span class="number">0x38</span>, <span class="number">0x39</span>, <span class="number">0x41</span>, <span class="number">0x42</span>, <span class="number">0x43</span>, <span class="number">0x44</span>, <span class="number">0x45</span>, <span class="number">0x46</span>, <span class="number">0x47</span>, <span class="number">0x48</span>, <span class="number">0x4A</span>, <span class="number">0x4B</span>, <span class="number">0x4C</span>, <span class="number">0x4D</span>, <span class="number">0x4E</span>, <span class="number">0x50</span>, <span class="number">0x51</span>, <span class="number">0x52</span>, <span class="number">0x53</span>, <span class="number">0x54</span>, <span class="number">0x55</span>, <span class="number">0x56</span>, <span class="number">0x57</span>, <span class="number">0x58</span>, <span class="number">0x59</span>, <span class="number">0x5A</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="built_in">chr</span>(chr_arr[inv[i][j]]), end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;-&#x27;</span>, end=<span class="string">&#x27;&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>总结：下次遇到这种题目，如果很相信自己的逻辑和脚本，一直不对的话就去查看一下有无反调试。</p>
+]]></content>
   </entry>
   <entry>
     <title>PE文件学习篇</title>
@@ -433,29 +502,6 @@
       </tags>
   </entry>
   <entry>
-    <title>GoogleCTF</title>
-    <url>/2023/06/27/GoogleCTF/</url>
-    <content><![CDATA[<h1 id="oldschool"><a href="#oldschool" class="headerlink" title="oldschool"></a>oldschool</h1><p>当时做的时候就很奇怪，为什么单步调试输入相应的用户名和密码就显示success，而直接运行程序提交相同的数据就是错误，更奇怪的是当时写的脚本能更正确解除第一组，而后面的矩阵用z3求逆都出现了问题，当时只是怀疑加了反调试修改了数据，但又不知从何处检查。。。。。。</p>
-<span id="more"></span>
-
-<p>查看交叉引用，发现第一处反调试</p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162148.png"></p>
-<p>如果检查到正在调试该值加上7。</p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162100.png"></p>
-<p>直接查看负责检查调试的那个函数的交叉引用，即可将所有的反调试一网打尽。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162706.png"></p>
-<p>下一处是<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162948.png"></p>
-<p>如果检查到调试，会对选中的这个数组进行异或处理，正常情况下是异或上2，这里是异或上了4。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627163209.png"></p>
-<p>第三处在这里<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162651.png"></p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627164040.png"></p>
-<p>找到这三处反调试，在运算之前下一个断点，ida动态调试，找的if——debug这个参数，可以看到他的值为1，我们直接将其改成0即可，后面的数据就全都是正确的了。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627182900.png"></p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627181844.png"></p>
-<p>这个脚本和之前的脚本只有两处区别，其一是填充的matx矩阵不同，也就是v18的值，我们只要在v18之后设置断点，然后读出数据即可(v18的数据收到反调试的影响)，其二就是xor_arr这个异或矩阵，这个异或矩阵也是收到了反调试的影响。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">matx = [[<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x10</span>, <span class="number">0x13</span>, <span class="number">0x1B</span>],</span><br><span class="line">        [<span class="number">0x8</span>, <span class="number">0x1F</span>, <span class="number">0x8</span>, <span class="number">0x17</span>, <span class="number">0x1E</span>],</span><br><span class="line">        [<span class="number">0x1D</span>, <span class="number">0x3</span>, <span class="number">0x1C</span>, <span class="number">0xA</span>, <span class="number">0x15</span>],</span><br><span class="line">        [<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x08</span>, <span class="number">0x10</span>, <span class="number">0x1C</span>],</span><br><span class="line">        [<span class="number">0x0B</span>, <span class="number">0x1E</span>, <span class="number">0x07</span>, <span class="number">0x14</span>, <span class="number">0x07</span>],]  <span class="comment">#这里填v18，username加密后的数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">rows = <span class="number">5</span></span><br><span class="line">cols = <span class="number">5</span></span><br><span class="line"></span><br><span class="line">arr = [[z3.BitVec(<span class="string">f&#x27;arr_<span class="subst">&#123;i&#125;</span>_<span class="subst">&#123;j&#125;</span>&#x27;</span>, <span class="number">6</span>) <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows)]</span><br><span class="line">s = Solver() </span><br><span class="line"></span><br><span class="line"><span class="comment"># for i in range(5):</span></span><br><span class="line"><span class="comment">#     for j in range(5):</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &gt;= 0)</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &lt;= 0x7f)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        v28 = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">            v28 = ((arr[i][m]&amp;<span class="number">0xff</span>) * (matx[k][i]&amp;<span class="number">0xff</span>) + (v28&amp;<span class="number">0xff</span>)) &amp; <span class="number">0x1f</span></span><br><span class="line">        <span class="keyword">if</span> k == m:</span><br><span class="line">            s.add(v28 == <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">if</span> k != m:</span><br><span class="line">            s.add(v28 == <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">inv = []</span><br><span class="line"><span class="keyword">if</span> s.check() == sat:</span><br><span class="line">    model = s.model()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows):</span><br><span class="line">        row = [model.evaluate(arr[i][j]).as_long() <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)]</span><br><span class="line">        inv.append(row)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;err&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;v18的逆矩阵为:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第n列循环右移n字节</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(inv)):</span><br><span class="line">    <span class="keyword">if</span> i == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">4</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">3</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">2</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">1</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;调换位置后的逆矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">xor_arr = [[<span class="number">0x1B</span>, <span class="number">0x00</span>, <span class="number">0x0A</span>, <span class="number">0x0D</span>, <span class="number">0x08</span>],</span><br><span class="line">           [<span class="number">0x18</span>, <span class="number">0x0F</span>, <span class="number">0x1C</span>, <span class="number">0x06</span>, <span class="number">0x07</span>],</span><br><span class="line">           [<span class="number">0x12</span>, <span class="number">0x05</span>, <span class="number">0x0C</span>, <span class="number">0x02</span>, <span class="number">0x04</span>],</span><br><span class="line">           [<span class="number">0x1D</span>, <span class="number">0x1F</span>, <span class="number">0x09</span>, <span class="number">0x13</span>, <span class="number">0x01</span>],</span><br><span class="line">           [<span class="number">0x1E</span>, <span class="number">0x11</span>, <span class="number">0x0B</span>, <span class="number">0x16</span>, <span class="number">0x19</span>]]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] ^= xor_arr[k][m]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;异或后的矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">index_arr = [<span class="number">0x00000010</span>, <span class="number">0x0000000E</span>, <span class="number">0x0000000D</span>, <span class="number">0x00000002</span>, <span class="number">0x0000000B</span>, <span class="number">0x00000011</span>, <span class="number">0x00000015</span>, <span class="number">0x0000001E</span>, <span class="number">0x00000007</span>, <span class="number">0x00000018</span>, <span class="number">0x00000012</span>, <span class="number">0x0000001C</span>, <span class="number">0x0000001A</span>, <span class="number">0x00000001</span>, <span class="number">0x0000000C</span>, <span class="number">0x00000006</span>, <span class="number">0x0000001F</span>, <span class="number">0x00000019</span>, <span class="number">0x00000000</span>, <span class="number">0x00000017</span>, <span class="number">0x00000014</span>, <span class="number">0x00000016</span>, <span class="number">0x00000008</span>, <span class="number">0x0000001B</span>, <span class="number">0x00000004</span>, <span class="number">0x00000003</span>, <span class="number">0x00000013</span>, <span class="number">0x00000005</span>, <span class="number">0x00000009</span>, <span class="number">0x0000000A</span>, <span class="number">0x0000001D</span>, <span class="number">0x0000000F</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] = index_arr.index(inv[k][m])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;索引:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">chr_arr = [<span class="number">0x32</span>, <span class="number">0x33</span>, <span class="number">0x34</span>, <span class="number">0x35</span>, <span class="number">0x36</span>, <span class="number">0x37</span>, <span class="number">0x38</span>, <span class="number">0x39</span>, <span class="number">0x41</span>, <span class="number">0x42</span>, <span class="number">0x43</span>, <span class="number">0x44</span>, <span class="number">0x45</span>, <span class="number">0x46</span>, <span class="number">0x47</span>, <span class="number">0x48</span>, <span class="number">0x4A</span>, <span class="number">0x4B</span>, <span class="number">0x4C</span>, <span class="number">0x4D</span>, <span class="number">0x4E</span>, <span class="number">0x50</span>, <span class="number">0x51</span>, <span class="number">0x52</span>, <span class="number">0x53</span>, <span class="number">0x54</span>, <span class="number">0x55</span>, <span class="number">0x56</span>, <span class="number">0x57</span>, <span class="number">0x58</span>, <span class="number">0x59</span>, <span class="number">0x5A</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="built_in">chr</span>(chr_arr[inv[i][j]]), end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;-&#x27;</span>, end=<span class="string">&#x27;&#x27;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>总结：下次遇到这种题目，如果很相信自己的逻辑和脚本，一直不对的话就去查看一下有无反调试。</p>
-]]></content>
-  </entry>
-  <entry>
     <title>RC4</title>
     <url>/2023/08/20/RC4/</url>
     <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
@@ -482,50 +528,6 @@
       <tags>
         <tag>密码学</tag>
         <tag>对称加密</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C语言-链接与编译</title>
-    <url>/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/</url>
-    <content><![CDATA[<p><strong>编译</strong> </p>
-<p>源文件生成目标文件的过程及main.c–main.o</p>
-<span id="more"></span>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011918.png"></p>
-<p><strong>链接</strong></p>
-<p>目标文件生成可执行文件的过程及main.o–main。详细点说链接是将编译之后的所有目标文件连同用到的一些静态库、运行时库组件而拼装成一个可执行文件的过程。其中有地址修复的过程，如上图所示call后面的地址暂时被设置为0，修复时就是链接器根据目标文件或者静态库中的重定位表找到那些需要被重定位的函数和全局变量从而修正他们的地址。</p>
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011750.png"></p>
-<p>对于add.h 、add.c、main.c三个文件</p>
-<p>add.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>add.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>main.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>编译器是完全不知道printf和add函数的存在的（位于哪个区块、函数的定义），因此编译器只能将两个函数的跳转先暂时设置为0.使用odjdump对目标文件进行反汇编</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -s -d main.o &gt; main.o.txt</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818013635.png"></p>
-<p>这里的0会在后面链接的时候被修正</p>
-<p>查看目标文件的重定位信息</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -r main.o</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818014305.png"></p>
-<p>函数add、printf的偏移量分别为25、3b。</p>
-<p>一直手工编译显然效率不高，学习了一点makefile的知识</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim makefile</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">all:main</span><br><span class="line">main:main.o add.o</span><br><span class="line">        gcc main.o add.o -o main</span><br><span class="line">main.o:main.c</span><br><span class="line">        gcc -c main.c</span><br><span class="line">add.o:add.c</span><br><span class="line">        gcc -c add.c</span><br><span class="line">clean:</span><br><span class="line">        rm main main.o add.o</span><br></pre></td></tr></table></figure>
-
-<p>然后make main即可，他会自动根据依赖树递归地去构建可执行文件main</p>
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818020241.png"></p>
-<p>参考：<a href="https://www.youtube.com/watch?v=1IIUvVrCSF0">https://www.youtube.com/watch?v=1IIUvVrCSF0</a></p>
-]]></content>
-      <tags>
-        <tag>C语言</tag>
       </tags>
   </entry>
   <entry>
@@ -957,59 +959,6 @@
       </tags>
   </entry>
   <entry>
-    <title>gcc常用命令</title>
-    <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure>
-
-<p>默认生成a.out的可执行文件，main.c经历了<strong>预处理</strong>、<strong>汇编</strong>、<strong>编译</strong>、<strong>链接</strong>操作</p>
-<span id="more"></span>
-
-<p><strong>2.</strong> 指定输出文件的文件名 <strong>-o</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure>
-
-<p>生成可执行文件main</p>
-<p><strong>3.</strong> 预处理 -E</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -E main.c -o main.i</span><br></pre></td></tr></table></figure>
-
-<p>最简单的打印hello，world都要大几百行代码。预处理的作用是直接将#include&lt;xxx.h&gt;、#include”xxx.h”还有宏进行直接的复制粘贴操作.尖括号&lt;&gt;和双引号”“的区别在于，尖括号包含的头文件预处理器会直接搜索指定目录，双引号包含的头文件预处理器则优先在当前目录下查找。也就是系统的头文件我们一般都使用尖括号&lt;&gt;,自己定义的则使用双引号。gcc有选项可以更改目录，这里不再多说。</p>
-<p><strong>4.</strong> 编译生成汇编代码</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -S main.i</span><br></pre></td></tr></table></figure>
-
-<p>生成名为main.s的文本文件，里面是汇编语言。</p>
-<p><strong>5.</strong> 汇编</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c main.s</span><br></pre></td></tr></table></figure>
-
-<p>汇编器将汇编代码转换成目标文件main.o</p>
-<p><strong>6.</strong> 链接</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.o -o main</span><br></pre></td></tr></table></figure>
-
-<p>链接器将目标文件链接为可执行文件-o为优化等级，-O1、-O2、-O3，级别越大优化效果越好。</p>
-<h3 id="多文件编译方法"><a href="#多文件编译方法" class="headerlink" title="多文件编译方法"></a>多文件编译方法</h3><p>对于add.h、add.c、main.c三个文件</p>
-<p>add.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>add.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>main.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>1.直接源码到可执行文件</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c add.c -o main</span><br></pre></td></tr></table></figure>
-
-<p>生成名为main的可执行文件</p>
-<p><strong>2.分别编译各个源文件，然后进行链接</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c add.c    #生成add.o</span><br><span class="line">gcc -c main.c   #生成main.o</span><br><span class="line">gcc -o add.o main.o -o main     #链接生成可执行文件</span><br></pre></td></tr></table></figure>
-
-<p>两种方法各有优缺点，第一种简便但是需要对所有文件进行重新编译，第二种方法可以只重新编译修改的文件，而不需要浪费时间重新编译整个工程。（详情请看另一篇介绍编译与链接的文章）</p>
-<p>参考文章：<a href="https://blog.csdn.net/yinjiabin/article/details/7731817">linux gcc编译多个源文件的方法_yinjiabin的博客-CSDN博客</a></p>
-]]></content>
-      <tags>
-        <tag>gcc</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>csapp笔记</title>
     <url>/2022/12/21/csapp/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
@@ -1113,6 +1062,59 @@
 ]]></content>
   </entry>
   <entry>
+    <title>gcc常用命令</title>
+    <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure>
+
+<p>默认生成a.out的可执行文件，main.c经历了<strong>预处理</strong>、<strong>汇编</strong>、<strong>编译</strong>、<strong>链接</strong>操作</p>
+<span id="more"></span>
+
+<p><strong>2.</strong> 指定输出文件的文件名 <strong>-o</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成可执行文件main</p>
+<p><strong>3.</strong> 预处理 -E</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -E main.c -o main.i</span><br></pre></td></tr></table></figure>
+
+<p>最简单的打印hello，world都要大几百行代码。预处理的作用是直接将#include&lt;xxx.h&gt;、#include”xxx.h”还有宏进行直接的复制粘贴操作.尖括号&lt;&gt;和双引号”“的区别在于，尖括号包含的头文件预处理器会直接搜索指定目录，双引号包含的头文件预处理器则优先在当前目录下查找。也就是系统的头文件我们一般都使用尖括号&lt;&gt;,自己定义的则使用双引号。gcc有选项可以更改目录，这里不再多说。</p>
+<p><strong>4.</strong> 编译生成汇编代码</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -S main.i</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main.s的文本文件，里面是汇编语言。</p>
+<p><strong>5.</strong> 汇编</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c main.s</span><br></pre></td></tr></table></figure>
+
+<p>汇编器将汇编代码转换成目标文件main.o</p>
+<p><strong>6.</strong> 链接</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.o -o main</span><br></pre></td></tr></table></figure>
+
+<p>链接器将目标文件链接为可执行文件-o为优化等级，-O1、-O2、-O3，级别越大优化效果越好。</p>
+<h3 id="多文件编译方法"><a href="#多文件编译方法" class="headerlink" title="多文件编译方法"></a>多文件编译方法</h3><p>对于add.h、add.c、main.c三个文件</p>
+<p>add.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>add.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>1.直接源码到可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c add.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main的可执行文件</p>
+<p><strong>2.分别编译各个源文件，然后进行链接</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c add.c    #生成add.o</span><br><span class="line">gcc -c main.c   #生成main.o</span><br><span class="line">gcc -o add.o main.o -o main     #链接生成可执行文件</span><br></pre></td></tr></table></figure>
+
+<p>两种方法各有优缺点，第一种简便但是需要对所有文件进行重新编译，第二种方法可以只重新编译修改的文件，而不需要浪费时间重新编译整个工程。（详情请看另一篇介绍编译与链接的文章）</p>
+<p>参考文章：<a href="https://blog.csdn.net/yinjiabin/article/details/7731817">linux gcc编译多个源文件的方法_yinjiabin的博客-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>gcc</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>动态链接库（DLL）及其工作原理</title>
     <url>/2023/08/21/%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%EF%BC%88DLL%EF%BC%89%E5%8F%8A%E5%85%B6%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h3 id="动态链接库"><a href="#动态链接库" class="headerlink" title="动态链接库"></a><strong>动态链接库</strong></h3><blockquote>
@@ -1169,6 +1171,49 @@
       <tags>
         <tag>DLL</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>破解010Editor</title>
+    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
+    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
+
+<p>我是win64</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
+<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
+<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
+<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
+<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
+<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
+<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
+<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
+<p>查看流程图更加明了一点</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
+<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
+<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
+<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
+<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
+<p>然后我们将这个275修改成219</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
+<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
+<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
+<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
+<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
+<p>这个就算大功告成啦</p>
+<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
+<p>点击help –&gt; about 随意输入即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
+<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
+<p>参考：</p>
+<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
+]]></content>
   </entry>
   <entry>
     <title>汇编语言</title>
@@ -1435,49 +1480,6 @@
       <tags>
         <tag>汇编</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>破解010Editor</title>
-    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
-    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载</p>
-<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
-
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-]]></content>
   </entry>
   <entry>
     <title>编写虚拟机</title>
