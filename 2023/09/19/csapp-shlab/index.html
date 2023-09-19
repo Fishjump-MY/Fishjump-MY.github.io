@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="实现一个简单的shell，光是看官方的pdf就看了半天。 其实很简单，我们只要完善七个函数就好了，其中三个信号相关的。每次更新我们都要使用make命令编译一下。 这样就完成了更新。 一共有七个任务：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="csapp-shlab">
+<meta property="og:url" content="http://example.com/2023/09/19/csapp-shlab/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="实现一个简单的shell，光是看官方的pdf就看了半天。 其实很简单，我们只要完善七个函数就好了，其中三个信号相关的。每次更新我们都要使用make命令编译一下。 这样就完成了更新。 一共有七个任务：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230919172643.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914153737.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914022659.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914022754.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230912012344.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913014756.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913015040.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913193002.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194413.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194627.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194739.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194904.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913195034.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913224612.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913224440.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914231829.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914231927.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230915020553.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230917015600.png">
+<meta property="og:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230919171428.png">
+<meta property="article:published_time" content="2023-09-19T15:41:55.000Z">
+<meta property="article:modified_time" content="2023-09-19T15:41:55.303Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="csapp">
+<meta property="article:tag" content="lab">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230919172643.png">
+
+<link rel="canonical" href="http://example.com/2023/09/19/csapp-shlab/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>csapp-shlab | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/19/csapp-shlab/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          csapp-shlab
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-09-19 23:41:55" itemprop="dateCreated datePublished" datetime="2023-09-19T23:41:55+08:00">2023-09-19</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>16 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>实现一个简单的shell，光是看官方的pdf就看了半天。</p>
+<p>其实很简单，我们只要完善七个函数就好了，其中三个信号相关的。每次更新我们都要使用make命令编译一下。<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230919172643.png"></p>
+<p>这样就完成了更新。</p>
+<p>一共有七个任务：</p>
+<span id="more"></span>
+
+<ul>
+<li>eval: Main routine that parses and interprets the command line. [70 lines]</li>
+<li>builtin cmd: Recognizes and interprets the built-in commands: quit, fg, bg, and jobs. [25 lines]</li>
+<li>do bgfg: Implements the bg and fg built-in commands. [50 lines]</li>
+<li>waitfg: Waits for a foreground job to complete. [20 lines]</li>
+<li>sigchld handler: Catches SIGCHILD signals. 80 lines]</li>
+<li>sigint handler: Catches SIGINT (ctrl-c) signals. [15 lines]</li>
+<li>sigtstp handler: Catches SIGTSTP (ctrl-z) signals. [15 lines]</li>
+</ul>
+<p>中文解释：</p>
+<ul>
+<li>解析和解释命令行的main程序。[70行]</li>
+<li>内置命令：识别和解释内置命令：quit、fg、bg和jobs。[25行]</li>
+<li>执行bgfg：实现bg和fg内置命令。[50行]</li>
+<li>等待前台作业完成：等待前台作业完成。[20行]</li>
+<li>SIGCHLD处理程序：捕获SIGCHILD信号。[80行]</li>
+<li>SIGINT处理程序：捕获SIGINT（ctrl-c）信号。[15行]</li>
+<li>SIGTSTP处理程序：捕获SIGTSTP（ctrl-z）信号。[15行]</li>
+</ul>
+<p>中括号里的行数是预期函数代码。</p>
+<h2 id="信号处理函数"><a href="#信号处理函数" class="headerlink" title="信号处理函数"></a><strong>信号处理函数</strong></h2><p>正如书中所说信号处理是linux系统编程中最棘手的一个问题。</p>
+<p>如何安全的进行信号处理？</p>
+<ul>
+<li>处理程序尽可能简单</li>
+<li>在处理程序中只调用异步信号安全的函数。</li>
+<li>保存和恢复errno。许多Linux异步信号处理程序都会在出错返回时设置errno。在处理程序运行时可能会干扰主程序中其他依赖于errno的部分。解决方法是在进入处理程序时将errno保存到一个局部变量，在处理函数返回前恢复它。如果处理程序用_exit终止该程序，那么就不需要这样做。</li>
+<li>阻塞所有的信号，保护对共享全局数据结构的访问。如果处理程序和主程序或其他处理程序共享一个全局数据结构，那么在访问该数据结构时，处理程序和主程序应该暂时阻塞所有的信号。这条规则的原因是从主程序访问一个数据结构d通常需要一系列指令，如果指令序列被访问d的处理程序中断，那么处理程序可能会发现d的状态不一致，得到不可预知的结果。在访问d时暂时阻塞信号保证了处理程序不会中断该指令序列。</li>
+</ul>
+<h3 id="sigint-handler（✔）"><a href="#sigint-handler（✔）" class="headerlink" title="sigint_handler（✔）"></a><strong>sigint_handler（✔）</strong></h3><p>先来个行数最小的，捕获SIGINT，也就是令cltr-c得到处理。有两点需要注意：1）这个程序不是被_exit终止的，所以我们最好设置一下errno。2）处理程序访问了全局数据jobs，安全起见我们暂时阻塞所有信号。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">sigint_handler</span><span class="params">(<span class="type">int</span> sig)</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> tmp=errno;</span><br><span class="line">    <span class="type">sigset_t</span> <span class="built_in">set</span>,prev_set;</span><br><span class="line">    sigfillset(&amp;<span class="built_in">set</span>);<span class="comment">//将全部信号加入set</span></span><br><span class="line">    sigprocmask(SIG_BLOCK,&amp;<span class="built_in">set</span>,&amp;prev_set);<span class="comment">//阻塞全部信号</span></span><br><span class="line">    <span class="comment">//printf(&quot;494:阻塞全部信号\n&quot;);</span></span><br><span class="line">    <span class="type">pid_t</span> pid=fgpid(jobs);</span><br><span class="line">    <span class="keyword">if</span>(pid&gt;<span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//printf(&quot;got SIGINT&quot;);</span></span><br><span class="line">        kill(-pid,SIGINT);<span class="comment">//-pid kill函数发送信号给|pid|进程组的每个进程，起到了将所有的子进程父进程孙进程一网打尽的效果</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//printf(&quot;501:恢复全部信号\n&quot;);</span></span><br><span class="line">    sigprocmask(SIG_SETMASK,&amp;prev_set,<span class="literal">NULL</span>);<span class="comment">//恢复</span></span><br><span class="line">    errno=tmp;</span><br><span class="line">    <span class="comment">//printf(&quot;成功退出SIGCHLD处理函数\n&quot;);</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要注意的点就是kill函数第一个参数设置为负数，可以对整个进程组发送信号，防止产生孤儿进程。</p>
+<h3 id="sigtstp-handler（✔）"><a href="#sigtstp-handler（✔）" class="headerlink" title="sigtstp_handler（✔）"></a><strong>sigtstp_handler（✔）</strong></h3><p>SIGSTOP属于不可忽略信号，作用是暂停前台作业。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">sigtstp_handler</span><span class="params">(<span class="type">int</span> sig)</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> tmp=errno;</span><br><span class="line"></span><br><span class="line">    <span class="type">sigset_t</span> <span class="built_in">set</span>,prev_all;</span><br><span class="line">    sigfillset(&amp;<span class="built_in">set</span>);<span class="comment">//将全部信号加入set</span></span><br><span class="line">    sigemptyset(&amp;prev_all);</span><br><span class="line">    sigprocmask(SIG_BLOCK,&amp;<span class="built_in">set</span>,&amp;prev_all);<span class="comment">//阻塞全部信号</span></span><br><span class="line">    <span class="type">pid_t</span> pid=fgpid(jobs);<span class="comment">//有前台则返回pid，无则返回0</span></span><br><span class="line">    <span class="keyword">if</span>(pid&gt;<span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        kill(-pid,sig);</span><br><span class="line">    &#125;</span><br><span class="line">    sigprocmask(SIG_SETMASK,&amp;prev_all,<span class="literal">NULL</span>);<span class="comment">//恢复</span></span><br><span class="line">    errno=tmp;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="sigchld-handler（✔）"><a href="#sigchld-handler（✔）" class="headerlink" title="sigchld_handler（✔）"></a><strong>sigchld_handler</strong>（✔）</h3><p>子进程终止或停止操作系统会向父进程发出SIGCHLD信号。</p>
+<p>先看书中的几个例子。首先是这个例子，调用waitpid并将第一个参数设置为-1，等待集合由父进程的所有子进程组成。</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914153737.png"></p>
+<p>在只有单一进程的情况下，这种处理方法是没有问题的，可是如果子进程有很多，就会出现丢失信号的情况。因为等待列表里最多只能有一个信号，当接收到SIGCHLD信号的时候，调用处理程序，SIGCHLD信号被阻塞，如果此时传来一个SIGCHLD信号他就会进入等待列表，等第一个信号处理完之后，解除阻塞，触发处理程序，一旦这时候在传来SIGCHLD信号，信号不会进入列表等待，而是直接丢失。要解决这个问题，我们就得明白信号是不会排队等待的。</p>
+<p>下面是解决信号不排队等待问题的方案，设置了一个循环，waitpid函数如果成功等待进程停止就会返回pid&gt;0，进入循环后阻塞全部的信号，删除作业，解除阻塞。</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914022659.png"></p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914022754.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">sigchld_handler</span><span class="params">(<span class="type">int</span> sig)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> tmp=errno;</span><br><span class="line">    <span class="type">int</span> status;</span><br><span class="line">    <span class="type">pid_t</span> pid;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">job_t</span> *<span class="title">job</span>;</span></span><br><span class="line">    <span class="type">sigset_t</span> mask_all,prev;</span><br><span class="line">    sigfillset(&amp;mask_all);</span><br><span class="line">    sigemptyset(&amp;prev);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span>((pid=waitpid(<span class="number">-1</span>,&amp;status,WNOHANG | WUNTRACED))&gt;<span class="number">0</span>)  <span class="comment">//第三个参数代表立即返回，如果等待集合的子进程都没有被停职或终止则返回0，如果有则返回pid</span></span><br><span class="line">    &#123;  <span class="comment">//有子进程停止或终止，判断是停止则更改状态，是终止则删除作业</span></span><br><span class="line">       sigprocmask(SIG_BLOCK, &amp;mask_all, &amp;prev);<span class="comment">//阻塞全部信号</span></span><br><span class="line">       <span class="keyword">if</span>(WIFEXITED(status))</span><br><span class="line">       &#123; <span class="comment">//如果进程是通过exit或return正常终止则返回真，进入语句</span></span><br><span class="line">         deletejob(jobs,pid);<span class="comment">//删除指定pid的作业，pid由waitpid返回得到</span></span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">else</span> <span class="keyword">if</span>(WIFSIGNALED(status))</span><br><span class="line">       &#123; <span class="comment">//如果子进程是因为一个信号终止的则返回真</span></span><br><span class="line">         <span class="built_in">printf</span> (<span class="string">&quot;Job [%d] (%d) terminated by signal %d\n&quot;</span>, pid2jid(pid), pid, WTERMSIG(status));</span><br><span class="line">         deletejob(jobs, pid);</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">else</span> <span class="keyword">if</span>(WIFSTOPPED(status))</span><br><span class="line">       &#123; <span class="comment">//如果子进程现在是停止的，改变工作状态--&gt;ST</span></span><br><span class="line">           <span class="built_in">printf</span> (<span class="string">&quot;Job [%d] (%d) stopped by signal %d\n&quot;</span>, pid2jid(pid), pid, WSTOPSIG(status));</span><br><span class="line">           job = getjobpid(jobs,pid);</span><br><span class="line">           job-&gt;state = ST;</span><br><span class="line">       &#125;</span><br><span class="line">       sigprocmask(SIG_SETMASK,&amp;prev,<span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// if(errno!=ECHILD)</span></span><br><span class="line">    <span class="comment">//   unix_error(&quot;waitpid error!&quot;);</span></span><br><span class="line">    errno=tmp;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意waitpid的参数设置，这里不再是默认的,而是使用了status和options，status记录进程状态信息，options更改等待子进程的行为。默认情况options是0，等待集合中的任意一个子进程结束，如果集合中有后台进程，那么waitpid函数也会傻傻的等待，直到后台进程执行完毕才会重新弹出&gt;,所以这里设置了参数WNOHANG | WUNTRACED，此时waitpid的行为是立即返回，即不会等待进程停止或结束。</p>
+<h2 id="输入处理函数"><a href="#输入处理函数" class="headerlink" title="输入处理函数"></a><strong>输入处理函数</strong></h2><h3 id="eval函数（✔）"><a href="#eval函数（✔）" class="headerlink" title="eval函数（✔）"></a><strong>eval函数</strong>（✔）</h3><p>先看一下书上的作为参考<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230912012344.png"></p>
+<p>eval函数在main函数中的调用</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Execute the shell&#x27;s read/eval loop */</span></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Read command line */</span></span><br><span class="line">    <span class="keyword">if</span> (emit_prompt) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>, prompt);</span><br><span class="line">        fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ((fgets(cmdline, MAXLINE, <span class="built_in">stdin</span>) == <span class="literal">NULL</span>) &amp;&amp; ferror(<span class="built_in">stdin</span>))</span><br><span class="line">        app_error(<span class="string">&quot;fgets error&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (feof(<span class="built_in">stdin</span>)) &#123; <span class="comment">/* End of file (ctrl-d) */</span></span><br><span class="line">        fflush(<span class="built_in">stdout</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Evaluate the command line */</span></span><br><span class="line">    eval(cmdline);</span><br><span class="line">    fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    fflush(<span class="built_in">stdout</span>);</span><br></pre></td></tr></table></figure>
+
+<p>功能：首先检测第一个命令行参数是否为shll的内置命令（）&#x2F;</p>
+<p>参数是commandline也就是我们的输入</p>
+<p>函数功能：</p>
+<p>接收我们的输入作为参数，如果是内置命令则直接执行，如果不是内置命令，创建一个新的进程调用execve运行程序。</p>
+<p>在标准的Unix shell运行shell时，shell在前台进程组中运行，所以我们用fork创建的子进程也就是我们的前台作业也属于shell的进程组。但是ctrl+c会向前台进程组的每个进程发送SIGINT信号，也就是内核会向shell和shell创建的每个进程，我们使用setpid(0,0),将创建的子进程放到一个引得进程组中，新的进程组ID和PID相同。这样当按下ctrl+c时就只会对shell发送信号</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">eval</span><span class="params">(<span class="type">char</span>*cmdline)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span>*argv[MAXARGS];</span><br><span class="line">    <span class="type">char</span> buf[MAXLINE];</span><br><span class="line">    <span class="type">int</span> bg;</span><br><span class="line">    <span class="type">sigset_t</span> mask,prev,mask_all;</span><br><span class="line">    <span class="type">pid_t</span> pid;</span><br><span class="line">    </span><br><span class="line">    sigemptyset(&amp;mask);</span><br><span class="line">    sigemptyset(&amp;prev);</span><br><span class="line">    sigaddset(&amp;mask,SIGCHLD);</span><br><span class="line">    sigfillset(&amp;mask_all);</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">strcpy</span>(buf,cmdline);<span class="comment">//将输入复制到buf</span></span><br><span class="line">    bg=parseline(buf,argv);<span class="comment">//构造参数列表，后台作业返回1，前台返回0</span></span><br><span class="line">    <span class="keyword">if</span>(argv[<span class="number">0</span>]==<span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(!builtin_cmd(argv))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//非内置命令</span></span><br><span class="line">        sigprocmask(SIG_BLOCK,&amp;mask,&amp;prev);<span class="comment">//阻塞SIGCHLD信号</span></span><br><span class="line">        <span class="comment">//printf(&quot;194:阻塞SIGCHLD信号\n&quot;);//为什么要阻塞sigchld信号？防止子进程结束发出的sigchld信号影响主程序，也就是保证add在delete之前</span></span><br><span class="line">        <span class="keyword">if</span>((pid=fork())==<span class="number">0</span>)<span class="comment">//子进程运行命令,需要阻塞信号避免竞争</span></span><br><span class="line">        &#123;</span><br><span class="line">            setpgid(<span class="number">0</span>,<span class="number">0</span>);<span class="comment">//将子进程放入新的进程组中gpid=pid，可以避免停止时把tsh程序中断</span></span><br><span class="line">            sigprocmask(SIG_SETMASK,&amp;prev,<span class="literal">NULL</span>);<span class="comment">//恢复子进程信号</span></span><br><span class="line">            <span class="keyword">if</span>(execve(argv[<span class="number">0</span>],argv,environ)&lt;<span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%s:command not found\n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);<span class="comment">//退出子进程</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//父进程,根据前后台添加作业至作业列表</span></span><br><span class="line">        <span class="comment">//printf(&quot;父进程控制&quot;);</span></span><br><span class="line">        <span class="keyword">if</span>(!bg)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//printf(&quot;执行了一个前台任务&quot;);</span></span><br><span class="line">            sigprocmask(SIG_BLOCK,&amp;mask_all,<span class="literal">NULL</span>);</span><br><span class="line">            <span class="comment">//printf(&quot;213:阻塞全部信号\n&quot;);</span></span><br><span class="line">            <span class="comment">//printf(&quot;添加前台作业子进程的pid:%d,gpid:%d\n&quot;,pid,getpgid(pid));</span></span><br><span class="line">            addjob(jobs,pid,FG,cmdline);</span><br><span class="line">            waitfg(pid);</span><br><span class="line">            sigprocmask(SIG_SETMASK,&amp;prev,<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span><span class="comment">//后台作业</span></span><br><span class="line">        &#123;</span><br><span class="line">            sigprocmask(SIG_BLOCK,&amp;mask_all,<span class="literal">NULL</span>);</span><br><span class="line">            <span class="comment">//printf(&quot;225:阻塞全部信号\n&quot;);</span></span><br><span class="line">            <span class="comment">//printf(&quot;添加后台作业：%d\n&quot;,pid);</span></span><br><span class="line">            addjob(jobs,pid,BG,cmdline);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;[%d] (%d) %s&quot;</span>, pid2jid(pid), pid, cmdline);</span><br><span class="line">            sigprocmask(SIG_SETMASK,&amp;prev,<span class="literal">NULL</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里比较关键的是<code>setpgid(0,0)</code>，当使用了execve函数开始一个新的进程时，按下ctrl+c不会将我们的tsh程序关闭，因为该函数将新的进程放入了一个新的进程组中，通过键盘发送的信号被tsh进程捕获然后通过kill函数像子进程组发送SIGINT信号就好啦。</p>
+<h3 id="builtun-cmd（✔）"><a href="#builtun-cmd（✔）" class="headerlink" title="builtun_cmd（✔）"></a><strong>builtun_cmd（✔）</strong></h3><p>如果是内置命令（quit、fg、bg、jobs）则直接执行，如果不是则返回0。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">builtin_cmd</span><span class="params">(<span class="type">char</span> **argv)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;quit&quot;</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;exit&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);<span class="comment">//退出shell</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;fg&quot;</span>)||(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;bg&quot;</span>)))<span class="comment">//fg %jid or fg pid 将一个作业切换至前台运行</span></span><br><span class="line">    &#123;</span><br><span class="line">        do_bgfg(argv);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;jobs&quot;</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        listjobs(jobs);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;&amp;&quot;</span>))<span class="comment">//后台作业</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;command not found&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;     <span class="comment">/* not a builtin command 不是内置命令*/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="waitfg（✔）"><a href="#waitfg（✔）" class="headerlink" title="waitfg（✔）"></a><strong>waitfg（✔）</strong></h3><p>等待前台作业结束，这个参考了书上的代码，也想了很久</p>
+<p>书中建议使用sigsuspend函数进行阻塞，既能解决单独pause引来的竞争问题，又能解决sleep速度太慢的问题。<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913014756.png"></p>
+<p>注意这个向量使用的是prev，该函数的实际作用是：1）将阻塞列表设为prev。2）在捕捉到一个信号之前，该进程被挂起（pause函数）。3）如果捕捉到一个信号而且从处理程序返回则sigsuspend返回，并且将该进程的阻塞列表恢复，如果是终止信号则该进程不从sigsuspend返回直接终止。<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913015040.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">waitfg</span><span class="params">(<span class="type">pid_t</span> pid)</span><span class="comment">//linux shell在接收下一个命令之前，必须显示地等待前台作业终止</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">sigset_t</span> mask,prev;</span><br><span class="line">   sigemptyset(&amp;mask);</span><br><span class="line">   sigemptyset(&amp;prev);</span><br><span class="line">   <span class="comment">//等待前台作业传送来的SIGCHLD信号</span></span><br><span class="line">   <span class="keyword">while</span>(fgpid(jobs)!=<span class="number">0</span>)<span class="comment">//fgpid函数返回前台进程pid，如果没与前台进程则返回0</span></span><br><span class="line">   &#123;</span><br><span class="line">    <span class="comment">//进来循环了，那就说明前台进程还在</span></span><br><span class="line">    sigsuspend(&amp;mask);<span class="comment">//清除阻塞列表，挂起，恢复阻塞列表</span></span><br><span class="line">   &#125;</span><br><span class="line">   <span class="comment">//printf(&quot;暂无前台作业\n&quot;);</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="do-bgfg（✔）"><a href="#do-bgfg（✔）" class="headerlink" title="do_bgfg（✔）"></a><strong>do_bgfg</strong>（✔）</h3><p>执行内置的bg函数和fg函数，在builtin_cmd函数中被调用，其参数时命令行参数列表。<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913193002.png"></p>
+<p>在完成这个函数之前我们要认识一下fg命令和bg命令。</p>
+<p>fg是foreground（前台）的缩写，用于将一个在后台的进程切换到前台，并恢复执行</p>
+<ul>
+<li><code>fg</code> 将最近放入后台的进程移动到前台执行</li>
+<li><code>fg %jid</code> 根据jid进行操作</li>
+<li><code>fg pid</code>根据pid进行操作</li>
+</ul>
+<p>bg是background（后台）的缩写，用于将一个暂停的程序放入后台执行。操作和fg相同。</p>
+<p>下面在真正的shell演示一下：</p>
+<p>先来一个<code>sleep 1000</code> 当前进程处于休眠状态，1000秒后返回控制，我们可以将其理解为一个运行中的程序。</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194413.png"></p>
+<p>CTRL+Z将其暂停</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194627.png"></p>
+<p>jobs查看作业列表</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194739.png"></p>
+<p>使用fg命令将其切换到前台并执行</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913194904.png"></p>
+<p>然后CTRL+z将其暂停，使用bg命令让其在后台运行，jobs查看状态显示running</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913195034.png"></p>
+<p>无论是fg还是bg都涉及到恢复一个stopped状态的进程，那么如何恢复一个进程？</p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913224612.png"></p>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230913224440.png"></p>
+<p>由此可知，我们在这个函数内要调用kill函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">do_bgfg</span><span class="params">(<span class="type">char</span> **argv)</span> <span class="comment">//argv是一个指向字符串指针的指针</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> jid,pid,ifpid,ifjid;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">job_t</span> *<span class="title">myjobs</span>;</span></span><br><span class="line">    <span class="type">sigset_t</span> mask;</span><br><span class="line">    sigemptyset(&amp;mask);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(argv[<span class="number">1</span>]==<span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="built_in">printf</span>(<span class="string">&quot;%s command requires PID or %%jobid argument\n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ifpid=<span class="built_in">sscanf</span>(argv[<span class="number">1</span>],<span class="string">&quot;%d&quot;</span>,&amp;pid);<span class="comment">//如果参数是pid则返回真</span></span><br><span class="line">    ifjid=<span class="built_in">sscanf</span>(argv[<span class="number">1</span>],<span class="string">&quot;%%%d&quot;</span>,&amp;jid);<span class="comment">//如果是jid则返回真</span></span><br><span class="line">   </span><br><span class="line">    <span class="keyword">if</span>(!ifpid&amp;&amp;!ifjid)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%s: argument must be a PID or %%jobid\n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//检查pid jid是否合规</span></span><br><span class="line">    <span class="keyword">if</span>(ifjid==<span class="number">0</span>)<span class="comment">//接收pid为参数</span></span><br><span class="line">    &#123;</span><br><span class="line">      jid=pid2jid(pid);</span><br><span class="line">      <span class="keyword">if</span>(jid==<span class="number">0</span>)<span class="comment">//pid不合法</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;(%s):No such process\n&quot;</span>,argv[<span class="number">1</span>]);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>  <span class="comment">//接收jid作为参数</span></span><br><span class="line">    &#123;</span><br><span class="line">       <span class="keyword">if</span>(getjobjid(jobs,jid)==<span class="literal">NULL</span>)</span><br><span class="line">       &#123;</span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">&quot;%s: No such job\n&quot;</span>,argv[<span class="number">1</span>]);</span><br><span class="line">         <span class="keyword">return</span>;</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(jid==<span class="number">0</span>)<span class="comment">//接收pid为参数</span></span><br><span class="line">    &#123;</span><br><span class="line">      jid=pid2jid(pid);</span><br><span class="line">    &#125;</span><br><span class="line">    myjobs=getjobjid(jobs,jid);   </span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;fg&quot;</span>))</span><br><span class="line">    &#123;  <span class="comment">//fg的对象可能是bg也可能是st</span></span><br><span class="line">       <span class="keyword">if</span> (myjobs-&gt;state == ST)</span><br><span class="line">            kill(-(myjobs-&gt;pid), SIGCONT);</span><br><span class="line">        myjobs-&gt;state = FG;</span><br><span class="line">        sigprocmask(SIG_SETMASK, &amp;mask, <span class="literal">NULL</span>);</span><br><span class="line">        waitfg(myjobs-&gt;pid);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123; <span class="comment">//bg命令</span></span><br><span class="line">      myjobs-&gt;state=BG;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;[%d] (%d) %s&quot;</span>, myjobs-&gt;jid, myjobs-&gt;pid, myjobs-&gt;cmdline);</span><br><span class="line">      kill(-(myjobs-&gt;jid),SIGCONT);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要注意的是使用kill的时候参数pid要设置为负数，设置为负数会将pid所在进程组的所有进程关闭。</p>
+<h2 id="检查"><a href="#检查" class="headerlink" title="检查"></a>检查</h2><p>这里讲一下检测的方法，在lab这个目录下运行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">make testxx     //出现的结果是我们编写的shell跑出的结果</span><br><span class="line"></span><br><span class="line">make rtestxx    //出现的是预期结果即正确的shell抛出的结果</span><br></pre></td></tr></table></figure>
+
+<p>检查真的很有必要，在前面的函数是现阶段代码框架大致都有了，但是就像书中提到的涉及到linux信号处理的编程时十分棘手的，稍有不慎就会引发错误，而且有的错误藏得很深，可能运行几十次代码他都是正确的，但是有可能就是下一次，问题就出现了。一定要通过实验中提供的验证手段，逐个检查，遇到问题就去调试，或者用printf插入一些桩，我的方法是在容易出问题的地方（信号的阻塞与解除阻塞）打印出状态。</p>
+<h3 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914231829.png"></h3><p>按下CTRL+z之后，应该暂停前台进程并返回我们的shell，打印出“tsh&gt;”,但是<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230914231927.png"></p>
+<p>可以看到进入了处理程序，并且暂停了前台程序。原来的函数是没有</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">getjobpid(jobs,pid)-&gt;state=ST;<span class="comment">//将前台作业标记为ST</span></span><br></pre></td></tr></table></figure>
+
+<p>这条语句的，经过测试程序会卡死到恢复信号那个步骤，试想，当我们恢复信号，上面用kill指令对pid进程组的所有进程发送SIGTSTP信号，当我们的前台进程被停止的时候，内核会向父进程发送SIGCHLD信号,触发SIGCHLD。而这个程序被卡死在了SIGCHLD的处理程序中，说的更透彻一点，其实被卡在了<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230915020553.png"></p>
+<p>waitpid这个函数里面，waitpid会挂起父进程（shell）等待子进程结束，而我们已经通过kill对子进程发送了SIGTSTP信号，子进程已经停止了，waitpid永远不会结束。这显然是SIGCHLD信号处理函数的漏洞，刚开始我错误的将SIGCHLD处理函数只用来处理终止的进程，没有考虑到停止的进程也会发送信号。所以我们要在SIGTSTP处理函数那里设置job的状态，是状态变为ST然后在SIGCHLD处理函数中增加条件判断</p>
+<h2 id="知识盲点"><a href="#知识盲点" class="headerlink" title="知识盲点"></a>知识盲点</h2><ul>
+<li><p>信号处理函数可以被其他信号处理程序中断<img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230917015600.png"></p>
+</li>
+<li><p>woc，看代码没看仔细，里面的Signal函数不是signal，而是对sigaction函数的封装。</p>
+<p>Unix信号处理在不同的系统有不同的信号处理语义。</p>
+<p>一些老的Unix系统在信号k被处理程序捕获之后就把对信号k的反应恢复到默认值（怪不得我看到有文章这样说，但实践了一下发现不是这样的），在这些系统上，每次运行之后，处理程序必须调用signal函数显示地重新设置自己，即在信号处理函数中使用signal重新设置。</p>
+<p>像read、write这样的下系统调用潜在的会阻塞进程一段较长的时间，在一些比较早版本的unix系统中，当处理程序捕获到一个信号时，被中断的慢速系统调用在信号处理程序返回时不再继续，而是立即返回给用户一个错误条件，并将errno设置为EINTR，在这些系统上，程序员必须手动重启被中断的系统调用。</p>
+<p>在这个lab中使用的使一个包装函数Signal，他调用了sigaction</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">handler_t</span> *<span class="title function_">Signal</span><span class="params">(<span class="type">int</span> signum, <span class="type">handler_t</span> *handler)</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sigaction</span> <span class="title">action</span>, <span class="title">old_action</span>;</span></span><br><span class="line"></span><br><span class="line">    action.sa_handler = handler;  </span><br><span class="line">    sigemptyset(&amp;action.sa_mask); <span class="comment">/* block sigs of type being handled 阻塞正在处理的信号类型 */</span></span><br><span class="line">    action.sa_flags = SA_RESTART; <span class="comment">/* restart syscalls if possible  如果可能，重新启动系统调用，即系统调用被中断后不需要手动恢复*/</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (sigaction(signum, &amp;action, &amp;old_action) &lt; <span class="number">0</span>)</span><br><span class="line">	unix_error(<span class="string">&quot;Signal error&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> (old_action.sa_handler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>信号处理语义如下：</p>
+<ul>
+<li>只有这个处理程序当前正在处理的那种类型的信号被阻塞。</li>
+<li>和所有信号实现一样，信号不会排队等待。</li>
+<li>只要可能，被中断的系统调用会重新启动。</li>
+<li>一旦设置信号处理程序，他就会一直保持。</li>
+</ul>
+<p>吐了原来那些信号处理函数是默认的。。。怎么说？因为当我们执行&#x2F;bin&#x2F;sleep命令时，其实是通过execve函数加载的新程序，execve加载之后信号处理函数恢复默认。</p>
+</li>
+</ul>
+<p><img src="/2023/09/19/csapp-shlab/QQ%E6%88%AA%E5%9B%BE20230919171428.png"></p>
+<p>全部的检测结果太长了，这里放一个比较复杂的代表了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/csapp/" rel="tag"># csapp</a>
+              <a href="/tags/lab/" rel="tag"># lab</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/09/10/%E7%AC%AC%E5%85%AB%E7%AB%A0-%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81/" rel="prev" title="第八章-异常控制流">
+      <i class="fa fa-chevron-left"></i> 第八章-异常控制流
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="nav-number">1.</span> <span class="nav-text">信号处理函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sigint-handler%EF%BC%88%E2%9C%94%EF%BC%89"><span class="nav-number">1.1.</span> <span class="nav-text">sigint_handler（✔）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sigtstp-handler%EF%BC%88%E2%9C%94%EF%BC%89"><span class="nav-number">1.2.</span> <span class="nav-text">sigtstp_handler（✔）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sigchld-handler%EF%BC%88%E2%9C%94%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">sigchld_handler（✔）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">输入处理函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#eval%E5%87%BD%E6%95%B0%EF%BC%88%E2%9C%94%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">eval函数（✔）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#builtun-cmd%EF%BC%88%E2%9C%94%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">builtun_cmd（✔）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#waitfg%EF%BC%88%E2%9C%94%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">waitfg（✔）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#do-bgfg%EF%BC%88%E2%9C%94%EF%BC%89"><span class="nav-number">2.4.</span> <span class="nav-text">do_bgfg（✔）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5"><span class="nav-number">3.</span> <span class="nav-text">检查</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80"><span class="nav-number">3.1.</span> <span class="nav-text">问题一</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9F%A5%E8%AF%86%E7%9B%B2%E7%82%B9"><span class="nav-number">4.</span> <span class="nav-text">知识盲点</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">56k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:24</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
