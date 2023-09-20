@@ -161,9 +161,9 @@
     
     
     
-    <category term="对称加密" scheme="http://example.com/tags/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/"/>
-    
     <category term="密码学" scheme="http://example.com/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/"/>
+    
+    <category term="对称加密" scheme="http://example.com/tags/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/"/>
     
   </entry>
   
