@@ -975,91 +975,6 @@
       </tags>
   </entry>
   <entry>
-    <title>csapp笔记</title>
-    <url>/2022/12/21/csapp/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
-<h1 id="第一章-计算机系统漫游"><a href="#第一章-计算机系统漫游" class="headerlink" title="第一章 计算机系统漫游"></a>第一章 计算机系统漫游</h1><p>不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。</p>
-<span id="more"></span>
-
-<h5 id="信息就是位-上下文"><a href="#信息就是位-上下文" class="headerlink" title="信息就是位+上下文"></a>信息就是位+上下文</h5><p>0和1组成位，也成为比特，八个位组成一组称为字节。系统之中所有的信息都是由一串比特表示的，区分不同数据对象的唯一方法就是对照上下文。举个简单的例子，0110 0100，这么一串比特，它既能表示二进制数，又能表示ASCII对应的值d，具体表示什么要联系上下文。</p>
-<h5 id="了解编译系统如何工作的益处（书上这么写的不是我总结的）"><a href="#了解编译系统如何工作的益处（书上这么写的不是我总结的）" class="headerlink" title="了解编译系统如何工作的益处（书上这么写的不是我总结的）"></a>了解编译系统如何工作的益处（书上这么写的不是我总结的）</h5><p>1.优化程序性能</p>
-<p>2.理解链接时出现的错误</p>
-<p>3.避免安全漏洞</p>
-<h5 id="了解shell"><a href="#了解shell" class="headerlink" title="了解shell"></a>了解shell</h5><p>第一章中不停的在提及shell。shell是一个命令解释器，他输出一个提示符，等待输入一个命令符，然后执行这个命令。简单的理解一下，Windows系统中我们打开一个程序需要点击其图像，Linux则需要我们输入命令行来打开，shell就是那个供用户输入命令行的程序。shell是一个应用程序，连接了用户和linux内核。参考：(<a href="http://c.biancheng.net/view/706.html">http://c.biancheng.net/view/706.html</a>)</p>
-<h5 id="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"><a href="#系统是硬件和软件互相交织的集合体（简单介绍一下硬件）" class="headerlink" title="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"></a>系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</h5><h6 id="1-总线"><a href="#1-总线" class="headerlink" title="1.总线"></a>1.总线</h6><p>像神经一样，贯穿于整个系统，携带信息字节并负责在各个部门传递</p>
-<h6 id="2-I-x2F-O设备"><a href="#2-I-x2F-O设备" class="headerlink" title="2.I&#x2F;O设备"></a>2.I&#x2F;O设备</h6><p>及输入&#x2F;输出设备，键盘、鼠标为输入设备，显示器和磁盘为输出设备。</p>
-<h6 id="3-主存"><a href="#3-主存" class="headerlink" title="3.主存"></a>3.主存</h6><p>主存是一个临时存储设备，在处理器执行程序时，用来存放程序和程序处理的数据。</p>
-<h6 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4.处理器"></a>4.处理器</h6><p>中央处理单元（CPU），简称处理器，世界是（或执行）存储在主存中指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向主存中的某条机器语言指令（即含有该指令的地址）。</p>
-<h5 id="不大不小的疑惑"><a href="#不大不小的疑惑" class="headerlink" title="不大不小的疑惑"></a>不大不小的疑惑</h5><p>此时年轻懵懂的我不明白为什么有很多很多人念着Linux系统的好，Windows这种图形化控着与此相比有什么难以弥补的劣势？据说以后工作实践中，项目大多也是基于Linux完成的，有时间了一定好好了解一下其中的内幕。</p>
-<h1 id="第二章-信息的表示和处理"><a href="#第二章-信息的表示和处理" class="headerlink" title="第二章 信息的表示和处理"></a>第二章 信息的表示和处理</h1><h6 id="研究数字的实际表示的意义"><a href="#研究数字的实际表示的意义" class="headerlink" title="研究数字的实际表示的意义"></a>研究数字的实际表示的意义</h6><p> 能够了解可以表时得知和不同算术运算的属性。从而使程序正确工作，更具可移植性，更安全。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png"></p>
-<h6 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h6><p>大多数计算机使用8位的块（字节）作为最小的可寻址的内存单元。机器级的程序将内存视为一个非常大的字节数组，称为虚拟内存。内存的每个字节都由一个唯一的数字来标识，称为它的地址。所有可能地址的集合称为虚拟地址空间。</p>
-<h6 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h6><p>二进制表示起来过用冗长，而十进制与二进制的转化很麻烦，十六进制表示起来很方便。如果二进制位数不是4的倍数，最左侧补0。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png"></p>
-<p>j代表的是16进制0的数量。前面的i是1的数量，注意只能是1,11,111,1111这四种表示。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307203238.png"></p>
-<h5 id="整型"><a href="#整型" class="headerlink" title="整型"></a>整型</h5><h6 id="字数据大小"><a href="#字数据大小" class="headerlink" title="字数据大小"></a>字数据大小</h6><p>字长决定虚拟地址空间的最大大小，我们常说的32位64位都是指的字长，32位字长虚拟地址空间为2的32次方及4GB。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204456.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204729.png"></p>
-<p>#include&lt;stdint.h&gt;中有关于int32_t等的宏定义，确定的大小可以避免很多麻烦，程序的可移植性也更高。</p>
-<h6 id="寻址和字节顺序"><a href="#寻址和字节顺序" class="headerlink" title="寻址和字节顺序"></a>寻址和字节顺序</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307205643.png"></p>
-<p>可以这样说，大端是更符合我们日常思维的那一种。两种端序没有优劣之分，选择哪种字节顺序没有技术上的理由。我们只需选择一种并且始终如一地坚持。</p>
-<h6 id="C语言中的逻辑运算"><a href="#C语言中的逻辑运算" class="headerlink" title="C语言中的逻辑运算"></a>C语言中的逻辑运算</h6><p>逻辑运算和按位运算有很大的不同，其一逻辑运算中所有的非零参数都表示TRUE，0参表FALSE，其二，如果对第一个参数求值就能确定表达式的结果，那么逻辑运算就不会对第二个参数求值。</p>
-<h6 id="C语言中的移位运算"><a href="#C语言中的移位运算" class="headerlink" title="C语言中的移位运算"></a>C语言中的移位运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307222226.png"></p>
-<p>几乎所有的编译器都对有符号数使用算数右移（保留最高位），对于无符号数，右移必须是逻辑的。Java中x&gt;&gt;&gt;k是逻辑右移，x&gt;&gt;k是算数右移。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307223156.png"></p>
-<h6 id="强制类型转换"><a href="#强制类型转换" class="headerlink" title="强制类型转换"></a>强制类型转换</h6><p>强制类型转换结果保持位不变，改变的是对位的解析方式</p>
-<h6 id="有符号和无符号处理"><a href="#有符号和无符号处理" class="headerlink" title="有符号和无符号处理"></a>有符号和无符号处理</h6><p>当表达式中同时出现也有符号和无符号，那么C语言会隐式的将有符号数转换为无符号数（位不变），例如表达式-1&lt;0u返回的结果是0，也就是表达式错误，因为将-1的补码按照无符号数来解析。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324010451.png"></p>
-<p>看着好像没什么问题，但是当len等于0，在运算0-1时，计算机会当作0+(-1),因为默认是有符号，而len是无符号的。所以(-1)要从补码转换成无符号数也就是T2U，也就是UMax，所以程序会进入死循环，并且访问到a的非法元素。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324012052.png"></p>
-<p>A.当s比t短的时候会错误的返回1</p>
-<p>B.两数相减得到负数会当作无符号数处理，最高位为1也就是一个很大的数大于零</p>
-<p>C.改为return strlen(s)&gt;strlen(t)</p>
-<h6 id="扩展一个数字的位表示"><a href="#扩展一个数字的位表示" class="headerlink" title="扩展一个数字的位表示"></a>扩展一个数字的位表示</h6><p>如果想扩展一个数字，只需要在它的最高位补上n个符号位，比如说101表示-3，在最左侧加1变为1101还是表示-3，我们可以看到它最高位与后一位的和-8+4&#x3D;-4这也是扩展前符号位的值，我们再给它扩展一位变为11101它还是表示-3，对于非负数我们只需在其前面补上0即可，正好今天在做datalab的howManyBits，和这个正好是相关的，刚开始看到网上师傅举得例子还有点懵，为啥101和1101代表的都是-3，所以我们可以知道有无数种形式的补码可以表示-3，而101是最短的一种。</p>
-<h6 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h6><p>截断无符号数：</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324001954.png"></p>
-<h6 id="对于整数运算最后的思考-模运算"><a href="#对于整数运算最后的思考-模运算" class="headerlink" title="对于整数运算最后的思考 模运算"></a>对于整数运算最后的思考 模运算</h6><p>计算机执行整数运算实际上是一种模运算，什么是模运算呢？模运算也就是求余运算，在前面我们可以看到几乎所有的溢出都采取了模最高位取余数的方法。补码的表示，可以使正数加上负数的补码等于减去其原码比如</p>
-<figure class="highlight basic"><table><tr><td class="code"><pre><span class="line"><span class="number">3</span>-<span class="number">2</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>-<span class="number">0000</span> <span class="number">0010</span>=  <span class="number">0000</span> <span class="number">0001</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>+<span class="number">1111</span> <span class="number">1110</span>=<span class="number">1</span> <span class="number">0000</span> <span class="number">0001</span>//最高位舍去</span><br></pre></td></tr></table></figure>
-
-<h5 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h5><h6 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h6><p>二进制小数，小数点左边是二的非负权（非负幂），小数点右边是二的负权，这一点和十进制小数并无区别。</p>
-<p>二进制小数只能精确的表示形如（x*2的y次幂）的数</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091512.png"></p>
-<h6 id="IEEE浮点数表示"><a href="#IEEE浮点数表示" class="headerlink" title="IEEE浮点数表示"></a>IEEE浮点数表示</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091842.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327092231.png"></p>
-<p>正如书中提到的，浮点数看起来比较深奥难懂，但它是建立在小而一致的原则之上的。</p>
-<p>根据exp的值，可以分为三种不同的情况，规格化的、非规格化的或特殊值</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093637.png"></p>
-<h6 id="规格化得值"><a href="#规格化得值" class="headerlink" title="规格化得值"></a>规格化得值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093742.png"></p>
-<p>小数点在f段最高位的左侧，隐含的以1开头表示。</p>
-<h6 id="偏置值"><a href="#偏置值" class="headerlink" title="偏置值"></a>偏置值</h6><p>这个师傅讲的比较简单明了：</p>
-<p>拿单精度来说，（规格化）e的取值范围是0000 0001<del>1111 1110也就是1</del>254，肯定不能只使用无符号表示，因为这样只能表示非负数，所以使用E&#x3D;e-Bias，其范围就是-126<del>127，那么为什么不直接用补码表示e呢？这样E的范围就是1111 1111</del>0111 1111&#x3D;（-128~127），可以看出使用偏置和使用补码表示的范围相差不大，还可以不用考虑符号</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327134820.png"></p>
-<h6 id="非规格化的值"><a href="#非规格化的值" class="headerlink" title="非规格化的值"></a>非规格化的值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327094556.png"></p>
-<h6 id="特殊值"><a href="#特殊值" class="headerlink" title="特殊值"></a>特殊值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327095039.png"></p>
-<h6 id="舍入"><a href="#舍入" class="headerlink" title="舍入"></a>舍入</h6><p>浮点数浮点数采用向偶数最接近的偶数舍入的方法，这样对与那些处在中间的数在50%的时间里会向上舍入(1.5—&gt;2)，在另外的50%的时间会向下舍入(2.5—&gt;2)。</p>
-<h6 id="浮点数运算"><a href="#浮点数运算" class="headerlink" title="浮点数运算"></a>浮点数运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210735.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210747.png"></p>
-<p>下面是对3丢失的解释，所以说浮点数计算不符合结合律</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">对于float</span> <span class="string">符号位</span> <span class="string">阶码</span> <span class="string">尾数分别为</span> <span class="number">1</span> <span class="number">8</span> <span class="number">23</span></span><br><span class="line"><span class="number">1e10</span> <span class="string">=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0000</span><span class="string">）</span></span><br><span class="line">     <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0000 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">表示成浮点数</span>   <span class="string">bias=127</span> <span class="string">所以E=127+33=160=1010</span> <span class="number">0000</span></span><br><span class="line"><span class="number">1e10</span></span><br><span class="line"><span class="string">浮点数：0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span> </span><br><span class="line"><span class="number">1e10</span><span class="string">+3=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">）</span></span><br><span class="line">      <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0011 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">浮点数</span> <span class="string">=0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span></span><br><span class="line"><span class="string">可以看出后面括号里的的3=0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">直接被舍掉了</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="第三章-程序的机器级表示"><a href="#第三章-程序的机器级表示" class="headerlink" title="第三章  程序的机器级表示"></a>第三章  程序的机器级表示</h1><h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>从十六位过渡到64位不显得突兀，在指令后面加了字符后缀，确定大小<img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114357.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114424.png"></p>
-<h2 id="访问信息"><a href="#访问信息" class="headerlink" title="访问信息"></a>访问信息</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405120704.png"></p>
-<h2 id="ATT和Intel"><a href="#ATT和Intel" class="headerlink" title="ATT和Intel"></a>ATT和Intel</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405122311.png"></p>
-<p>之前接触的是intel的导致我以为这里出现了错误</p>
-<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><p>更新一点对栈的认知，之前一直以为将栈顶的值pop之后，内存中的值会消失，原来值会一直存在，直到被覆盖。</p>
-<h2 id="算术和逻辑操作"><a href="#算术和逻辑操作" class="headerlink" title="算术和逻辑操作"></a>算术和逻辑操作</h2><h3 id="算术操作"><a href="#算术操作" class="headerlink" title="算术操作"></a>算术操作</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405214930.png"></p>
-<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405220431.png"></p>
-<h2 id="函数传参和寄存器的关系"><a href="#函数传参和寄存器的关系" class="headerlink" title="函数传参和寄存器的关系"></a>函数传参和寄存器的关系</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230406093404.png"></p>
-<p>是按照这个顺序进行传参，并且返回值默认是ax。</p>
-]]></content>
-      <tags>
-        <tag>阅读</tag>
-        <tag>CSAPP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>csapp.lab</title>
     <url>/2023/03/24/csapp-lab/</url>
     <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
@@ -1180,6 +1095,91 @@
 ]]></content>
       <tags>
         <tag>lab</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>csapp笔记</title>
+    <url>/2022/12/21/csapp/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
+<h1 id="第一章-计算机系统漫游"><a href="#第一章-计算机系统漫游" class="headerlink" title="第一章 计算机系统漫游"></a>第一章 计算机系统漫游</h1><p>不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。</p>
+<span id="more"></span>
+
+<h5 id="信息就是位-上下文"><a href="#信息就是位-上下文" class="headerlink" title="信息就是位+上下文"></a>信息就是位+上下文</h5><p>0和1组成位，也成为比特，八个位组成一组称为字节。系统之中所有的信息都是由一串比特表示的，区分不同数据对象的唯一方法就是对照上下文。举个简单的例子，0110 0100，这么一串比特，它既能表示二进制数，又能表示ASCII对应的值d，具体表示什么要联系上下文。</p>
+<h5 id="了解编译系统如何工作的益处（书上这么写的不是我总结的）"><a href="#了解编译系统如何工作的益处（书上这么写的不是我总结的）" class="headerlink" title="了解编译系统如何工作的益处（书上这么写的不是我总结的）"></a>了解编译系统如何工作的益处（书上这么写的不是我总结的）</h5><p>1.优化程序性能</p>
+<p>2.理解链接时出现的错误</p>
+<p>3.避免安全漏洞</p>
+<h5 id="了解shell"><a href="#了解shell" class="headerlink" title="了解shell"></a>了解shell</h5><p>第一章中不停的在提及shell。shell是一个命令解释器，他输出一个提示符，等待输入一个命令符，然后执行这个命令。简单的理解一下，Windows系统中我们打开一个程序需要点击其图像，Linux则需要我们输入命令行来打开，shell就是那个供用户输入命令行的程序。shell是一个应用程序，连接了用户和linux内核。参考：(<a href="http://c.biancheng.net/view/706.html">http://c.biancheng.net/view/706.html</a>)</p>
+<h5 id="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"><a href="#系统是硬件和软件互相交织的集合体（简单介绍一下硬件）" class="headerlink" title="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"></a>系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</h5><h6 id="1-总线"><a href="#1-总线" class="headerlink" title="1.总线"></a>1.总线</h6><p>像神经一样，贯穿于整个系统，携带信息字节并负责在各个部门传递</p>
+<h6 id="2-I-x2F-O设备"><a href="#2-I-x2F-O设备" class="headerlink" title="2.I&#x2F;O设备"></a>2.I&#x2F;O设备</h6><p>及输入&#x2F;输出设备，键盘、鼠标为输入设备，显示器和磁盘为输出设备。</p>
+<h6 id="3-主存"><a href="#3-主存" class="headerlink" title="3.主存"></a>3.主存</h6><p>主存是一个临时存储设备，在处理器执行程序时，用来存放程序和程序处理的数据。</p>
+<h6 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4.处理器"></a>4.处理器</h6><p>中央处理单元（CPU），简称处理器，世界是（或执行）存储在主存中指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向主存中的某条机器语言指令（即含有该指令的地址）。</p>
+<h5 id="不大不小的疑惑"><a href="#不大不小的疑惑" class="headerlink" title="不大不小的疑惑"></a>不大不小的疑惑</h5><p>此时年轻懵懂的我不明白为什么有很多很多人念着Linux系统的好，Windows这种图形化控着与此相比有什么难以弥补的劣势？据说以后工作实践中，项目大多也是基于Linux完成的，有时间了一定好好了解一下其中的内幕。</p>
+<h1 id="第二章-信息的表示和处理"><a href="#第二章-信息的表示和处理" class="headerlink" title="第二章 信息的表示和处理"></a>第二章 信息的表示和处理</h1><h6 id="研究数字的实际表示的意义"><a href="#研究数字的实际表示的意义" class="headerlink" title="研究数字的实际表示的意义"></a>研究数字的实际表示的意义</h6><p> 能够了解可以表时得知和不同算术运算的属性。从而使程序正确工作，更具可移植性，更安全。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png"></p>
+<h6 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h6><p>大多数计算机使用8位的块（字节）作为最小的可寻址的内存单元。机器级的程序将内存视为一个非常大的字节数组，称为虚拟内存。内存的每个字节都由一个唯一的数字来标识，称为它的地址。所有可能地址的集合称为虚拟地址空间。</p>
+<h6 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h6><p>二进制表示起来过用冗长，而十进制与二进制的转化很麻烦，十六进制表示起来很方便。如果二进制位数不是4的倍数，最左侧补0。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png"></p>
+<p>j代表的是16进制0的数量。前面的i是1的数量，注意只能是1,11,111,1111这四种表示。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307203238.png"></p>
+<h5 id="整型"><a href="#整型" class="headerlink" title="整型"></a>整型</h5><h6 id="字数据大小"><a href="#字数据大小" class="headerlink" title="字数据大小"></a>字数据大小</h6><p>字长决定虚拟地址空间的最大大小，我们常说的32位64位都是指的字长，32位字长虚拟地址空间为2的32次方及4GB。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204456.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204729.png"></p>
+<p>#include&lt;stdint.h&gt;中有关于int32_t等的宏定义，确定的大小可以避免很多麻烦，程序的可移植性也更高。</p>
+<h6 id="寻址和字节顺序"><a href="#寻址和字节顺序" class="headerlink" title="寻址和字节顺序"></a>寻址和字节顺序</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307205643.png"></p>
+<p>可以这样说，大端是更符合我们日常思维的那一种。两种端序没有优劣之分，选择哪种字节顺序没有技术上的理由。我们只需选择一种并且始终如一地坚持。</p>
+<h6 id="C语言中的逻辑运算"><a href="#C语言中的逻辑运算" class="headerlink" title="C语言中的逻辑运算"></a>C语言中的逻辑运算</h6><p>逻辑运算和按位运算有很大的不同，其一逻辑运算中所有的非零参数都表示TRUE，0参表FALSE，其二，如果对第一个参数求值就能确定表达式的结果，那么逻辑运算就不会对第二个参数求值。</p>
+<h6 id="C语言中的移位运算"><a href="#C语言中的移位运算" class="headerlink" title="C语言中的移位运算"></a>C语言中的移位运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307222226.png"></p>
+<p>几乎所有的编译器都对有符号数使用算数右移（保留最高位），对于无符号数，右移必须是逻辑的。Java中x&gt;&gt;&gt;k是逻辑右移，x&gt;&gt;k是算数右移。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307223156.png"></p>
+<h6 id="强制类型转换"><a href="#强制类型转换" class="headerlink" title="强制类型转换"></a>强制类型转换</h6><p>强制类型转换结果保持位不变，改变的是对位的解析方式</p>
+<h6 id="有符号和无符号处理"><a href="#有符号和无符号处理" class="headerlink" title="有符号和无符号处理"></a>有符号和无符号处理</h6><p>当表达式中同时出现也有符号和无符号，那么C语言会隐式的将有符号数转换为无符号数（位不变），例如表达式-1&lt;0u返回的结果是0，也就是表达式错误，因为将-1的补码按照无符号数来解析。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324010451.png"></p>
+<p>看着好像没什么问题，但是当len等于0，在运算0-1时，计算机会当作0+(-1),因为默认是有符号，而len是无符号的。所以(-1)要从补码转换成无符号数也就是T2U，也就是UMax，所以程序会进入死循环，并且访问到a的非法元素。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324012052.png"></p>
+<p>A.当s比t短的时候会错误的返回1</p>
+<p>B.两数相减得到负数会当作无符号数处理，最高位为1也就是一个很大的数大于零</p>
+<p>C.改为return strlen(s)&gt;strlen(t)</p>
+<h6 id="扩展一个数字的位表示"><a href="#扩展一个数字的位表示" class="headerlink" title="扩展一个数字的位表示"></a>扩展一个数字的位表示</h6><p>如果想扩展一个数字，只需要在它的最高位补上n个符号位，比如说101表示-3，在最左侧加1变为1101还是表示-3，我们可以看到它最高位与后一位的和-8+4&#x3D;-4这也是扩展前符号位的值，我们再给它扩展一位变为11101它还是表示-3，对于非负数我们只需在其前面补上0即可，正好今天在做datalab的howManyBits，和这个正好是相关的，刚开始看到网上师傅举得例子还有点懵，为啥101和1101代表的都是-3，所以我们可以知道有无数种形式的补码可以表示-3，而101是最短的一种。</p>
+<h6 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h6><p>截断无符号数：</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324001954.png"></p>
+<h6 id="对于整数运算最后的思考-模运算"><a href="#对于整数运算最后的思考-模运算" class="headerlink" title="对于整数运算最后的思考 模运算"></a>对于整数运算最后的思考 模运算</h6><p>计算机执行整数运算实际上是一种模运算，什么是模运算呢？模运算也就是求余运算，在前面我们可以看到几乎所有的溢出都采取了模最高位取余数的方法。补码的表示，可以使正数加上负数的补码等于减去其原码比如</p>
+<figure class="highlight basic"><table><tr><td class="code"><pre><span class="line"><span class="number">3</span>-<span class="number">2</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>-<span class="number">0000</span> <span class="number">0010</span>=  <span class="number">0000</span> <span class="number">0001</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>+<span class="number">1111</span> <span class="number">1110</span>=<span class="number">1</span> <span class="number">0000</span> <span class="number">0001</span>//最高位舍去</span><br></pre></td></tr></table></figure>
+
+<h5 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h5><h6 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h6><p>二进制小数，小数点左边是二的非负权（非负幂），小数点右边是二的负权，这一点和十进制小数并无区别。</p>
+<p>二进制小数只能精确的表示形如（x*2的y次幂）的数</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091512.png"></p>
+<h6 id="IEEE浮点数表示"><a href="#IEEE浮点数表示" class="headerlink" title="IEEE浮点数表示"></a>IEEE浮点数表示</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091842.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327092231.png"></p>
+<p>正如书中提到的，浮点数看起来比较深奥难懂，但它是建立在小而一致的原则之上的。</p>
+<p>根据exp的值，可以分为三种不同的情况，规格化的、非规格化的或特殊值</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093637.png"></p>
+<h6 id="规格化得值"><a href="#规格化得值" class="headerlink" title="规格化得值"></a>规格化得值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093742.png"></p>
+<p>小数点在f段最高位的左侧，隐含的以1开头表示。</p>
+<h6 id="偏置值"><a href="#偏置值" class="headerlink" title="偏置值"></a>偏置值</h6><p>这个师傅讲的比较简单明了：</p>
+<p>拿单精度来说，（规格化）e的取值范围是0000 0001<del>1111 1110也就是1</del>254，肯定不能只使用无符号表示，因为这样只能表示非负数，所以使用E&#x3D;e-Bias，其范围就是-126<del>127，那么为什么不直接用补码表示e呢？这样E的范围就是1111 1111</del>0111 1111&#x3D;（-128~127），可以看出使用偏置和使用补码表示的范围相差不大，还可以不用考虑符号</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327134820.png"></p>
+<h6 id="非规格化的值"><a href="#非规格化的值" class="headerlink" title="非规格化的值"></a>非规格化的值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327094556.png"></p>
+<h6 id="特殊值"><a href="#特殊值" class="headerlink" title="特殊值"></a>特殊值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327095039.png"></p>
+<h6 id="舍入"><a href="#舍入" class="headerlink" title="舍入"></a>舍入</h6><p>浮点数浮点数采用向偶数最接近的偶数舍入的方法，这样对与那些处在中间的数在50%的时间里会向上舍入(1.5—&gt;2)，在另外的50%的时间会向下舍入(2.5—&gt;2)。</p>
+<h6 id="浮点数运算"><a href="#浮点数运算" class="headerlink" title="浮点数运算"></a>浮点数运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210735.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210747.png"></p>
+<p>下面是对3丢失的解释，所以说浮点数计算不符合结合律</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">对于float</span> <span class="string">符号位</span> <span class="string">阶码</span> <span class="string">尾数分别为</span> <span class="number">1</span> <span class="number">8</span> <span class="number">23</span></span><br><span class="line"><span class="number">1e10</span> <span class="string">=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0000</span><span class="string">）</span></span><br><span class="line">     <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0000 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">表示成浮点数</span>   <span class="string">bias=127</span> <span class="string">所以E=127+33=160=1010</span> <span class="number">0000</span></span><br><span class="line"><span class="number">1e10</span></span><br><span class="line"><span class="string">浮点数：0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span> </span><br><span class="line"><span class="number">1e10</span><span class="string">+3=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">）</span></span><br><span class="line">      <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0011 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">浮点数</span> <span class="string">=0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span></span><br><span class="line"><span class="string">可以看出后面括号里的的3=0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">直接被舍掉了</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="第三章-程序的机器级表示"><a href="#第三章-程序的机器级表示" class="headerlink" title="第三章  程序的机器级表示"></a>第三章  程序的机器级表示</h1><h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>从十六位过渡到64位不显得突兀，在指令后面加了字符后缀，确定大小<img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114357.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114424.png"></p>
+<h2 id="访问信息"><a href="#访问信息" class="headerlink" title="访问信息"></a>访问信息</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405120704.png"></p>
+<h2 id="ATT和Intel"><a href="#ATT和Intel" class="headerlink" title="ATT和Intel"></a>ATT和Intel</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405122311.png"></p>
+<p>之前接触的是intel的导致我以为这里出现了错误</p>
+<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><p>更新一点对栈的认知，之前一直以为将栈顶的值pop之后，内存中的值会消失，原来值会一直存在，直到被覆盖。</p>
+<h2 id="算术和逻辑操作"><a href="#算术和逻辑操作" class="headerlink" title="算术和逻辑操作"></a>算术和逻辑操作</h2><h3 id="算术操作"><a href="#算术操作" class="headerlink" title="算术操作"></a>算术操作</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405214930.png"></p>
+<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405220431.png"></p>
+<h2 id="函数传参和寄存器的关系"><a href="#函数传参和寄存器的关系" class="headerlink" title="函数传参和寄存器的关系"></a>函数传参和寄存器的关系</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230406093404.png"></p>
+<p>是按照这个顺序进行传参，并且返回值默认是ax。</p>
+]]></content>
+      <tags>
+        <tag>阅读</tag>
+        <tag>CSAPP</tag>
       </tags>
   </entry>
   <entry>
@@ -1380,49 +1380,6 @@
       <tags>
         <tag>DLL</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>破解010Editor</title>
-    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
-    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载</p>
-<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
-
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-]]></content>
   </entry>
   <entry>
     <title>汇编语言</title>
@@ -1689,6 +1646,49 @@
       <tags>
         <tag>汇编</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>破解010Editor</title>
+    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
+    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
+
+<p>我是win64</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
+<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
+<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
+<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
+<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
+<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
+<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
+<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
+<p>查看流程图更加明了一点</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
+<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
+<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
+<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
+<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
+<p>然后我们将这个275修改成219</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
+<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
+<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
+<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
+<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
+<p>这个就算大功告成啦</p>
+<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
+<p>点击help –&gt; about 随意输入即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
+<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
+<p>参考：</p>
+<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
+]]></content>
   </entry>
   <entry>
     <title>第八章-异常控制流</title>
