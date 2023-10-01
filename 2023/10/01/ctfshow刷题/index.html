@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="每周做点题目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ctfshow刷题">
+<meta property="og:url" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="每周做点题目">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926124047.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926124504.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926125354.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926130226.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926131315.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926181141.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926181728.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926184638.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926210653.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927015225.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927142619.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927192858.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927193218.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927200337.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230928172041.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230928171641.png">
+<meta property="og:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230928211949.png">
+<meta property="article:published_time" content="2023-10-01T14:30:06.000Z">
+<meta property="article:modified_time" content="2023-10-01T14:31:11.769Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="CTF">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926124047.png">
+
+<link rel="canonical" href="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ctfshow刷题 | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ctfshow刷题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-10-01 22:30:06 / 修改时间：22:31:11" itemprop="dateCreated datePublished" datetime="2023-10-01T22:30:06+08:00">2023-10-01</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>每周做点题目</p>
+<span id="more"></span>
+
+<h3 id="RE3"><a href="#RE3" class="headerlink" title="RE3"></a>RE3</h3><p>看到这个题首先想到了angr，其实都还没怎么看逻辑</p>
+<p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926124047.png"></p>
+<p>脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>(<span class="params">argv</span>):</span><br><span class="line">    path=argv[<span class="number">1</span>]</span><br><span class="line">    p=angr.Project(path)</span><br><span class="line">    init_state=p.factory.entry_state()</span><br><span class="line">    sm=p.factory.simgr(init_state)</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">isGood</span>(<span class="params">sm</span>):</span><br><span class="line">        <span class="keyword">if</span> <span class="string">b&quot;OK&quot;</span> <span class="keyword">in</span> sm.posix.dumps(<span class="number">1</span>):</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">isBad</span>(<span class="params">sm</span>):</span><br><span class="line">        <span class="keyword">if</span> <span class="string">b&quot;Error!&quot;</span> <span class="keyword">in</span> sm.posix.dumps(<span class="number">1</span>):</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    sm.explore(find=isGood,avoid=isBad)</span><br><span class="line">    <span class="keyword">if</span> sm.found:</span><br><span class="line">        solution_state=sm.found[<span class="number">0</span>]</span><br><span class="line">        <span class="built_in">print</span>(solution_state.posix.dumps(<span class="number">0</span>))</span><br><span class="line">        </span><br><span class="line"><span class="keyword">if</span> __name__ ==<span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main(sys.argv)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926124504.png"></p>
+<p>其实是不报有希望的，因为除了angrctf还没怎么用angr解除过题目，结果真的出来了，但是明显不是flag，题目的描述是取最小解，4位值。记住我圈起来的这个1A9F.<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926125354.png"></p>
+<p>我们的输入存放到input数组中，长度是5，也就是rsp+60 ~rsp+64存储合规输入，多余的部分会溢出到紧挨着的v19中。</p>
+<p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926130226.png"></p>
+<p>动态调试得到循环6次之后v16的值是0xE560,所以0xE560+V17[6]&#x3D;&#x3D;0XFFFF,所以v17[6]&#x3D;0x1A9F,又因为上面的<code>dest[strlen(input) - 6] = 0;</code>作用是将最后一位置0，所以正确的输入是xxxxx1A9Fx，x的值可以是任意,其实细看上面的angr跑出的结果就有1A9F，而且前面是五个占位符</p>
+<p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926131315.png"></p>
+<p>提交的flag：flag{1A9F}</p>
+<h3 id="RE4"><a href="#RE4" class="headerlink" title="RE4"></a>RE4</h3><p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926181141.png"></p>
+<p>简化下来就是我们输入1 2 3他给出表中下标1 2 3的元素，将其异或7，与给定字符串进行比较，不同的是我们不是直接输入位置信息，而是输入一个比较大的数，程序进行模运算和除法运算，从而转化出位置信息。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">假设输入26</span><br><span class="line">26%<span class="attribute">26</span>=0      得到第一个位置0</span><br><span class="line">26/<span class="attribute">26</span>=1      大于0继续</span><br><span class="line">1%26 =1      得到第二个位置1</span><br><span class="line">1/26 =0      等于0结束</span><br><span class="line">所以转化的位置信息是[0,1]</span><br><span class="line">得到的字符是       <span class="string">&#x27;)&#x27;</span> 和 <span class="string">&#x27;(&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926181728.png"></p>
+<p>一次比较两个字符，比较的字符串是<code>/..v4p$$!&gt;Y59-</code></p>
+<p>逆向思路是，首先将其异或7得到原来的字符串，然后根据所的字符串查询其在表中的位置，比如说得到了（）），那么其位置信息就是1 0 0， 然后将其恢复至原来的大数。有些奇怪的是输入676得到的位置信息是0 0 1，那么恢复脚本应该是</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(pos2)-<span class="number">1</span>,-<span class="number">1</span>,-<span class="number">1</span>):</span><br><span class="line">   flag+=pos2[i]           <span class="number">1</span>    <span class="number">26</span>    <span class="number">676</span></span><br><span class="line">   <span class="keyword">if</span> i&gt;=<span class="number">1</span>:  </span><br><span class="line">    flag*=<span class="number">26</span>              <span class="number">26</span>    <span class="number">676</span>   </span><br></pre></td></tr></table></figure>
+
+<p>但实际这样是不对的，问题的关键在<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926184638.png"></p>
+<p>v6可以理解位输入的长度，v7从最后一位逐个存储并进行异或，所以这里等价于一个倒序，所以真正的解密脚本应该是这样的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">c=<span class="string">b&#x27;&#x27;</span></span><br><span class="line">positions=[]</span><br><span class="line">a=<span class="string">b&#x27;/..v4p$$!&gt;Y59-&#x27;</span></span><br><span class="line">b=<span class="string">b&#x27;)(*&amp;^%489$!057@#&gt;&lt;:2163qwe&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(a)):</span><br><span class="line">    result=a[i]^<span class="number">7</span></span><br><span class="line">    c+=<span class="built_in">bytes</span>([result])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> result <span class="keyword">in</span> b:</span><br><span class="line">        position=b.index(result)</span><br><span class="line">        positions.append(position)</span><br><span class="line"><span class="comment">#print(positions)</span></span><br><span class="line"></span><br><span class="line">pos=[<span class="number">1</span>,<span class="number">0</span>, <span class="number">0</span>, <span class="number">23</span>, <span class="number">22</span>, <span class="number">24</span>, <span class="number">15</span>, <span class="number">15</span>, <span class="number">3</span>, <span class="number">8</span>, <span class="number">4</span>, <span class="number">19</span>, <span class="number">16</span>, <span class="number">2</span>]</span><br><span class="line">flag=<span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> pos:</span><br><span class="line">    flag*=<span class="number">26</span>      <span class="comment">#这里的顺序很重要</span></span><br><span class="line">    flag+=i</span><br><span class="line"><span class="built_in">print</span>(flag)</span><br></pre></td></tr></table></figure>
+
+<h3 id="真的是签到"><a href="#真的是签到" class="headerlink" title="真的是签到"></a>真的是签到</h3><p>ASP+UPX壳</p>
+<p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230926210653.png"></p>
+<h3 id="愚人杯-babyre"><a href="#愚人杯-babyre" class="headerlink" title="愚人杯 babyre"></a>愚人杯 babyre</h3><p>这一题考察的应该是附加调试fork出的子进程，可是老弄不好<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927015225.png"></p>
+<p>看了一个师傅的是直接静态分析加推测，官方wp给的也是静态分析，不过很草率。</p>
+<p>加密逻辑</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">v2 = <span class="built_in">strlen</span>(input);</span><br><span class="line">  dest = (<span class="type">char</span> *)<span class="built_in">malloc</span>(v2 + <span class="number">1</span>);</span><br><span class="line">  <span class="built_in">memset</span>(dest, <span class="number">0</span>, v2 + <span class="number">1</span>);</span><br><span class="line">  <span class="built_in">strncpy</span>(dest, input, v2);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; v2; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    v5 = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; v2; ++j )</span><br><span class="line">      v5 += dest[j];</span><br><span class="line">    dest[i] = v5;                               <span class="comment">// dest[0]=dest[0]+dest[1]+……dest[m]</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> dest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解密思路就是从最后一个入手，dest[23]减去前面22个元素，则可以得到加密前的dest[23],dest[22]减去dest[23],再减去dest[0~21]即可得到原来的数。每一个元素减去除自身以外所有元素之和即可得到加密前的数据，必须要从最后一项开始。</p>
+<p>脚本</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">decode</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span>* data,<span class="type">int</span> len)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> data[<span class="number">25</span>] = &#123;<span class="number">0x79</span>, <span class="number">0x8F</span>, <span class="number">0xAA</span>, <span class="number">0xEE</span>, <span class="number">0x69</span>, <span class="number">0x6A</span>, <span class="number">0x65</span>, <span class="number">0x53</span>, <span class="number">0x2B</span>, <span class="number">0xEE</span>, <span class="number">0x7B</span>, <span class="number">0x80</span>, <span class="number">0x9B</span>, <span class="number">0xD7</span>, <span class="number">0x7D</span>, <span class="number">0x9B</span>, <span class="number">0xD0</span>, <span class="number">0x2B</span>, <span class="number">0xE8</span>, <span class="number">0x71</span>, <span class="number">0x7E</span>, <span class="number">0x9B</span>, <span class="number">0xBD</span>, <span class="number">0xFD</span>, <span class="number">0x00</span>&#125;;</span><br><span class="line">    <span class="type">int</span> len=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="type">char</span> dest;</span><br><span class="line">    decode(data,<span class="number">24</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>,(<span class="type">char</span>*)data);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">decode</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span>* data,<span class="type">int</span> len)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=len<span class="number">-1</span>;i&gt;=<span class="number">0</span>;i--)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;len;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(i!=j)</span><br><span class="line">            &#123;</span><br><span class="line">                data[i]-=data[j];<span class="comment">//倒序，除了自身都减一遍</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="eazy-pyc"><a href="#eazy-pyc" class="headerlink" title="eazy_pyc"></a>eazy_pyc</h3><p>pyc在线反编译得到py<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927142619.png"></p>
+<p>很简单，这里练习一下python的使用，之前脚本大部分都是用c实现</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">code = [<span class="string">&#x27;\x16&#x27;</span>,<span class="string">&#x27;\x1d&#x27;</span>,<span class="string">&#x27;\x1e&#x27;</span>,<span class="string">&#x27;\x1a&#x27;</span>,<span class="string">&#x27;\x18&#x27;</span>,<span class="string">&#x27;\t&#x27;</span>,<span class="string">&#x27;\xff&#x27;</span>,<span class="string">&#x27;\xd0&#x27;</span>,<span class="string">&#x27;,&#x27;</span>,<span class="string">&#x27;\x03&#x27;</span>,<span class="string">&#x27;\x02&#x27;</span>,<span class="string">&#x27;\x14&#x27;</span>,<span class="string">&#x27;8&#x27;</span>,<span class="string">&#x27;m&#x27;</span>,<span class="string">&#x27;\x01&#x27;</span>,<span class="string">&#x27;C&#x27;</span>,<span class="string">&#x27;D&#x27;</span>,<span class="string">&#x27;\xbd&#x27;</span>,<span class="string">&#x27;\xf7&#x27;</span>,<span class="string">&#x27;*&#x27;</span>,<span class="string">&#x27;\r&#x27;</span>,<span class="string">&#x27;\xda&#x27;</span>,<span class="string">&#x27;\xf9&#x27;</span>,<span class="string">&#x27;\x1c&#x27;</span>,<span class="string">&#x27;&amp;&#x27;</span>,<span class="string">&#x27;5&#x27;</span>,<span class="string">&quot;&#x27;&quot;</span>,<span class="string">&#x27;\xda&#x27;</span>,<span class="string">&#x27;\xd4&#x27;</span>,<span class="string">&#x27;\xd1&#x27;</span>,<span class="string">&#x27;\x0b&#x27;</span>,<span class="string">&#x27;\xc7&#x27;</span>,<span class="string">&#x27;\xc7&#x27;</span>,<span class="string">&#x27;\x1a&#x27;</span>,<span class="string">&#x27;\x90&#x27;</span>,<span class="string">&#x27;D&#x27;</span>,<span class="string">&#x27;\xa1&#x27;</span>]</span><br><span class="line"><span class="comment">#[]是列表</span></span><br><span class="line"></span><br><span class="line">l = <span class="built_in">len</span>(code)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(l-<span class="number">3</span>):</span><br><span class="line">    code[l-<span class="number">4</span>-i] = <span class="built_in">chr</span>(<span class="built_in">ord</span>(code[l-<span class="number">4</span>-i]) ^ <span class="built_in">ord</span>(code[l-<span class="number">3</span>-i ]))</span><br><span class="line">    <span class="comment">#python中异或的对象必须要是整数，所以用ord返回给定字符的 Unicode 码点（整数）</span></span><br><span class="line"></span><br><span class="line">code = <span class="built_in">list</span>(<span class="built_in">map</span>(<span class="built_in">ord</span>, code))  <span class="comment"># 返回code的ascii 列表形式</span></span><br><span class="line"></span><br><span class="line">flag = <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(l):</span><br><span class="line">    num = (code[i] - i ) </span><br><span class="line">    flag += <span class="built_in">chr</span>(num)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(flag)</span><br></pre></td></tr></table></figure>
+
+<h3 id="eazy-cc"><a href="#eazy-cc" class="headerlink" title="eazy_cc"></a>eazy_cc</h3><p>签到</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">v16=<span class="string">&#x27;08111f425a5c1c1e1a526d410e3a1e5e5d573402165e561216&#x27;</span></span><br><span class="line">key=<span class="string">&#x27;key123&#x27;</span></span><br><span class="line">v16_bytes=<span class="built_in">bytes</span>.fromhex(v16)</span><br><span class="line">result=<span class="built_in">bytearray</span>()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(v16_bytes)):</span><br><span class="line">    result.append(v16_bytes[i]^<span class="built_in">ord</span>(key[i%<span class="built_in">len</span>(key)]))</span><br><span class="line"><span class="built_in">print</span>(result)</span><br><span class="line"></span><br><span class="line"><span class="comment">#ctfshow&#123;cc_re_good_good!&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="eazy-re"><a href="#eazy-re" class="headerlink" title="eazy_re"></a>eazy_re</h3><p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927192858.png"></p>
+<p>输入一个字符串，输入两个key作为种子对输入进行异或操作，然后逐字节输出密文。<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927193218.png"></p>
+<p>A13AA0是一个300*300的大数组。异或是可逆的，那我们应该将阿狸给出的密文当作明文输入进去，再使用正确的种子key就可以还原阿狸的话，又提到了base64<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230927200337.png"></p>
+<p>应该是要讲这些字符进行base64编码，否则有很多不可见字符。“flag”base64之后得到“ZmxhZ”，对应的明文的开始应该就是ZmxhZ，那么我们输入ZmxhZ，在输入两个正确的key种子即可，现在问题的关键就是得到key，把数组dump出来，然后暴破以下试试。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> key1;</span><br><span class="line">    <span class="type">int</span> key2;</span><br><span class="line">    <span class="type">int</span> v9;</span><br><span class="line">    <span class="type">int</span> v10;</span><br><span class="line">    <span class="keyword">for</span>(key1=<span class="number">0</span>;key1&lt;<span class="number">200</span>;key1++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(key2=<span class="number">0</span>;key2&lt;<span class="number">200</span>;key2++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="type">int</span> v3=key1%<span class="number">299</span>;</span><br><span class="line">            <span class="type">int</span> v4=key2%<span class="number">299</span>;</span><br><span class="line">            <span class="type">unsigned</span> <span class="type">int</span> v5=<span class="number">0</span>;</span><br><span class="line">            v10=key2%<span class="number">299</span>;</span><br><span class="line">            <span class="type">char</span> input[]=<span class="string">&quot;ZmxhZ&quot;</span>;</span><br><span class="line">            <span class="type">int</span> com[<span class="number">5</span>];</span><br><span class="line">            <span class="type">int</span> data[<span class="number">5</span>]=&#123;<span class="number">90</span>,<span class="number">171</span>,<span class="number">198</span>,<span class="number">235</span>,<span class="number">229</span>&#125;;</span><br><span class="line">            <span class="type">int</span> v6=<span class="built_in">strlen</span>(input);</span><br><span class="line">            <span class="keyword">do</span>&#123;</span><br><span class="line">                v9=arr[v3][v4]^input[v5];</span><br><span class="line">                v3=(v9+v3)%<span class="number">299</span>;</span><br><span class="line">                v10=(v9+v10)%<span class="number">300</span>;</span><br><span class="line">                com[v5]=v9;</span><br><span class="line">                v4=v10;</span><br><span class="line">                ++v5;</span><br><span class="line">            &#125;<span class="keyword">while</span>(v5&lt;v6);</span><br><span class="line">            <span class="keyword">if</span>(com[<span class="number">0</span>]==data[<span class="number">0</span>]&amp;&amp;com[<span class="number">1</span>]==data[<span class="number">1</span>]&amp;&amp;com[<span class="number">2</span>]==data[<span class="number">2</span>]&amp;&amp;com[<span class="number">3</span>]==data[<span class="number">3</span>]&amp;&amp;com[<span class="number">4</span>]==data[<span class="number">4</span>])</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%d &quot;</span>,key1);</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%d&quot;</span>,key2);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>解出来key1&#x3D;67，key2&#x3D;74。接下来的任务就是补充”Zmxhz“这个字符串。然后就没有然后了，因为我正常的思路是：异或是对称的，将数据原封不动的输入进去即可，可是后来发现v9取决于key和input，因为input的内容发生了变化，所以肯定不能原封不动的输入进去，我苦思冥想一天也没想到怎么求逆，甚至看了别人的题解也不懂，后来想到了暴破，嘎嘎好用。</p>
+<p>真的看不懂下面这个逆向思路，可能是麻了脑子<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230928172041.png"></p>
+<p>暴破脚本：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">do</span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> tmp=<span class="number">33</span>;tmp&lt;<span class="number">128</span>;tmp++)</span><br><span class="line">        &#123;</span><br><span class="line">            v9=arr[key1][key2]^tmp;</span><br><span class="line">            <span class="keyword">if</span>(v9==input[v5])</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>,tmp);</span><br><span class="line">                <span class="keyword">goto</span> lab1;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        v9=arr[key1][key2]^input[v5];</span><br><span class="line"> lab1:  key1=(v9+key1)%<span class="number">299</span>;</span><br><span class="line">        key2=(v9+key2)%<span class="number">300</span>;</span><br><span class="line">        <span class="comment">//com[v5]=v9;</span></span><br><span class="line">        ++v5;</span><br><span class="line">    &#125;<span class="keyword">while</span>(v5&lt;v6);</span><br></pre></td></tr></table></figure>
+
+<p>在do while循环里，使用一个tmp进行尝试，如果他异或得到的数字和阿狸给出的数字相同则说明他就是我们要求的那个字符，将其打印出来。最后进行一下base64</p>
+<p><img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230928171641.png"></p>
+<p>后面就是misc部分了，纯靠猜测。将矩阵转成图片，我的pillow试了很多次总是超时，就搁置了<img src="/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/QQ%E6%88%AA%E5%9B%BE20230928211949.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CTF/" rel="tag"># CTF</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/09/19/csapp-shlab/" rel="prev" title="csapp-shlab">
+      <i class="fa fa-chevron-left"></i> csapp-shlab
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#RE3"><span class="nav-number">1.</span> <span class="nav-text">RE3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RE4"><span class="nav-number">2.</span> <span class="nav-text">RE4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9C%9F%E7%9A%84%E6%98%AF%E7%AD%BE%E5%88%B0"><span class="nav-number">3.</span> <span class="nav-text">真的是签到</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%84%9A%E4%BA%BA%E6%9D%AF-babyre"><span class="nav-number">4.</span> <span class="nav-text">愚人杯 babyre</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#eazy-pyc"><span class="nav-number">5.</span> <span class="nav-text">eazy_pyc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#eazy-cc"><span class="nav-number">6.</span> <span class="nav-text">eazy_cc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#eazy-re"><span class="nav-number">7.</span> <span class="nav-text">eazy_re</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">58k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:30</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
