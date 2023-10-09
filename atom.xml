@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-10-01T14:31:11.769Z</updated>
+  <updated>2023-10-09T16:15:01.753Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,25 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>GitHub高效搜索开源项目指南</title>
+    <link href="http://example.com/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/"/>
+    <id>http://example.com/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/</id>
+    <published>2023-10-09T16:15:01.000Z</published>
+    <updated>2023-10-09T16:15:01.753Z</updated>
+    
+    <content type="html"><![CDATA[<p>互联网这么多年，我花了这么多钱，养肥了这么多人，不就留着今天用的吗！</p><span id="more"></span><p>现在我们学习路上特别是自学路上，学习资源少已经不成立了，随便一个关键词都能检索出来成千上万的资源，我们被大量的信息包围，但是质量却良莠不齐，快速寻找优质的学习资源是个很吸引人的能力。</p><p>比如我现在想学爬虫，我去github上直接搜索<code>爬虫</code></p><p><img src="/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/QQ%E6%88%AA%E5%9B%BE20231009235337.png"></p><p>27.4k 的资源，这么多，有些还不是强相关的点进去纯属浪费时间，现在我们直接 加一个条件 stars:&gt;1000</p><p><img src="/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/QQ%E6%88%AA%E5%9B%BE20231010000248.png"></p><p>在GitHub中star和fork数量大致上可以做为一个衡量优劣的标准,直接锐减到75，继续限制，可以指定语言，比如我想学的是python爬虫<code>language:python</code></p><p><img src="/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/QQ%E6%88%AA%E5%9B%BE20231010000449.png"></p><p>可以说筛选出来的这40个都是优质且符合要求的内容。计算机方面的知识更新迭代的很快，有些内容可能是优质的，但是可能现实中已经很少用到了，我们可以通过限制更新时间来判断这个项目是否还活跃 <code>pushed:&gt;2023-1-1</code> <img src="/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/QQ%E6%88%AA%E5%9B%BE20231010000943.png"></p><p>这一套组合拳下来，想要的几乎都来了。</p><h3 id="技巧总结："><a href="#技巧总结：" class="headerlink" title="技巧总结："></a>技巧总结：</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">in</span>:name hhh          name中必须含有hhh</span><br><span class="line"><span class="attribute">in</span>:description good  描述中含有good</span><br><span class="line"><span class="attribute">stars</span>:&gt;<span class="number">1000</span>          star数量大于<span class="number">1000</span></span><br><span class="line"><span class="attribute">forks</span>:&gt;<span class="number">1000</span>          fork数量大于<span class="number">1000</span></span><br><span class="line"><span class="attribute">pushed</span>:&gt;<span class="number">2023</span>-<span class="number">10</span>      最近一次更新在<span class="number">2023</span>年十月份之后</span><br></pre></td></tr></table></figure><p>内容来自：<a href="https://www.bilibili.com/video/BV1yJ411S7Wu/?buvid=YE4BCFE22DDE7DE54D5D83F8BEB16116E5AE&is_story_h5=false&mid=W7hFHnxfmhJ9wKabf6E/og==&p=1&plat_id=116&share_from=ugc&share_medium=iphone&share_plat=ios&share_session_id=4AA097DE-4C75-4426-9780-66329FCC37F1&share_source=QQ&share_tag=s_i&timestamp=1696842516&unique_k=vn6kJkv&up_id=384068749&vd_source=edc820e8f9bd6b2ea43cb8499151dea3">如何高效地在网上找开源项目做！在职程序员实际演示一波视频教程操作_哔哩哔哩_bilibili</a></p><p>感谢CodeSheep大佬的热情分享</p>]]></content>
+    
+    
+    <summary type="html">&lt;p&gt;互联网这么多年，我花了这么多钱，养肥了这么多人，不就留着今天用的吗！&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="tips" scheme="http://example.com/tags/tips/"/>
+    
+  </entry>
   
   <entry>
     <title>ctfshow刷题</title>
@@ -392,24 +411,6 @@
     <category term="阅读" scheme="http://example.com/tags/%E9%98%85%E8%AF%BB/"/>
     
     <category term="CSAPP" scheme="http://example.com/tags/CSAPP/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Hello World</title>
-    <link href="http://example.com/2022/12/18/hello-world/"/>
-    <id>http://example.com/2022/12/18/hello-world/</id>
-    <published>2022-12-18T07:51:59.702Z</published>
-    <updated>2022-12-21T09:50:44.599Z</updated>
-    
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
-    
-    
-    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt; for more info. If you get any problems when using Hexo, you can find the answer in &lt;a href=&quot;https://hexo.io/docs/troubleshooting.html&quot;&gt;troubleshooting&lt;/a&gt; or you can ask me on &lt;a href=&quot;https://github.com/hexojs/hexo/issues&quot;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
-&lt;h2 id=&quot;Quick-Start&quot;&gt;&lt;a href=&quot;#Quick-Start&quot; class=&quot;headerlink&quot; title=&quot;Quick Start&quot;&gt;&lt;/a&gt;Quick Start&lt;/h2&gt;&lt;h2 id&gt;&lt;a href=&quot;#&quot; class=&quot;headerlink&quot; title&gt;&lt;/a&gt;&lt;/h2&gt;</summary>
-    
-    
-    
     
   </entry>
   
