@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="什么是壳壳，分为压缩壳，保护壳，伪装壳（对抗杀毒软件） 这篇文章讲以下压缩壳，压缩壳可以有效减少程序的体积，同时由于压缩之后的代码比较难懂，所以也有一定的保护作用，最常见的就是UPX壳。压缩壳不同于一般的压缩（7zp、rar等），它不需要解压缩操作，程序可以直接运行，用到的是一种运行时解压缩技术。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="压缩壳原理即对坑-UPX为例">
+<meta property="og:url" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="什么是壳壳，分为压缩壳，保护壳，伪装壳（对抗杀毒软件） 这篇文章讲以下压缩壳，压缩壳可以有效减少程序的体积，同时由于压缩之后的代码比较难懂，所以也有一定的保护作用，最常见的就是UPX壳。压缩壳不同于一般的压缩（7zp、rar等），它不需要解压缩操作，程序可以直接运行，用到的是一种运行时解压缩技术。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20230621022516.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007173949.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007174057.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007181711.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007182006.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20230404113409.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010184402.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010184802.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010185154.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010185519.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010185730.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010233637.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010234100.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011002203.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011002614.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011004257.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011011721.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011022742.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011023348.png">
+<meta property="og:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011023957.png">
+<meta property="article:published_time" content="2023-10-10T18:49:22.000Z">
+<meta property="article:modified_time" content="2023-10-10T18:49:22.285Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="UPX">
+<meta property="article:tag" content="运行时压缩">
+<meta property="article:tag" content="壳">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20230621022516.png">
+
+<link rel="canonical" href="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>压缩壳原理即对坑-UPX为例 | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          压缩壳原理即对坑-UPX为例
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-10-11 02:49:22" itemprop="dateCreated datePublished" datetime="2023-10-11T02:49:22+08:00">2023-10-11</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="什么是壳"><a href="#什么是壳" class="headerlink" title="什么是壳"></a>什么是壳</h3><p>壳，分为<strong>压缩壳</strong>，<strong>保护壳</strong>，<strong>伪装壳</strong>（对抗杀毒软件）</p>
+<p>这篇文章讲以下压缩壳，压缩壳可以有效减少程序的体积，同时由于压缩之后的代码比较难懂，所以也有一定的保护作用，最常见的就是UPX壳。压缩壳不同于一般的压缩（7zp、rar等），它不需要解压缩操作，程序可以直接运行，用到的是一种<strong>运行时解压缩</strong>技术。</p>
+<span id="more"></span>
+
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20230621022516.png"></p>
+<p>运行加壳程序，操作对象是notepad.exe，运行得到new.exe程序，大小从67584变为了48128字节。</p>
+<p>这是notepad.exe对应的</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007173949.png"></p>
+<p>这是new.exe对应的<img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007174057.png"></p>
+<p>加入的upx代码的作用是将2、3、4解压缩（还原）为7、8、9，并不影响程序的运行。在我们运行程序的瞬间2、3、4被还原为7、8、9。</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007181711.png"></p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231007182006.png"></p>
+<p>可以看到，啥都看不到，看到的这些就是上文提到的2、3、4就是压缩之后的代码。壳可以手动脱也可以用脱壳机一键脱，当然脱不下来的话就要上手了。</p>
+<h3 id="脱壳"><a href="#脱壳" class="headerlink" title="脱壳"></a>脱壳</h3><h4 id="机脱"><a href="#机脱" class="headerlink" title="机脱"></a>机脱</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">win+r</span><br><span class="line">d：/</span><br><span class="line">cd tools（upx文件夹所在的文件夹）</span><br><span class="line">cd upx</span><br><span class="line">upx.exe</span><br><span class="line">upx -d 程序名</span><br></pre></td></tr></table></figure>
+
+<p>如果成功则程序直接发生更改，如果出现红色的字体则说明没有脱壳成功。</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20230404113409.png"></p>
+<h4 id="手脱"><a href="#手脱" class="headerlink" title="手脱"></a>手脱</h4><p>手脱的工具需要</p>
+<ul>
+<li>ollydbg</li>
+<li>lordpe  （在xp环境，反正win11不行）</li>
+<li>ImportREC  （修复IAT）</li>
+</ul>
+<p>我们将有壳的程序拖入od他会弹出这个窗口，我们知道他是有壳的，所以不需要他继续分析啦，直接点否。</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010184402.png"></p>
+<p>这段代码是壳的开始</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010184802.png"></p>
+<p>我们知道壳的原理是运行时解压缩，壳这段操作实际上是在对压缩的原始程序进行解压随，对一段数据进行操作难免会用到循环，循环就会往上跳转，所以我们遇到向上跳转的汇编指令直接跳过，直接结束循环而不是进入循环（跳过的意思是一瞬间执行完所有循环）<img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010185154.png"></p>
+<p>可以看到jb这条指令会向上跳转，我们单机下面的mov指令然后F4（运行到），同理遇到jmp，jz，jnz一旦往上跳转我么都F4，需要注意的是call指令我们也不进入而是直接跳过。原因是我们会进入call调用的那个函数，容易迷失。</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010185519.png"></p>
+<p>upx以及很多壳的一个明显特征是结尾有个大跳转<img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010185730.png"></p>
+<p>跳转的这个位置25DDAC就是OEP了，然后进行dump,用到的工具是lordpe，首先右键一下当前进程，点击修复大小。</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010233637.png"></p>
+<p>然后右键选择完整转存，保存文件。运行</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231010234100.png"></p>
+<p>哈哈哈，这是什么情况呢？我们需要修复一下IAT（import address table 导入地址表），要用到的工具是ImportREC，首先在importrec中选择未脱壳的进程(它的IAT是正确的)，注意这里的OEP要改成OPE的相对偏移地址，也就是OD看到的地址减去基地址0x400000得到1DDAC，然后点击<strong>自动查找IAT</strong>，接着<strong>获取输入表</strong>，最后选择<strong>转储到文件</strong>，转储的文件选择之前dump出来的那个文件，这就是修复IAT的过程。</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011002203.png"></p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011002614.png"></p>
+<p>左边是脱壳之后的文件直接拖进od的结果，右边的是我们单步调试的带壳程序，并且脱完壳的程序是可以正常运行的，脱壳成功。<img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011004257.png"></p>
+<p>壳是脱完了，但是你是否有一个疑问，为什么要修复IAT?下面我们来了解一下</p>
+<h3 id="修复IAT"><a href="#修复IAT" class="headerlink" title="修复IAT"></a>修复IAT</h3><p>来自知乎大佬的一句总结 ”不论是压缩壳还是加密壳，在脱壳过程中都需要修复IAT，因为<strong>脱壳时会将内存中的数据转储 (dump)到本地，保存成文件，而IAT在文件中是一个RVA数组，在内存中是一个函数地址数组</strong>。我们需要将转储出来的文件中的IAT修复成RVA数组的形式，这样程序才算是恢复。“ </p>
+<p>这里接上之前学习<a target="_blank" rel="noopener" href="https://fishjump-my.github.io/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/#more">PE的知识</a><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011011721.png"></p>
+<p>IAT相当于一个进货清单，描述pe文件引用了哪些文件&#x2F;函数。在脱壳过程中，由于壳的修改，原来的IAT表项已经是无效的，无法正确识别真正的外部函数或模块。</p>
+<p>修复IAT步骤：</p>
+<ul>
+<li>识别IAT表项：根据（未脱壳）程序的结构和特征，识别出加壳程序中被修改的IAT表项。对应的操作是”自动查询”IAT“</li>
+<li>构建正确的IAT：根据原始的可执行文件，构建正确的IAT表项，使其能正确指向外部函数或模块。对应“获取IAT”</li>
+<li>更新IAT表项：将构建好的IAT表项写入到程序中，覆盖原来呜嗷的表项，实现修复。对应“转储到文件”</li>
+</ul>
+<h3 id="OEP"><a href="#OEP" class="headerlink" title="OEP"></a>OEP</h3><p>什么是OEP呢，就是函数真正的入口。</p>
+<p>下面我们多了解以下OEP的特征，毕竟如果不认识OEP的话，就算我们脱下了壳，也不知道自己成功了。直接偷懒截大佬们的文章了</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OEP：(Original <span class="keyword">Entry</span> Point)，程序的原始入口点。</span><br></pre></td></tr></table></figure>
+
+<p><strong>VS特点</strong>：CALL和JMP,CALL进去之后调用的API是相同的<img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011022742.png"></p>
+<p><strong>Delphi特点</strong>:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">push</span> <span class="built_in">ebp</span></span><br><span class="line"><span class="keyword">mov</span> <span class="built_in">ebp</span>,<span class="built_in">esp</span></span><br><span class="line"><span class="keyword">add</span> <span class="built_in">esp</span>,-<span class="number">0x10</span></span><br><span class="line"><span class="keyword">mov</span> <span class="built_in">eax</span>,xxx</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011023348.png"></p>
+<p>QT特点：</p>
+<p><img src="/2023/10/11/%E5%8E%8B%E7%BC%A9%E5%A3%B3%E5%8E%9F%E7%90%86%E5%8D%B3%E5%AF%B9%E5%9D%91-UPX%E4%B8%BA%E4%BE%8B/QQ%E6%88%AA%E5%9B%BE20231011023957.png"></p>
+<p>本篇文章是拿最简单的壳开刀的，但是大致套路就是这样的，所谓万变不离其宗</p>
+<p>参考链接：</p>
+<p><a target="_blank" rel="noopener" href="https://www.52pojie.cn/thread-1640646-1-1.html">各种程序的OEP入口特征汇总整理!专为小白总结！ - 『脱壳破解区』 - 吾爱破解 - LCG - LSG |安卓破解|病毒分析|www.52pojie.cn</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.52pojie.cn/thread-234739-1-1.html">【初学者教程】破解基础知识之认识壳与程序的特征 - 『脱壳破解讨论求助区』 - 吾爱破解 - LCG - LSG |安卓破解|病毒分析|www.52pojie.cn</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/34263050#:~:text=%E8%84%B1%E5%A3%B3%E4%B8%AD%E6%AF%94%E8%BE%83%E9%87%8D%E8%A6%81%E7%9A%84%E4%B8%80%E6%AD%A5%EF%BC%8C%E4%B8%8D%E8%AE%BA%E6%98%AF%E5%8E%8B%E7%BC%A9%E5%A3%B3%E8%BF%98%E6%98%AF%E5%8A%A0%E5%AF%86%E5%A3%B3%EF%BC%8C%E5%9C%A8%E8%84%B1%E5%A3%B3%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%83%BD%E9%9C%80%E8%A6%81%E4%BF%AE%E5%A4%8DIAT%EF%BC%8C%E5%9B%A0%E4%B8%BA%E8%84%B1%E5%A3%B3%E6%97%B6%E4%BC%9A%E5%B0%86%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E8%BD%AC%E5%82%A8,(dump)%E5%88%B0%E6%9C%AC%E5%9C%B0%EF%BC%8C%E4%BF%9D%E5%AD%98%E6%88%90%E6%96%87%E4%BB%B6%EF%BC%8C%E8%80%8CIAT%E5%9C%A8%E6%96%87%E4%BB%B6%E4%B8%AD%E6%98%AF%E4%B8%80%E4%B8%AARVA%E6%95%B0%E7%BB%84%EF%BC%8C%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E6%98%AF%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0%E5%9C%B0%E5%9D%80%E6%95%B0%E7%BB%84%E3%80%82">使用x64dbg脱壳之开源壳upx - 知乎 (zhihu.com)</a></p>
+<p>[<a target="_blank" rel="noopener" href="https://bbs.kanxue.com/thread-226967.htm">原创]脱壳步骤，修复IAT的原因及修复IAT的完整步骤-加壳脱壳-看雪-安全社区|安全招聘|kanxue.com</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/UPX/" rel="tag"># UPX</a>
+              <a href="/tags/%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/" rel="tag"># 运行时压缩</a>
+              <a href="/tags/%E5%A3%B3/" rel="tag"># 壳</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/" rel="prev" title="GitHub高效搜索开源项目指南">
+      <i class="fa fa-chevron-left"></i> GitHub高效搜索开源项目指南
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%A3%B3"><span class="nav-number">1.</span> <span class="nav-text">什么是壳</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%84%B1%E5%A3%B3"><span class="nav-number">2.</span> <span class="nav-text">脱壳</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%BA%E8%84%B1"><span class="nav-number">2.1.</span> <span class="nav-text">机脱</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E8%84%B1"><span class="nav-number">2.2.</span> <span class="nav-text">手脱</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8DIAT"><span class="nav-number">3.</span> <span class="nav-text">修复IAT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OEP"><span class="nav-number">4.</span> <span class="nav-text">OEP</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">60k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:38</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
