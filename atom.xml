@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-10-10T18:49:22.285Z</updated>
+  <updated>2023-10-12T07:02:27.367Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,25 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>2023柏鹭杯rev1-wp</title>
+    <link href="http://example.com/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/"/>
+    <id>http://example.com/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/</id>
+    <published>2023-10-12T07:02:27.000Z</published>
+    <updated>2023-10-12T07:02:27.367Z</updated>
+    
+    <content type="html"><![CDATA[<p>可以看到要求的输入长度是64个字符，前面是简单的验证输入的字符是否合规，红框圈起来的函数是主加密函数，下面可以不用分析了。</p><span id="more"></span><p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011202957.png"></p><p>动态调试F7步入函数。</p><p>加密部分可以划分为三块，每一块都是用AVX2汇编实现的，类似于进行了内联汇编。这是第一部分，将我们的输入与ebp-40处开始的32个字节进行异或操作并保存到ymm0处。<img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203337.png"></p><p>第二部分是使用vphufb根据ebp-60处的32字节对ymm0处存放的数据进行重排。</p><p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203404.png"></p><p>c语言代码表示vpshufb ymm0, ymm0 , index</p><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for (int i <span class="operator">=</span> <span class="number">0</span><span class="comment">; i &lt; 32; ++i)</span></span><br><span class="line">   &#123;</span><br><span class="line">       ymm0[i] <span class="operator">=</span> ymm0[index[i]]<span class="comment">;</span></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure><p>最后是比较部分，ebp-20处存放的是比较数据。</p><p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203428.png"></p><p>那么逆向过程就是：</p><ol><li>提取比较数据</li><li>重排</li><li>异或</li></ol><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//加密过程</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> xordata[<span class="number">32</span>] = &#123;      <span class="comment">//异或数据，与input进行异或</span></span><br><span class="line">    <span class="number">0xCD</span>, <span class="number">0xEB</span>, <span class="number">0x5E</span>, <span class="number">0x76</span>, <span class="number">0x0F</span>, <span class="number">0x22</span>, <span class="number">0xAF</span>, <span class="number">0x31</span>, <span class="number">0x82</span>, <span class="number">0x92</span>, <span class="number">0x3C</span>, <span class="number">0xEF</span>, <span class="number">0xB8</span>, <span class="number">0xC1</span>, <span class="number">0x76</span>, <span class="number">0x06</span>, </span><br><span class="line">    <span class="number">0x18</span>, <span class="number">0x2F</span>, <span class="number">0xB5</span>, <span class="number">0x7D</span>, <span class="number">0x7F</span>, <span class="number">0x0A</span>, <span class="number">0xEA</span>, <span class="number">0x85</span>, <span class="number">0x92</span>, <span class="number">0x00</span>, <span class="number">0x89</span>, <span class="number">0xA3</span>, <span class="number">0x2C</span>, <span class="number">0xE2</span>, <span class="number">0xE7</span>, <span class="number">0x32</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> changedata[<span class="number">32</span>] = &#123;     <span class="comment">//重排表</span></span><br><span class="line">    <span class="number">0x0A</span>, <span class="number">0x07</span>, <span class="number">0x06</span>, <span class="number">0x0E</span>, <span class="number">0x02</span>, <span class="number">0x0B</span>, <span class="number">0x03</span>, <span class="number">0x0D</span>, <span class="number">0x01</span>, <span class="number">0x09</span>, <span class="number">0x00</span>, <span class="number">0x05</span>, <span class="number">0x04</span>, <span class="number">0x0F</span>, <span class="number">0x08</span>, <span class="number">0x0C</span>, </span><br><span class="line">    <span class="number">0x1B</span>, <span class="number">0x18</span>, <span class="number">0x17</span>, <span class="number">0x1F</span>, <span class="number">0x14</span>, <span class="number">0x1E</span>, <span class="number">0x12</span>, <span class="number">0x13</span>, <span class="number">0x15</span>, <span class="number">0x1D</span>, <span class="number">0x16</span>, <span class="number">0x1C</span>, <span class="number">0x11</span>, <span class="number">0x10</span>, <span class="number">0x19</span>, <span class="number">0x1A</span>&#125;; </span><br><span class="line">    </span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> cmpdata[<span class="number">32</span>] = &#123;     <span class="comment">//比较数据</span></span><br><span class="line">    <span class="number">0x5F</span>, <span class="number">0x91</span>, <span class="number">0x99</span>, <span class="number">0xE8</span>, <span class="number">0x4E</span>, <span class="number">0xD0</span>, <span class="number">0xB0</span>, <span class="number">0x92</span>, <span class="number">0xB1</span>, <span class="number">0x3C</span>, <span class="number">0x4F</span>, <span class="number">0xF4</span>, <span class="number">0x17</span>, <span class="number">0x76</span>, <span class="number">0xDA</span>, <span class="number">0x12</span>, </span><br><span class="line">    <span class="number">0x2A</span>, <span class="number">0x35</span>, <span class="number">0x01</span>, <span class="number">0x15</span>, <span class="number">0xF9</span>, <span class="number">0x97</span>, <span class="number">0x5E</span>, <span class="number">0x19</span>, <span class="number">0x9D</span>, <span class="number">0xC2</span>, <span class="number">0x15</span>, <span class="number">0x99</span>, <span class="number">0x70</span>, <span class="number">0x7D</span>, <span class="number">0x9F</span>, <span class="number">0xCC</span>&#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> flag[<span class="number">32</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">32</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        flag[changedata[<span class="number">31</span>-i]]=cmpdata[<span class="number">31</span>-i];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">32</span>;j++)</span><br><span class="line">    &#123;</span><br><span class="line">        flag[j]=flag[j]^xordata[j];</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%X&quot;</span>,flag[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//825A10C618D636A058AE633FAA539E70655FEB648697FF84A79F4589B5207027</span></span><br><span class="line"><span class="comment">//flag&#123;ISEC-a49d6b847bdba62c5bfa0a43b69c8575&#125;</span></span><br></pre></td></tr></table></figure><p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145355.png"></p><p>逆向过程没啥障碍，写脚本的时候<code>flag[changedata[31-i]]=cmpdata[31-i];</code>31写成了32，造成了越界，但是非常的不明显<img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145647.png"></p><p>离谱的是vscode有时候能跑起来有时候跑不起来，这里记录一下，以后注意这个问题，可能需要安装一个检测这种小错误的插件。</p>]]></content>
+    
+    
+    <summary type="html">&lt;p&gt;可以看到要求的输入长度是64个字符，前面是简单的验证输入的字符是否合规，红框圈起来的函数是主加密函数，下面可以不用分析了。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="wp" scheme="http://example.com/tags/wp/"/>
+    
+  </entry>
   
   <entry>
     <title>压缩壳原理即对坑-UPX为例</title>
@@ -400,19 +419,6 @@
     
     
     <category term="lab" scheme="http://example.com/tags/lab/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>2022极客大挑战</title>
-    <link href="http://example.com/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/"/>
-    <id>http://example.com/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/</id>
-    <published>2022-12-21T09:03:07.000Z</published>
-    <updated>2022-12-21T09:03:07.734Z</updated>
-    
-    
-    
-    
     
   </entry>
   
