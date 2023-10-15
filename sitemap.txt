@@ -1,3 +1,4 @@
+http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/
 http://example.com/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/
 http://example.com/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/
 http://example.com/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/
@@ -25,6 +26,8 @@ http://example.com/tags/index.html
 http://example.com/2022/12/18/hello-world/
 http://example.com/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/
 http://example.com/
+http://example.com/tags/rust/
+http://example.com/tags/language/
 http://example.com/tags/csapp/
 http://example.com/tags/wp/
 http://example.com/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/

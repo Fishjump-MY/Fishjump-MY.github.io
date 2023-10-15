@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="听闻rust大名已久，正巧赶上2023 秋冬季开源操作系统训练营，就来学习啦。 123fn main() &amp;#123;    println!(&quot;Hello,world!&quot;);&amp;#125;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rust入门（一）">
+<meta property="og:url" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="听闻rust大名已久，正巧赶上2023 秋冬季开源操作系统训练营，就来学习啦。 123fn main() &amp;#123;    println!(&quot;Hello,world!&quot;);&amp;#125;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012210247.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012211348.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013015009.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013020329.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013021625.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013023912.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013024308.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030215.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030332.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013124018.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013165838.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013175951.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013180621.png">
+<meta property="og:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013205305.png">
+<meta property="article:published_time" content="2023-10-15T15:36:38.000Z">
+<meta property="article:modified_time" content="2023-10-15T15:36:38.494Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="rust">
+<meta property="article:tag" content="language">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012210247.png">
+
+<link rel="canonical" href="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>rust入门（一） | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          rust入门（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-10-15 23:36:38" itemprop="dateCreated datePublished" datetime="2023-10-15T23:36:38+08:00">2023-10-15</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>听闻rust大名已久，正巧赶上2023 秋冬季开源操作系统训练营，就来学习啦。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello,world!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<p>从最经典的打印hello world开始，可以看到和c语言比较像，都是在main函数中执行，不同的是不需要头文件，而且打印方法非常的多元。</p>
+<h3 id="println！"><a href="#println！" class="headerlink" title="println！"></a>println！</h3><p>这样，从这个方法，可以看出 <strong>{}</strong> 相当于c语言中的占位符 <strong>%d</strong>。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span>=<span class="string">&quot;world&quot;</span>;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello &#123;&#125; &quot;</span>,s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span>=<span class="string">&quot;world&quot;</span>;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello &#123;s&#125; &quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>都是可以正常打印出<code>Hello world</code>的。</p>
+<p>这里提一嘴rust的编译，非常的简单，在终端源码目录下运行，即可得到一个可执行文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rustc main.rs</span><br></pre></td></tr></table></figure>
+
+<h3 id="变量与可变性"><a href="#变量与可变性" class="headerlink" title="变量与可变性"></a>变量与可变性</h3><p>！！！Rust的变量是默认不可变的 这就非常的反直觉，不过这会使得程序变得更加安全，变量用let来声明</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">x</span>=<span class="number">5</span></span><br><span class="line"></span><br><span class="line"> x=<span class="number">6</span></span><br><span class="line"></span><br><span class="line"> x=x+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012210247.png"></p>
+<p>下面两条试图改变变量x的语句都是不合法的，要想使变量真正可变，需要在创建时加上一个mut （mutable，可变的）</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">x</span> =<span class="number">5</span>;</span><br><span class="line">x=<span class="number">6</span>;</span><br><span class="line">x=x+<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h3><p>常量总是不可变的，使用const而不是let声明</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> CON: <span class="type">u32</span>=<span class="number">3</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在这条语句中，const表示声明一个常量，CON是名称，u32是常量的类型即无符号32位整数，常量必须是在编译阶段已经确定的</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> CON： <span class="type">u32</span>=<span class="number">3</span>+<span class="number">3</span>+<span class="number">3</span> ；   <span class="comment">//编译通过</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> CON： <span class="type">u32</span>=x+<span class="number">1</span>；      <span class="comment">//编译不通过</span></span><br></pre></td></tr></table></figure>
+
+<p>常量的命名规则，单词全大写并且用_连接。</p>
+<h3 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012211348.png"></p>
+<h4 id="元组"><a href="#元组" class="headerlink" title="元组"></a>元组</h4><p>和c语言的结构体很像，可以存储不同类型的值，引用方面比较奇怪。</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013015009.png"></p>
+<p>元组的引用方法</p>
+<p>方法一</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span>=(<span class="number">500</span>,<span class="number">6.4</span>,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">let</span> (_x,y,_z)=tup;   <span class="comment">//这一步把元组里的三个数据分别赋值给了x，y，z,在x前加上_告诉编译器x是有意不使用的，这样就不会发出warning</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;y&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//y=6.4</span></span><br></pre></td></tr></table></figure>
+
+<p>方法二 索引</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span>=(<span class="number">500</span>,<span class="number">6.4</span>,<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;&#125;&quot;</span>,tup.<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//y=500  索引下标从零开始</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013020329.png"></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">a</span>:[<span class="type">i32</span>;<span class="number">5</span>]=&#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>&#125;; <span class="comment">//a是名字，[]里是类型 有符号32位整数 分号后面的5表示长度为5</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">a</span>=&#123;<span class="number">3</span>;<span class="number">5</span>&#125;<span class="comment">//申请一个长度为5全部填充3的数组</span></span><br></pre></td></tr></table></figure>
+
+<p>输出数组，通过这个输出可以看出print之后是默认换行的</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span>:[<span class="type">i32</span>; <span class="number">5</span>]= [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>];</span><br><span class="line">    <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> a &#123;</span><br><span class="line">       <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>,i);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h4><p>命名规则单词全部小写，函数的声明可以在程序的任何位置</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013021625.png"></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="title function_ invoke__">aaa</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>()&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;xxx&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//xxx</span></span><br></pre></td></tr></table></figure>
+
+<p>含有参数的函数</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="title function_ invoke__">aaa</span>(<span class="number">5</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>(x:<span class="type">i32</span>)&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=5</span></span><br></pre></td></tr></table></figure>
+
+<p>含有返回值的函数，返回值需要显示地表示出来</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>:<span class="type">i32</span>=<span class="title function_ invoke__">aaa</span>(<span class="number">5</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;aaa return &#123;x&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>(x:<span class="type">i32</span>)<span class="punctuation">-&gt;</span><span class="type">i32</span>&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">    <span class="number">6</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=5</span></span><br><span class="line"><span class="comment">//aaa return 6</span></span><br></pre></td></tr></table></figure>
+
+<p>对，我没有写错，最后一行6的后面就是没有分号，我们可以这样理解：最后一行<code>6</code>是一个常量<strong>表达式</strong>，它的值等于整数<code>6</code>。在这个函数中，它被用作返回值。</p>
+<ul>
+<li>表达式：先这么记，代码没有分号则是一个表达式，表达式会返回值，可以用来赋值</li>
+<li>语句 <code>let 1:i32=5</code>; 这就是一个语句，无返回值。</li>
+</ul>
+<h4 id="if"><a href="#if" class="headerlink" title="if"></a>if</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013023912.png"></p>
+<p>需要注意的是if后面的判断表达式返回值必须是bool值。</p>
+<h4 id="loop"><a href="#loop" class="headerlink" title="loop"></a>loop</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013024308.png"></p>
+<p>就然还有loop，我只在汇编中接触过loop，可以从loop中返回一个值。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">a</span>:<span class="type">i32</span>=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="keyword">loop</span>&#123;</span><br><span class="line">        a+=<span class="number">1</span>;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> a&gt;<span class="number">3</span>&#123;</span><br><span class="line">            <span class="keyword">break</span> a;  <span class="comment">//跳出循环返回a</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;x&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//x=4</span></span><br></pre></td></tr></table></figure>
+
+<p>loop中break和continue的用法和c语言类似。</p>
+<h4 id="嵌套循环"><a href="#嵌套循环" class="headerlink" title="嵌套循环"></a>嵌套循环</h4><p>作用是精确的退出多层循环。</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030215.png"></p>
+<h4 id="while和for循环"><a href="#while和for循环" class="headerlink" title="while和for循环"></a>while和for循环</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030332.png"></p>
+<h3 id="所有权概念"><a href="#所有权概念" class="headerlink" title="所有权概念"></a>所有权概念</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013124018.png" alt=" "></p>
+<h3 id="这里存在疑问！！！！！！！！！！！！！！！！！！"><a href="#这里存在疑问！！！！！！！！！！！！！！！！！！" class="headerlink" title="这里存在疑问！！！！！！！！！！！！！！！！！！"></a>这里存在疑问！！！！！！！！！！！！！！！！！！</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">123</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">y</span>=x;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;&#125;&quot;</span>,y);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=123</span></span><br><span class="line"><span class="comment">//y=123</span></span><br></pre></td></tr></table></figure>
+
+<p>按照对所有权的介绍，打印x的时候x应该已经弃用了。</p>
+<h3 id="变量作用域与变量隐藏"><a href="#变量作用域与变量隐藏" class="headerlink" title="变量作用域与变量隐藏"></a>变量作用域与变量隐藏</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013165838.png"></p>
+<p>**{}**是作用域，</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">122</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=x+<span class="number">1</span>;   <span class="comment">//变量隐藏</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">124</span>;              <span class="comment">//x的作用域</span></span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);     <span class="comment">//x的作用域</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=124</span></span><br><span class="line"><span class="comment">//x=123</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="引用与借用"><a href="#引用与借用" class="headerlink" title="引用与借用"></a>引用与借用</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013175951.png"></p>
+<p>s和s1的关系如下图所示。&amp;是引用符号</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013180621.png"></p>
+<p>首先s不是指向hello字符串的，所以不存在与s1竞争所有权的问题，其次离开s的作用域后s丢弃，s1以及hello字符串不受影响。</p>
+<h3 id="rustlings记录"><a href="#rustlings记录" class="headerlink" title="rustlings记录"></a>rustlings记录</h3><h4 id="关于if"><a href="#关于if" class="headerlink" title="关于if"></a>关于if</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013205305.png"></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">bigger</span>(a: <span class="type">i32</span>, b: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">   <span class="keyword">if</span> a&gt;b&#123;</span><br><span class="line">    a</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">if</span> a&lt;b&#123;</span><br><span class="line">    b</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//note: `if` expressions without `else` evaluate to `()`</span></span><br><span class="line"><span class="comment">//help: consider adding an `else` block that evaluates to the expected type</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>if语句必须跟一个else语句</strong></p>
+<h4 id="slice-切片"><a href="#slice-切片" class="headerlink" title="slice 切片"></a>slice 切片</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">slice_out_of_array</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">nice_slice</span> = &amp;a[<span class="number">1</span>..<span class="number">4</span>];  <span class="comment">//从下标 1 至下标 4-1</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">assert_eq!</span>([<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>], nice_slice)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="clone和借用"><a href="#clone和借用" class="headerlink" title="clone和借用"></a>clone和借用</h3><p><strong>clone</strong></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">s2</span> = s1.<span class="title function_ invoke__">clone</span>();</span><br><span class="line"></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s1: &#123;&#125;&quot;</span>, s1); <span class="comment">// 此处仍然可以使用s1</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s2: &#123;&#125;&quot;</span>, s2); <span class="comment">// 输出 &quot;Hello&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>clone</code>是用于创建数据的完全拷贝，包括堆上的数据。它会复制原始数据，生成一个新的独立副本，两者之间没有关联。<code>clone</code>适用于需要独立拥有数据的情况，确保对数据的修改不会影响原始数据。</p>
+<p><strong>借用</strong></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">print_length</span>(s: &amp;<span class="type">str</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Length: &#123;&#125;&quot;</span>, s.<span class="title function_ invoke__">len</span>());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"><span class="title function_ invoke__">print_length</span>(&amp;s); <span class="comment">// 传递s的引用给函数，不会转移所有权</span></span><br></pre></td></tr></table></figure>
+
+<p>借用(<code>borrowing</code>)则是一种不拥有数据但可以临时访问的机制。通过借用，可以将数据的引用传递给其他代码，而无需转移所有权。在使用借用时，原始数据保持不变，可以有多个不可变引用同时存在，但只能有一个可变引用。这样可以在编译时避免数据竞争和并发问题。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/rust/" rel="tag"># rust</a>
+              <a href="/tags/language/" rel="tag"># language</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/" rel="prev" title="Android学习篇（二）">
+      <i class="fa fa-chevron-left"></i> Android学习篇（二）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#println%EF%BC%81"><span class="nav-number">1.</span> <span class="nav-text">println！</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E4%B8%8E%E5%8F%AF%E5%8F%98%E6%80%A7"><span class="nav-number">2.</span> <span class="nav-text">变量与可变性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E9%87%8F"><span class="nav-number">3.</span> <span class="nav-text">常量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">基本数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%83%E7%BB%84"><span class="nav-number">4.1.</span> <span class="nav-text">元组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E7%BB%84"><span class="nav-number">4.2.</span> <span class="nav-text">数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%BD%E6%95%B0"><span class="nav-number">4.3.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#if"><span class="nav-number">4.4.</span> <span class="nav-text">if</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#loop"><span class="nav-number">4.5.</span> <span class="nav-text">loop</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E5%BE%AA%E7%8E%AF"><span class="nav-number">4.6.</span> <span class="nav-text">嵌套循环</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#while%E5%92%8Cfor%E5%BE%AA%E7%8E%AF"><span class="nav-number">4.7.</span> <span class="nav-text">while和for循环</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%80%E6%9C%89%E6%9D%83%E6%A6%82%E5%BF%B5"><span class="nav-number">5.</span> <span class="nav-text">所有权概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%99%E9%87%8C%E5%AD%98%E5%9C%A8%E7%96%91%E9%97%AE%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81%EF%BC%81"><span class="nav-number">6.</span> <span class="nav-text">这里存在疑问！！！！！！！！！！！！！！！！！！</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E4%BD%9C%E7%94%A8%E5%9F%9F%E4%B8%8E%E5%8F%98%E9%87%8F%E9%9A%90%E8%97%8F"><span class="nav-number">7.</span> <span class="nav-text">变量作用域与变量隐藏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E4%B8%8E%E5%80%9F%E7%94%A8"><span class="nav-number">8.</span> <span class="nav-text">引用与借用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rustlings%E8%AE%B0%E5%BD%95"><span class="nav-number">9.</span> <span class="nav-text">rustlings记录</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Eif"><span class="nav-number">9.1.</span> <span class="nav-text">关于if</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#slice-%E5%88%87%E7%89%87"><span class="nav-number">9.2.</span> <span class="nav-text">slice 切片</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#clone%E5%92%8C%E5%80%9F%E7%94%A8"><span class="nav-number">10.</span> <span class="nav-text">clone和借用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">64k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:51</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
