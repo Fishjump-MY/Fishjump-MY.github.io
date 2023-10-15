@@ -458,35 +458,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>RC4</title>
-    <url>/2023/08/20/RC4/</url>
-    <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>RC4是<strong>对称密码</strong>算法中的<strong>流密码</strong>加密算法，对称及加解密的密钥相同，流密码意思是加密是逐字节进行的与之对应的就是<strong>块加密</strong>。</p>
-<span id="more"></span>
-
-<h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h2><p>RC4生成一种称为密钥流的伪随机流（S表），他与明文通过异或操作混合，以达到加密的目的，解密时与明文进行异或操作。其密钥流由两部分组成，分别是KSA和PRGA。可以简单的理解为RC4由这两部分组成。</p>
-<p><strong>KSA</strong> 部分的代码。密钥的长度一般为5<del>16字节及40</del>128位，通常不超过256位。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    j=(j+S[i]+key[i % keylength]) % <span class="number">256</span>;  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>PRGA</strong> 根据待加密的data进行置换，得到的子密码k与data进行异或即可得到密文</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">i,j,t=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(m=<span class="number">0</span>;j&lt;datalength;m++)</span><br><span class="line">&#123;</span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>合并起来的代码</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Swap</span><span class="params">(<span class="type">int</span>*a,<span class="type">int</span>*b)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    t=*a;</span><br><span class="line">    *a=*b;</span><br><span class="line">    *b=t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> key[]=<span class="string">&quot;fishjump&quot;</span>;</span><br><span class="line">    <span class="type">int</span> keylength=<span class="built_in">strlen</span>(key);</span><br><span class="line">    <span class="type">int</span> S[<span class="number">255</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      j=((j+S[i]+key[i % keylength]) % <span class="number">256</span>);  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">      Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    j=<span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span> data[]=<span class="string">&quot;mzyloveyy&quot;</span>;</span><br><span class="line">    <span class="type">int</span> datalength=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> m=<span class="number">0</span>;m&lt;datalength;m++)</span><br><span class="line">  &#123; </span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    <span class="type">int</span> k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%x\n&quot;</span>,data[m]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>验证一下成果</p>
-<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234509.png"></p>
-<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234535.png"></p>
-<p>okk。</p>
-<h2 id="特征"><a href="#特征" class="headerlink" title="特征"></a><strong>特征</strong></h2><p>总结一下，如何在茫茫人海中一眼认出RC4？<strong>256位的数组</strong>，<strong>交换函数</strong>，异或，over。</p>
-<p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
-]]></content>
-      <tags>
-        <tag>密码学</tag>
-        <tag>对称加密</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PE文件学习篇</title>
     <url>/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/</url>
     <content><![CDATA[<p>在《逆向工程核心原理》这本书接触到了PE文件，但是当时学不进去，感觉很晦涩，虽然是一个结构体一个结构体的进行分析，但还是掌握不了。今天在YouTube上找到了一个视频，看了一下有种恍然大明白的感觉。正巧今天看了一期关于国产大飞机C919的视频很有感想，我们的策略是先整体后局部，即不过分死抠细节，不把国产化率排在首位，先造出来一个大飞机，于是我们就有了一张蓝图，知道方向在哪里。学习PE文件这里也是，先整体的过一遍，知道个轮廓，在学起来会容易和有趣不少。</p>
@@ -731,6 +702,35 @@
       <tags>
         <tag>Windows</tag>
         <tag>PE</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>RC4</title>
+    <url>/2023/08/20/RC4/</url>
+    <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>RC4是<strong>对称密码</strong>算法中的<strong>流密码</strong>加密算法，对称及加解密的密钥相同，流密码意思是加密是逐字节进行的与之对应的就是<strong>块加密</strong>。</p>
+<span id="more"></span>
+
+<h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h2><p>RC4生成一种称为密钥流的伪随机流（S表），他与明文通过异或操作混合，以达到加密的目的，解密时与明文进行异或操作。其密钥流由两部分组成，分别是KSA和PRGA。可以简单的理解为RC4由这两部分组成。</p>
+<p><strong>KSA</strong> 部分的代码。密钥的长度一般为5<del>16字节及40</del>128位，通常不超过256位。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    j=(j+S[i]+key[i % keylength]) % <span class="number">256</span>;  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>PRGA</strong> 根据待加密的data进行置换，得到的子密码k与data进行异或即可得到密文</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">i,j,t=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(m=<span class="number">0</span>;j&lt;datalength;m++)</span><br><span class="line">&#123;</span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>合并起来的代码</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Swap</span><span class="params">(<span class="type">int</span>*a,<span class="type">int</span>*b)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    t=*a;</span><br><span class="line">    *a=*b;</span><br><span class="line">    *b=t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> key[]=<span class="string">&quot;fishjump&quot;</span>;</span><br><span class="line">    <span class="type">int</span> keylength=<span class="built_in">strlen</span>(key);</span><br><span class="line">    <span class="type">int</span> S[<span class="number">255</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      j=((j+S[i]+key[i % keylength]) % <span class="number">256</span>);  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">      Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    j=<span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span> data[]=<span class="string">&quot;mzyloveyy&quot;</span>;</span><br><span class="line">    <span class="type">int</span> datalength=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> m=<span class="number">0</span>;m&lt;datalength;m++)</span><br><span class="line">  &#123; </span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    <span class="type">int</span> k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%x\n&quot;</span>,data[m]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>验证一下成果</p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234509.png"></p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234535.png"></p>
+<p>okk。</p>
+<h2 id="特征"><a href="#特征" class="headerlink" title="特征"></a><strong>特征</strong></h2><p>总结一下，如何在茫茫人海中一眼认出RC4？<strong>256位的数组</strong>，<strong>交换函数</strong>，异或，over。</p>
+<p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+        <tag>对称加密</tag>
       </tags>
   </entry>
   <entry>
@@ -1527,6 +1527,112 @@
 ]]></content>
   </entry>
   <entry>
+    <title>rust入门（一）</title>
+    <url>/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>听闻rust大名已久，正巧赶上2023 秋冬季开源操作系统训练营，就来学习啦。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello,world!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<p>从最经典的打印hello world开始，可以看到和c语言比较像，都是在main函数中执行，不同的是不需要头文件，而且打印方法非常的多元。</p>
+<h3 id="println！"><a href="#println！" class="headerlink" title="println！"></a>println！</h3><p>这样，从这个方法，可以看出 <strong>{}</strong> 相当于c语言中的占位符 <strong>%d</strong>。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span>=<span class="string">&quot;world&quot;</span>;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello &#123;&#125; &quot;</span>,s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span>=<span class="string">&quot;world&quot;</span>;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello &#123;s&#125; &quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>都是可以正常打印出<code>Hello world</code>的。</p>
+<p>这里提一嘴rust的编译，非常的简单，在终端源码目录下运行，即可得到一个可执行文件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rustc main.rs</span><br></pre></td></tr></table></figure>
+
+<h3 id="变量与可变性"><a href="#变量与可变性" class="headerlink" title="变量与可变性"></a>变量与可变性</h3><p>！！！Rust的变量是默认不可变的 这就非常的反直觉，不过这会使得程序变得更加安全，变量用let来声明</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">x</span>=<span class="number">5</span></span><br><span class="line"></span><br><span class="line"> x=<span class="number">6</span></span><br><span class="line"></span><br><span class="line"> x=x+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012210247.png"></p>
+<p>下面两条试图改变变量x的语句都是不合法的，要想使变量真正可变，需要在创建时加上一个mut （mutable，可变的）</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">x</span> =<span class="number">5</span>;</span><br><span class="line">x=<span class="number">6</span>;</span><br><span class="line">x=x+<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h3><p>常量总是不可变的，使用const而不是let声明</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> CON: <span class="type">u32</span>=<span class="number">3</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在这条语句中，const表示声明一个常量，CON是名称，u32是常量的类型即无符号32位整数，常量必须是在编译阶段已经确定的</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> CON： <span class="type">u32</span>=<span class="number">3</span>+<span class="number">3</span>+<span class="number">3</span> ；   <span class="comment">//编译通过</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> CON： <span class="type">u32</span>=x+<span class="number">1</span>；      <span class="comment">//编译不通过</span></span><br></pre></td></tr></table></figure>
+
+<p>常量的命名规则，单词全大写并且用_连接。</p>
+<h3 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012211348.png"></p>
+<h4 id="元组"><a href="#元组" class="headerlink" title="元组"></a>元组</h4><p>和c语言的结构体很像，可以存储不同类型的值，引用方面比较奇怪。</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013015009.png"></p>
+<p>元组的引用方法</p>
+<p>方法一</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span>=(<span class="number">500</span>,<span class="number">6.4</span>,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">let</span> (_x,y,_z)=tup;   <span class="comment">//这一步把元组里的三个数据分别赋值给了x，y，z,在x前加上_告诉编译器x是有意不使用的，这样就不会发出warning</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;y&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//y=6.4</span></span><br></pre></td></tr></table></figure>
+
+<p>方法二 索引</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span>=(<span class="number">500</span>,<span class="number">6.4</span>,<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;&#125;&quot;</span>,tup.<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//y=500  索引下标从零开始</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013020329.png"></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">a</span>:[<span class="type">i32</span>;<span class="number">5</span>]=&#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>&#125;; <span class="comment">//a是名字，[]里是类型 有符号32位整数 分号后面的5表示长度为5</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">a</span>=&#123;<span class="number">3</span>;<span class="number">5</span>&#125;<span class="comment">//申请一个长度为5全部填充3的数组</span></span><br></pre></td></tr></table></figure>
+
+<p>输出数组，通过这个输出可以看出print之后是默认换行的</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span>:[<span class="type">i32</span>; <span class="number">5</span>]= [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>];</span><br><span class="line">    <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> a &#123;</span><br><span class="line">       <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>,i);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h4><p>命名规则单词全部小写，函数的声明可以在程序的任何位置</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013021625.png"></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="title function_ invoke__">aaa</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>()&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;xxx&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//xxx</span></span><br></pre></td></tr></table></figure>
+
+<p>含有参数的函数</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="title function_ invoke__">aaa</span>(<span class="number">5</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>(x:<span class="type">i32</span>)&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=5</span></span><br></pre></td></tr></table></figure>
+
+<p>含有返回值的函数，返回值需要显示地表示出来</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>:<span class="type">i32</span>=<span class="title function_ invoke__">aaa</span>(<span class="number">5</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;aaa return &#123;x&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>(x:<span class="type">i32</span>)<span class="punctuation">-&gt;</span><span class="type">i32</span>&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">    <span class="number">6</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=5</span></span><br><span class="line"><span class="comment">//aaa return 6</span></span><br></pre></td></tr></table></figure>
+
+<p>对，我没有写错，最后一行6的后面就是没有分号，我们可以这样理解：最后一行<code>6</code>是一个常量<strong>表达式</strong>，它的值等于整数<code>6</code>。在这个函数中，它被用作返回值。</p>
+<ul>
+<li>表达式：先这么记，代码没有分号则是一个表达式，表达式会返回值，可以用来赋值</li>
+<li>语句 <code>let 1:i32=5</code>; 这就是一个语句，无返回值。</li>
+</ul>
+<h4 id="if"><a href="#if" class="headerlink" title="if"></a>if</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013023912.png"></p>
+<p>需要注意的是if后面的判断表达式返回值必须是bool值。</p>
+<h4 id="loop"><a href="#loop" class="headerlink" title="loop"></a>loop</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013024308.png"></p>
+<p>就然还有loop，我只在汇编中接触过loop，可以从loop中返回一个值。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">a</span>:<span class="type">i32</span>=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="keyword">loop</span>&#123;</span><br><span class="line">        a+=<span class="number">1</span>;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> a&gt;<span class="number">3</span>&#123;</span><br><span class="line">            <span class="keyword">break</span> a;  <span class="comment">//跳出循环返回a</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;x&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//x=4</span></span><br></pre></td></tr></table></figure>
+
+<p>loop中break和continue的用法和c语言类似。</p>
+<h4 id="嵌套循环"><a href="#嵌套循环" class="headerlink" title="嵌套循环"></a>嵌套循环</h4><p>作用是精确的退出多层循环。</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030215.png"></p>
+<h4 id="while和for循环"><a href="#while和for循环" class="headerlink" title="while和for循环"></a>while和for循环</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030332.png"></p>
+<h3 id="所有权概念"><a href="#所有权概念" class="headerlink" title="所有权概念"></a>所有权概念</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013124018.png" alt=" "></p>
+<h3 id="这里存在疑问！！！！！！！！！！！！！！！！！！"><a href="#这里存在疑问！！！！！！！！！！！！！！！！！！" class="headerlink" title="这里存在疑问！！！！！！！！！！！！！！！！！！"></a>这里存在疑问！！！！！！！！！！！！！！！！！！</h3><figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">123</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">y</span>=x;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;&#125;&quot;</span>,y);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=123</span></span><br><span class="line"><span class="comment">//y=123</span></span><br></pre></td></tr></table></figure>
+
+<p>按照对所有权的介绍，打印x的时候x应该已经弃用了。</p>
+<h3 id="变量作用域与变量隐藏"><a href="#变量作用域与变量隐藏" class="headerlink" title="变量作用域与变量隐藏"></a>变量作用域与变量隐藏</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013165838.png"></p>
+<p>**{}**是作用域，</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">122</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=x+<span class="number">1</span>;   <span class="comment">//变量隐藏</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">124</span>;              <span class="comment">//x的作用域</span></span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);     <span class="comment">//x的作用域</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=124</span></span><br><span class="line"><span class="comment">//x=123</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="引用与借用"><a href="#引用与借用" class="headerlink" title="引用与借用"></a>引用与借用</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013175951.png"></p>
+<p>s和s1的关系如下图所示。&amp;是引用符号</p>
+<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013180621.png"></p>
+<p>首先s不是指向hello字符串的，所以不存在与s1竞争所有权的问题，其次离开s的作用域后s丢弃，s1以及hello字符串不受影响。</p>
+<h3 id="rustlings记录"><a href="#rustlings记录" class="headerlink" title="rustlings记录"></a>rustlings记录</h3><h4 id="关于if"><a href="#关于if" class="headerlink" title="关于if"></a>关于if</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013205305.png"></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">bigger</span>(a: <span class="type">i32</span>, b: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">   <span class="keyword">if</span> a&gt;b&#123;</span><br><span class="line">    a</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">if</span> a&lt;b&#123;</span><br><span class="line">    b</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//note: `if` expressions without `else` evaluate to `()`</span></span><br><span class="line"><span class="comment">//help: consider adding an `else` block that evaluates to the expected type</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>if语句必须跟一个else语句</strong></p>
+<h4 id="slice-切片"><a href="#slice-切片" class="headerlink" title="slice 切片"></a>slice 切片</h4><figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">slice_out_of_array</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">nice_slice</span> = &amp;a[<span class="number">1</span>..<span class="number">4</span>];  <span class="comment">//从下标 1 至下标 4-1</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">assert_eq!</span>([<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>], nice_slice)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="clone和借用"><a href="#clone和借用" class="headerlink" title="clone和借用"></a>clone和借用</h3><p><strong>clone</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">s2</span> = s1.<span class="title function_ invoke__">clone</span>();</span><br><span class="line"></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s1: &#123;&#125;&quot;</span>, s1); <span class="comment">// 此处仍然可以使用s1</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s2: &#123;&#125;&quot;</span>, s2); <span class="comment">// 输出 &quot;Hello&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>clone</code>是用于创建数据的完全拷贝，包括堆上的数据。它会复制原始数据，生成一个新的独立副本，两者之间没有关联。<code>clone</code>适用于需要独立拥有数据的情况，确保对数据的修改不会影响原始数据。</p>
+<p><strong>借用</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">print_length</span>(s: &amp;<span class="type">str</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Length: &#123;&#125;&quot;</span>, s.<span class="title function_ invoke__">len</span>());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"><span class="title function_ invoke__">print_length</span>(&amp;s); <span class="comment">// 传递s的引用给函数，不会转移所有权</span></span><br></pre></td></tr></table></figure>
+
+<p>借用(<code>borrowing</code>)则是一种不拥有数据但可以临时访问的机制。通过借用，可以将数据的引用传递给其他代码，而无需转移所有权。在使用借用时，原始数据保持不变，可以有多个不可变引用同时存在，但只能有一个可变引用。这样可以在编译时避免数据竞争和并发问题。</p>
+]]></content>
+      <tags>
+        <tag>rust</tag>
+        <tag>language</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>动态链接库（DLL）及其工作原理</title>
     <url>/2023/08/21/%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%EF%BC%88DLL%EF%BC%89%E5%8F%8A%E5%85%B6%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h3 id="动态链接库"><a href="#动态链接库" class="headerlink" title="动态链接库"></a><strong>动态链接库</strong></h3><blockquote>
@@ -1659,49 +1765,6 @@
         <tag>运行时压缩</tag>
         <tag>壳</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>破解010Editor</title>
-    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
-    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载</p>
-<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
-
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-]]></content>
   </entry>
   <entry>
     <title>汇编语言</title>
@@ -1968,6 +2031,49 @@
       <tags>
         <tag>汇编</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>破解010Editor</title>
+    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
+    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
+
+<p>我是win64</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
+<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
+<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
+<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
+<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
+<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
+<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
+<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
+<p>查看流程图更加明了一点</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
+<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
+<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
+<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
+<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
+<p>然后我们将这个275修改成219</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
+<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
+<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
+<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
+<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
+<p>这个就算大功告成啦</p>
+<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
+<p>点击help –&gt; about 随意输入即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
+<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
+<p>参考：</p>
+<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
+]]></content>
   </entry>
   <entry>
     <title>第八章-异常控制流</title>
@@ -2302,111 +2408,5 @@
 <p>将二进制(机器码)翻译成高级语言，我们可以再套一层虚拟机，将我们的c语言转变成这个汇编。通过这次虚拟机的实现过程，对计算机行为有了更进一步的了解。</p>
 <p><a href="https://www.jmeiners.com/lc3-vm/"><a href="https://www.jmeiners.com/lc3-vm/">Write your Own Virtual Machine (jmeiners.com)</a></a></p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>rust入门（一）</title>
-    <url>/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>听闻rust大名已久，正巧赶上2023 秋冬季开源操作系统训练营，就来学习啦。</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello,world!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<span id="more"></span>
-
-<p>从最经典的打印hello world开始，可以看到和c语言比较像，都是在main函数中执行，不同的是不需要头文件，而且打印方法非常的多元。</p>
-<h3 id="println！"><a href="#println！" class="headerlink" title="println！"></a>println！</h3><p>这样，从这个方法，可以看出 <strong>{}</strong> 相当于c语言中的占位符 <strong>%d</strong>。</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span>=<span class="string">&quot;world&quot;</span>;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello &#123;&#125; &quot;</span>,s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这样</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span>=<span class="string">&quot;world&quot;</span>;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello &#123;s&#125; &quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>都是可以正常打印出<code>Hello world</code>的。</p>
-<p>这里提一嘴rust的编译，非常的简单，在终端源码目录下运行，即可得到一个可执行文件</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rustc main.rs</span><br></pre></td></tr></table></figure>
-
-<h3 id="变量与可变性"><a href="#变量与可变性" class="headerlink" title="变量与可变性"></a>变量与可变性</h3><p>！！！Rust的变量是默认不可变的 这就非常的反直觉，不过这会使得程序变得更加安全，变量用let来声明</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">x</span>=<span class="number">5</span></span><br><span class="line"></span><br><span class="line"> x=<span class="number">6</span></span><br><span class="line"></span><br><span class="line"> x=x+<span class="number">1</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012210247.png"></p>
-<p>下面两条试图改变变量x的语句都是不合法的，要想使变量真正可变，需要在创建时加上一个mut （mutable，可变的）</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">x</span> =<span class="number">5</span>;</span><br><span class="line">x=<span class="number">6</span>;</span><br><span class="line">x=x+<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h3><p>常量总是不可变的，使用const而不是let声明</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> CON: <span class="type">u32</span>=<span class="number">3</span>;</span><br></pre></td></tr></table></figure>
-
-<p>在这条语句中，const表示声明一个常量，CON是名称，u32是常量的类型即无符号32位整数，常量必须是在编译阶段已经确定的</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> CON： <span class="type">u32</span>=<span class="number">3</span>+<span class="number">3</span>+<span class="number">3</span> ；   <span class="comment">//编译通过</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> CON： <span class="type">u32</span>=x+<span class="number">1</span>；      <span class="comment">//编译不通过</span></span><br></pre></td></tr></table></figure>
-
-<p>常量的命名规则，单词全大写并且用_连接。</p>
-<h3 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231012211348.png"></p>
-<h4 id="元组"><a href="#元组" class="headerlink" title="元组"></a>元组</h4><p>和c语言的结构体很像，可以存储不同类型的值，引用方面比较奇怪。</p>
-<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013015009.png"></p>
-<p>元组的引用方法</p>
-<p>方法一</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span>=(<span class="number">500</span>,<span class="number">6.4</span>,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">let</span> (_x,y,_z)=tup;   <span class="comment">//这一步把元组里的三个数据分别赋值给了x，y，z,在x前加上_告诉编译器x是有意不使用的，这样就不会发出warning</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;y&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//y=6.4</span></span><br></pre></td></tr></table></figure>
-
-<p>方法二 索引</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span>=(<span class="number">500</span>,<span class="number">6.4</span>,<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;&#125;&quot;</span>,tup.<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//y=500  索引下标从零开始</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013020329.png"></p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">a</span>:[<span class="type">i32</span>;<span class="number">5</span>]=&#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>&#125;; <span class="comment">//a是名字，[]里是类型 有符号32位整数 分号后面的5表示长度为5</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">a</span>=&#123;<span class="number">3</span>;<span class="number">5</span>&#125;<span class="comment">//申请一个长度为5全部填充3的数组</span></span><br></pre></td></tr></table></figure>
-
-<p>输出数组，通过这个输出可以看出print之后是默认换行的</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span>:[<span class="type">i32</span>; <span class="number">5</span>]= [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>];</span><br><span class="line">    <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> a &#123;</span><br><span class="line">       <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>,i);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h4><p>命名规则单词全部小写，函数的声明可以在程序的任何位置</p>
-<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013021625.png"></p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="title function_ invoke__">aaa</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>()&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;xxx&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//xxx</span></span><br></pre></td></tr></table></figure>
-
-<p>含有参数的函数</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="title function_ invoke__">aaa</span>(<span class="number">5</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>(x:<span class="type">i32</span>)&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=5</span></span><br></pre></td></tr></table></figure>
-
-<p>含有返回值的函数，返回值需要显示地表示出来</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>:<span class="type">i32</span>=<span class="title function_ invoke__">aaa</span>(<span class="number">5</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;aaa return &#123;x&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">aaa</span>(x:<span class="type">i32</span>)<span class="punctuation">-&gt;</span><span class="type">i32</span>&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">    <span class="number">6</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=5</span></span><br><span class="line"><span class="comment">//aaa return 6</span></span><br></pre></td></tr></table></figure>
-
-<p>对，我没有写错，最后一行6的后面就是没有分号，我们可以这样理解：最后一行<code>6</code>是一个常量<strong>表达式</strong>，它的值等于整数<code>6</code>。在这个函数中，它被用作返回值。</p>
-<ul>
-<li>表达式：先这么记，代码没有分号则是一个表达式，表达式会返回值，可以用来赋值</li>
-<li>语句 <code>let 1:i32=5</code>; 这就是一个语句，无返回值。</li>
-</ul>
-<h4 id="if"><a href="#if" class="headerlink" title="if"></a>if</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013023912.png"></p>
-<p>需要注意的是if后面的判断表达式返回值必须是bool值。</p>
-<h4 id="loop"><a href="#loop" class="headerlink" title="loop"></a>loop</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013024308.png"></p>
-<p>就然还有loop，我只在汇编中接触过loop，可以从loop中返回一个值。</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">a</span>:<span class="type">i32</span>=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="keyword">loop</span>&#123;</span><br><span class="line">        a+=<span class="number">1</span>;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> a&gt;<span class="number">3</span>&#123;</span><br><span class="line">            <span class="keyword">break</span> a;  <span class="comment">//跳出循环返回a</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;x&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//hello</span></span><br><span class="line"><span class="comment">//x=4</span></span><br></pre></td></tr></table></figure>
-
-<p>loop中break和continue的用法和c语言类似。</p>
-<h4 id="嵌套循环"><a href="#嵌套循环" class="headerlink" title="嵌套循环"></a>嵌套循环</h4><p>作用是精确的退出多层循环。</p>
-<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030215.png"></p>
-<h4 id="while和for循环"><a href="#while和for循环" class="headerlink" title="while和for循环"></a>while和for循环</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013030332.png"></p>
-<h3 id="所有权概念"><a href="#所有权概念" class="headerlink" title="所有权概念"></a>所有权概念</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013124018.png" alt=" "></p>
-<h3 id="这里存在疑问！！！！！！！！！！！！！！！！！！"><a href="#这里存在疑问！！！！！！！！！！！！！！！！！！" class="headerlink" title="这里存在疑问！！！！！！！！！！！！！！！！！！"></a>这里存在疑问！！！！！！！！！！！！！！！！！！</h3><figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">123</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">y</span>=x;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;y=&#123;&#125;&quot;</span>,y);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=123</span></span><br><span class="line"><span class="comment">//y=123</span></span><br></pre></td></tr></table></figure>
-
-<p>按照对所有权的介绍，打印x的时候x应该已经弃用了。</p>
-<h3 id="变量作用域与变量隐藏"><a href="#变量作用域与变量隐藏" class="headerlink" title="变量作用域与变量隐藏"></a>变量作用域与变量隐藏</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013165838.png"></p>
-<p>**{}**是作用域，</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">122</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>=x+<span class="number">1</span>;   <span class="comment">//变量隐藏</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span>=<span class="number">124</span>;              <span class="comment">//x的作用域</span></span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);     <span class="comment">//x的作用域</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;x=&#123;&#125;&quot;</span>,x);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//x=124</span></span><br><span class="line"><span class="comment">//x=123</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="引用与借用"><a href="#引用与借用" class="headerlink" title="引用与借用"></a>引用与借用</h3><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013175951.png"></p>
-<p>s和s1的关系如下图所示。&amp;是引用符号</p>
-<p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013180621.png"></p>
-<p>首先s不是指向hello字符串的，所以不存在与s1竞争所有权的问题，其次离开s的作用域后s丢弃，s1以及hello字符串不受影响。</p>
-<h3 id="rustlings记录"><a href="#rustlings记录" class="headerlink" title="rustlings记录"></a>rustlings记录</h3><h4 id="关于if"><a href="#关于if" class="headerlink" title="关于if"></a>关于if</h4><p><img src="/2023/10/15/rust%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231013205305.png"></p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">bigger</span>(a: <span class="type">i32</span>, b: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">   <span class="keyword">if</span> a&gt;b&#123;</span><br><span class="line">    a</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">if</span> a&lt;b&#123;</span><br><span class="line">    b</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//note: `if` expressions without `else` evaluate to `()`</span></span><br><span class="line"><span class="comment">//help: consider adding an `else` block that evaluates to the expected type</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>if语句必须跟一个else语句</strong></p>
-<h4 id="slice-切片"><a href="#slice-切片" class="headerlink" title="slice 切片"></a>slice 切片</h4><figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">slice_out_of_array</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">nice_slice</span> = &amp;a[<span class="number">1</span>..<span class="number">4</span>];  <span class="comment">//从下标 1 至下标 4-1</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">assert_eq!</span>([<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>], nice_slice)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="clone和借用"><a href="#clone和借用" class="headerlink" title="clone和借用"></a>clone和借用</h3><p><strong>clone</strong></p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">s2</span> = s1.<span class="title function_ invoke__">clone</span>();</span><br><span class="line"></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s1: &#123;&#125;&quot;</span>, s1); <span class="comment">// 此处仍然可以使用s1</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s2: &#123;&#125;&quot;</span>, s2); <span class="comment">// 输出 &quot;Hello&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><code>clone</code>是用于创建数据的完全拷贝，包括堆上的数据。它会复制原始数据，生成一个新的独立副本，两者之间没有关联。<code>clone</code>适用于需要独立拥有数据的情况，确保对数据的修改不会影响原始数据。</p>
-<p><strong>借用</strong></p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">print_length</span>(s: &amp;<span class="type">str</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Length: &#123;&#125;&quot;</span>, s.<span class="title function_ invoke__">len</span>());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"><span class="title function_ invoke__">print_length</span>(&amp;s); <span class="comment">// 传递s的引用给函数，不会转移所有权</span></span><br></pre></td></tr></table></figure>
-
-<p>借用(<code>borrowing</code>)则是一种不拥有数据但可以临时访问的机制。通过借用，可以将数据的引用传递给其他代码，而无需转移所有权。在使用借用时，原始数据保持不变，可以有多个不可变引用同时存在，但只能有一个可变引用。这样可以在编译时避免数据竞争和并发问题。</p>
-]]></content>
-      <tags>
-        <tag>rust</tag>
-        <tag>language</tag>
-      </tags>
   </entry>
 </search>
