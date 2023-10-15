@@ -38,43 +38,50 @@
       </tags>
   </entry>
   <entry>
-    <title>Android学习篇（二）</title>
-    <url>/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
-    <content><![CDATA[<p>主要学习smali，通过实际上手修改smali代码加深理解。</p>
+    <title>AES算法</title>
+    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
 <span id="more"></span>
 
-<h3 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h3><p>JVM是Java虚拟机，运行Java字节码程序。</p>
-<h3 id="Dalvik"><a href="#Dalvik" class="headerlink" title="Dalvik"></a>Dalvik</h3><p>Dalvik是Google专门为Android设计的一个虚拟机，Dalvik有专属的文件执行格式dex(Dalvik executable)。</p>
-<h3 id="smali及其语法"><a href="#smali及其语法" class="headerlink" title="smali及其语法"></a>smali及其语法</h3><p>smali是Dalvik的寄存器语言，smali代码是dex反编译而来的。可以把Dalvik理解成x86，那么smali就是x86汇编。在反编译的时候不能修改该java代码，只能修改smali代码。</p>
-<h3 id="jadx"><a href="#jadx" class="headerlink" title="jadx"></a>jadx</h3><p>分析apk的工具，可以理解为分析java的ida。</p>
-<h3 id="vip终结"><a href="#vip终结" class="headerlink" title="vip终结"></a>vip终结</h3><p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015181533.png"></p>
-<p>任务是一键三连，但是他弹窗提醒需要充值大会员，直接在jadx中使用搜索功能，搜索大会员。直接定位到这段代码。<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015181807.png"></p>
-<p>首先他会判断我们的硬币数量，在判断我们是不是vip，解决方法</p>
-<ol>
-<li>进入这个方法之后直接goto到 ChallengeSecond challengeSecond2 &#x3D; challengeSecond;</li>
-<li>修改硬币和isvip的判断</li>
-<li>修改寄存器中的值</li>
-</ol>
-<h4 id="通过修改判断"><a href="#通过修改判断" class="headerlink" title="通过修改判断"></a>通过修改判断</h4><p>jadx不支持修改代码，要使用mt管理器，提取apk文件并定位，反编译dex文件，搜索硬币，点击进入<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015182756.png"></p>
-<p>if-ge全称greater equal(a&gt;&#x3D;b)，a大于或等于则跳，在mt里直接修改成if-le也就是小于等于即可，这样我们就会直接跳转到标签cood_15处，下面看isvip判断<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015183442.png"></p>
-<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">if</span>-eqz <span class="built_in">p0</span>, :cond_43</span><br></pre></td></tr></table></figure>
-
-<p>如果p0等于0则跳转到cond_43处，而cood_43是提示请充值大会员的标签，所以我们可以选择直接注释掉这段代码，这样就不会发生跳转，或者讲逻辑改成不等于0.</p>
-<p>保存并重新安装即可。</p>
-<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015184145.png"></p>
-<h4 id="通过修改寄存器的值"><a href="#通过修改寄存器的值" class="headerlink" title="通过修改寄存器的值"></a>通过修改寄存器的值</h4><p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185249.png"></p>
-<p>p0是我们的硬币数量，v0被赋成了10，我们只需要将 const&#x2F;16 v0, 0xa改成 const&#x2F;16 v0, 0x0即可。下面跳转到isvip判断，长按点击跳转<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185439.png"></p>
-<p>逻辑是这样的<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185509.png"></p>
-<p>也就是返回0即假，直接const&#x2F;4 v0,0x1即可</p>
-<h4 id="强制跳转"><a href="#强制跳转" class="headerlink" title="强制跳转"></a>强制跳转</h4><p>看一下goto的用法</p>
-<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185904.png"></p>
-<p>直接照着葫芦画瓢</p>
-<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015190518.png"></p>
-<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015190620.png"></p>
-<p>成功。</p>
+<p>下面以明文和密钥都是128位来举例。</p>
+<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
+<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
+<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
+<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
+<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
+<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
+<p>比如初始矩阵为</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
+<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
+<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
+<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
+<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
+<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
+<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
+<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
+<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
+<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
+<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
+<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
+<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
+<p>字节代换：查S盒进行代换</p>
+<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
+<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
+<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
+<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
 ]]></content>
       <tags>
-        <tag>Android逆向</tag>
+        <tag>密码学</tag>
       </tags>
   </entry>
   <entry>
@@ -183,94 +190,43 @@
       </tags>
   </entry>
   <entry>
-    <title>AES算法</title>
-    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
+    <title>Android学习篇（二）</title>
+    <url>/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<p>主要学习smali，通过实际上手修改smali代码加深理解。</p>
 <span id="more"></span>
 
-<p>下面以明文和密钥都是128位来举例。</p>
-<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
-<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
-<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
-<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
-<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
-<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
-<p>比如初始矩阵为</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
-<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
-<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
-<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
-<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
-<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
-<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
-<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
-<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
-<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
-<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
-<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
-<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
-<p>字节代换：查S盒进行代换</p>
-<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
-<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
-<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
-<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
+<h3 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h3><p>JVM是Java虚拟机，运行Java字节码程序。</p>
+<h3 id="Dalvik"><a href="#Dalvik" class="headerlink" title="Dalvik"></a>Dalvik</h3><p>Dalvik是Google专门为Android设计的一个虚拟机，Dalvik有专属的文件执行格式dex(Dalvik executable)。</p>
+<h3 id="smali及其语法"><a href="#smali及其语法" class="headerlink" title="smali及其语法"></a>smali及其语法</h3><p>smali是Dalvik的寄存器语言，smali代码是dex反编译而来的。可以把Dalvik理解成x86，那么smali就是x86汇编。在反编译的时候不能修改该java代码，只能修改smali代码。</p>
+<h3 id="jadx"><a href="#jadx" class="headerlink" title="jadx"></a>jadx</h3><p>分析apk的工具，可以理解为分析java的ida。</p>
+<h3 id="vip终结"><a href="#vip终结" class="headerlink" title="vip终结"></a>vip终结</h3><p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015181533.png"></p>
+<p>任务是一键三连，但是他弹窗提醒需要充值大会员，直接在jadx中使用搜索功能，搜索大会员。直接定位到这段代码。<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015181807.png"></p>
+<p>首先他会判断我们的硬币数量，在判断我们是不是vip，解决方法</p>
+<ol>
+<li>进入这个方法之后直接goto到 ChallengeSecond challengeSecond2 &#x3D; challengeSecond;</li>
+<li>修改硬币和isvip的判断</li>
+<li>修改寄存器中的值</li>
+</ol>
+<h4 id="通过修改判断"><a href="#通过修改判断" class="headerlink" title="通过修改判断"></a>通过修改判断</h4><p>jadx不支持修改代码，要使用mt管理器，提取apk文件并定位，反编译dex文件，搜索硬币，点击进入<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015182756.png"></p>
+<p>if-ge全称greater equal(a&gt;&#x3D;b)，a大于或等于则跳，在mt里直接修改成if-le也就是小于等于即可，这样我们就会直接跳转到标签cood_15处，下面看isvip判断<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015183442.png"></p>
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">if</span>-eqz <span class="built_in">p0</span>, :cond_43</span><br></pre></td></tr></table></figure>
+
+<p>如果p0等于0则跳转到cond_43处，而cood_43是提示请充值大会员的标签，所以我们可以选择直接注释掉这段代码，这样就不会发生跳转，或者讲逻辑改成不等于0.</p>
+<p>保存并重新安装即可。</p>
+<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015184145.png"></p>
+<h4 id="通过修改寄存器的值"><a href="#通过修改寄存器的值" class="headerlink" title="通过修改寄存器的值"></a>通过修改寄存器的值</h4><p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185249.png"></p>
+<p>p0是我们的硬币数量，v0被赋成了10，我们只需要将 const&#x2F;16 v0, 0xa改成 const&#x2F;16 v0, 0x0即可。下面跳转到isvip判断，长按点击跳转<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185439.png"></p>
+<p>逻辑是这样的<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185509.png"></p>
+<p>也就是返回0即假，直接const&#x2F;4 v0,0x1即可</p>
+<h4 id="强制跳转"><a href="#强制跳转" class="headerlink" title="强制跳转"></a>强制跳转</h4><p>看一下goto的用法</p>
+<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015185904.png"></p>
+<p>直接照着葫芦画瓢</p>
+<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015190518.png"></p>
+<p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%BA%8C%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015190620.png"></p>
+<p>成功。</p>
 ]]></content>
       <tags>
-        <tag>密码学</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C语言-链接与编译</title>
-    <url>/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/</url>
-    <content><![CDATA[<p><strong>编译</strong> </p>
-<p>源文件生成目标文件的过程及main.c–main.o</p>
-<span id="more"></span>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011918.png"></p>
-<p><strong>链接</strong></p>
-<p>目标文件生成可执行文件的过程及main.o–main。详细点说链接是将编译之后的所有目标文件连同用到的一些静态库、运行时库组件而拼装成一个可执行文件的过程。其中有地址修复的过程，如上图所示call后面的地址暂时被设置为0，修复时就是链接器根据目标文件或者静态库中的重定位表找到那些需要被重定位的函数和全局变量从而修正他们的地址。</p>
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011750.png"></p>
-<p>对于add.h 、add.c、main.c三个文件</p>
-<p>add.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>add.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>main.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>编译器是完全不知道printf和add函数的存在的（位于哪个区块、函数的定义），因此编译器只能将两个函数的跳转先暂时设置为0.使用odjdump对目标文件进行反汇编</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -s -d main.o &gt; main.o.txt</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818013635.png"></p>
-<p>这里的0会在后面链接的时候被修正</p>
-<p>查看目标文件的重定位信息</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -r main.o</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818014305.png"></p>
-<p>函数add、printf的偏移量分别为25、3b。</p>
-<p>一直手工编译显然效率不高，学习了一点makefile的知识</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim makefile</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">all:main</span><br><span class="line">main:main.o add.o</span><br><span class="line">        gcc main.o add.o -o main</span><br><span class="line">main.o:main.c</span><br><span class="line">        gcc -c main.c</span><br><span class="line">add.o:add.c</span><br><span class="line">        gcc -c add.c</span><br><span class="line">clean:</span><br><span class="line">        rm main main.o add.o</span><br></pre></td></tr></table></figure>
-
-<p>然后make main即可，他会自动根据依赖树递归地去构建可执行文件main</p>
-<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818020241.png"></p>
-<p>参考：<a href="https://www.youtube.com/watch?v=1IIUvVrCSF0">https://www.youtube.com/watch?v=1IIUvVrCSF0</a></p>
-]]></content>
-      <tags>
-        <tag>C语言</tag>
+        <tag>Android逆向</tag>
       </tags>
   </entry>
   <entry>
@@ -406,6 +362,50 @@
       <tags>
         <tag>csapp</tag>
         <tag>lab</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C语言-链接与编译</title>
+    <url>/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/</url>
+    <content><![CDATA[<p><strong>编译</strong> </p>
+<p>源文件生成目标文件的过程及main.c–main.o</p>
+<span id="more"></span>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011918.png"></p>
+<p><strong>链接</strong></p>
+<p>目标文件生成可执行文件的过程及main.o–main。详细点说链接是将编译之后的所有目标文件连同用到的一些静态库、运行时库组件而拼装成一个可执行文件的过程。其中有地址修复的过程，如上图所示call后面的地址暂时被设置为0，修复时就是链接器根据目标文件或者静态库中的重定位表找到那些需要被重定位的函数和全局变量从而修正他们的地址。</p>
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818011750.png"></p>
+<p>对于add.h 、add.c、main.c三个文件</p>
+<p>add.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>add.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译器是完全不知道printf和add函数的存在的（位于哪个区块、函数的定义），因此编译器只能将两个函数的跳转先暂时设置为0.使用odjdump对目标文件进行反汇编</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -s -d main.o &gt; main.o.txt</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818013635.png"></p>
+<p>这里的0会在后面链接的时候被修正</p>
+<p>查看目标文件的重定位信息</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">objdump -r main.o</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818014305.png"></p>
+<p>函数add、printf的偏移量分别为25、3b。</p>
+<p>一直手工编译显然效率不高，学习了一点makefile的知识</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim makefile</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">all:main</span><br><span class="line">main:main.o add.o</span><br><span class="line">        gcc main.o add.o -o main</span><br><span class="line">main.o:main.c</span><br><span class="line">        gcc -c main.c</span><br><span class="line">add.o:add.c</span><br><span class="line">        gcc -c add.c</span><br><span class="line">clean:</span><br><span class="line">        rm main main.o add.o</span><br></pre></td></tr></table></figure>
+
+<p>然后make main即可，他会自动根据依赖树递归地去构建可执行文件main</p>
+<p><img src="/2023/08/20/C%E8%AF%AD%E8%A8%80-%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%BC%96%E8%AF%91/QQ%E6%88%AA%E5%9B%BE20230818020241.png"></p>
+<p>参考：<a href="https://www.youtube.com/watch?v=1IIUvVrCSF0">https://www.youtube.com/watch?v=1IIUvVrCSF0</a></p>
+]]></content>
+      <tags>
+        <tag>C语言</tag>
       </tags>
   </entry>
   <entry>
@@ -1509,24 +1509,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2022/12/18/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>动态链接库（DLL）及其工作原理</title>
     <url>/2023/08/21/%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%EF%BC%88DLL%EF%BC%89%E5%8F%8A%E5%85%B6%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h3 id="动态链接库"><a href="#动态链接库" class="headerlink" title="动态链接库"></a><strong>动态链接库</strong></h3><blockquote>
@@ -1583,6 +1565,24 @@
       <tags>
         <tag>DLL</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2022/12/18/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
   </entry>
   <entry>
     <title>压缩壳原理即对坑-UPX为例</title>
