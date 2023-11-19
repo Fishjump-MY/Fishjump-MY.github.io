@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="协议栈指的是操作系统中的网络控制软件。 套接字套接字的实体就是通信控制信息，在协议栈的内部有一块专门用于存储控制信息的内存空间，具体是什么呢？通信对象的IP、端口号、通信状态等。协议栈是根据套接字中记录的控制信息来工作的。在终端使用netstat命令显示套接字内容">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络（一）">
+<meta property="og:url" content="http://example.com/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="协议栈指的是操作系统中的网络控制软件。 套接字套接字的实体就是通信控制信息，在协议栈的内部有一块专门用于存储控制信息的内存空间，具体是什么呢？通信对象的IP、端口号、通信状态等。协议栈是根据套接字中记录的控制信息来工作的。在终端使用netstat命令显示套接字内容">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115020243.png">
+<meta property="og:image" content="http://example.com/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115022815.png">
+<meta property="og:image" content="http://example.com/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115030254.png">
+<meta property="article:published_time" content="2023-11-19T13:44:59.000Z">
+<meta property="article:modified_time" content="2023-11-19T13:44:59.840Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115020243.png">
+
+<link rel="canonical" href="http://example.com/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>计算机网络（一） | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-11-19 21:44:59" itemprop="dateCreated datePublished" datetime="2023-11-19T21:44:59+08:00">2023-11-19</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>962</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="协议栈"><a href="#协议栈" class="headerlink" title="协议栈"></a>协议栈</h3><p>指的是操作系统中的<strong>网络控制软件</strong>。</p>
+<h3 id="套接字"><a href="#套接字" class="headerlink" title="套接字"></a>套接字</h3><p>套接字的实体就是<strong>通信控制信息</strong>，在协议栈的内部有一块专门用于存储控制信息的内存空间，具体是什么呢？通信对象的IP、端口号、通信状态等。协议栈是根据套接字中记录的控制信息来工作的。在终端使用netstat命令显示套接字内容<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115020243.png"></p>
+<span id="more"></span>
+
+<p>上图的每一行实际上就相当于一个套接字，拿一个具体的来说</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">TCP</span>    <span class="number">192.168.101.101:53369</span>  <span class="number">39.137.107.210</span>:https   ESTABLISHED     <span class="number">11844</span></span><br></pre></td></tr></table></figure>
+
+<p>PID为11844的程序正在使用IP地址为192.168.101.101的网卡与IP地址为39.137.107.210的对象进行通信，http指代特定端口，53369是本机使用的端口。</p>
+<p>通信操作中使用的<strong>控制信息</strong>分为两类。 </p>
+<p>（1）头部中记录的信息 </p>
+<p>（2）套接字（协议栈中的内存空间）中记录的信息</p>
+<h2 id="通信过程"><a href="#通信过程" class="headerlink" title="通信过程"></a>通信过程</h2><h3 id="创建套接字"><a href="#创建套接字" class="headerlink" title="创建套接字"></a>创建套接字</h3><p>创建套接字时，首先分配一个套接字所需的内存空间，然后向其 中写入初始状态。</p>
+<h3 id="连接服务器"><a href="#连接服务器" class="headerlink" title="连接服务器"></a>连接服务器</h3><p>创建套接字后，应用程序调用connect，随后协议栈将本地的套接字与服务器的套接字进行<strong>连接</strong>。这里的连接指的是通信双方交换控制信息。客户端会将IP地址和端口号等信息告知服务器。</p>
+<h4 id="连接的具体操作"><a href="#连接的具体操作" class="headerlink" title="连接的具体操作"></a>连接的具体操作</h4><figure class="highlight bnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">connect（<span class="attribute">&lt; 描述符 &gt;</span>, <span class="attribute">&lt; 服务器 IP 地址和端口号 &gt;</span>, …）</span><br></pre></td></tr></table></figure>
+
+<p>客户端会创建一个包含表示开始数据收发操作的控制信息<strong>头部</strong>，其中最重点的部分是接收方和发送方的端口号。<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115022815.png"></p>
+<p>随后头部的SYN会被设置为1表示连接。到此TCP头部创建好了，接下来TCP模块会将信息传递给IP模块。IP模块负责执行网络包的收发操作，网络包经IP模块通过网络到达服务器，服务器的IP模块将接收到的数据传递给TCP模块，服务器的TCP模块根据TCP头部信息找到端口号对应的套接字。接下来服务器的TCP模块工作流程和上述客户端工作流程相同。网络包到达客户端后会通过IP模块到达TCP模块，并通过头部信息确认连接是否成功，如果SYN为1则代表成功，这时会向套接字中写入服务器的IP地址和端口号等信息。</p>
+<p>我们可以认为连接完毕后有一个管子将客户端和服务器的两个套接字连接起来了，往后通过这根管子收发数据。连接操作完成后控制流被交回到应用程序。</p>
+<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><p>连接完成后进入收发阶段。应用程序首先会调用write将要发送的数据交给协议栈，协议栈收到数据后执行发送操作。</p>
+<p>协议栈并不是已收到数据就进行发送操作的，这样会产生大量的小网络包，导致网络效率下降。通常会累计一定的数据长度才会发送。说到长度，有两个比较重要的参数：</p>
+<p><strong>MTU</strong>：一个网络包的最大长度，以太网中一般为 1500 字节。 </p>
+<p><strong>MSS</strong>：除去头部之后，一个网络包所能容纳的 TCP 数据的最大 长度。</p>
+<p>如果数据长度很大，则会被拆分会若干个块<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115030254.png"></p>
+<h4 id="确认信息是否到达"><a href="#确认信息是否到达" class="headerlink" title="确认信息是否到达"></a>确认信息是否到达</h4><p>通过“序号”和“ACK 号”可以确认接收方是否收到了网络包。</p>
+<p><strong>ACK号：</strong>与头部相对距离。</p>
+<h3 id="断开并删除套接字"><a href="#断开并删除套接字" class="headerlink" title="断开并删除套接字"></a>断开并删除套接字</h3><p>客户端应用程序调用close断开到戒子，结束数据收发操作。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/11/03/ecercism%E6%9C%AC%E5%9C%B0%E6%90%AD%E5%BB%BA%E5%8D%B3%E4%B8%8A%E4%BC%A0/" rel="prev" title="ecercism本地搭建即上传">
+      <i class="fa fa-chevron-left"></i> ecercism本地搭建即上传
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/" rel="next" title="数据结构（考试篇）">
+      数据结构（考试篇） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%8F%E8%AE%AE%E6%A0%88"><span class="nav-number">1.</span> <span class="nav-text">协议栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A5%97%E6%8E%A5%E5%AD%97"><span class="nav-number">2.</span> <span class="nav-text">套接字</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E4%BF%A1%E8%BF%87%E7%A8%8B"><span class="nav-number"></span> <span class="nav-text">通信过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%A5%97%E6%8E%A5%E5%AD%97"><span class="nav-number">1.</span> <span class="nav-text">创建套接字</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">连接服务器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E7%9A%84%E5%85%B7%E4%BD%93%E6%93%8D%E4%BD%9C"><span class="nav-number">2.1.</span> <span class="nav-text">连接的具体操作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B6%E5%8F%91%E6%95%B0%E6%8D%AE"><span class="nav-number">3.</span> <span class="nav-text">收发数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A1%AE%E8%AE%A4%E4%BF%A1%E6%81%AF%E6%98%AF%E5%90%A6%E5%88%B0%E8%BE%BE"><span class="nav-number">3.1.</span> <span class="nav-text">确认信息是否到达</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%AD%E5%BC%80%E5%B9%B6%E5%88%A0%E9%99%A4%E5%A5%97%E6%8E%A5%E5%AD%97"><span class="nav-number">4.</span> <span class="nav-text">断开并删除套接字</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:06</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>

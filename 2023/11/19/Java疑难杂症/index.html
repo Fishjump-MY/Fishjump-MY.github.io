@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="跟着GitHub上的 27天成为java大神 项目学习Java。 损失精度123456面试题：		short s&#x3D;1, s &#x3D; s+1;         short s&#x3D;1, s+&#x3D;1;		上面两个代码有没有问题，如果有，那里有问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java疑难杂症">
+<meta property="og:url" content="http://example.com/2023/11/19/Java%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="跟着GitHub上的 27天成为java大神 项目学习Java。 损失精度123456面试题：		short s&#x3D;1, s &#x3D; s+1;         short s&#x3D;1, s+&#x3D;1;		上面两个代码有没有问题，如果有，那里有问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-11-19T13:48:04.000Z">
+<meta property="article:modified_time" content="2023-11-19T13:48:04.137Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="language">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2023/11/19/Java%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java疑难杂症 | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/19/Java%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java疑难杂症
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-11-19 21:48:04" itemprop="dateCreated datePublished" datetime="2023-11-19T21:48:04+08:00">2023-11-19</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>跟着GitHub上的 27天成为java大神 项目学习Java。</p>
+<h3 id="损失精度"><a href="#损失精度" class="headerlink" title="损失精度"></a>损失精度</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">面试题：</span><br><span class="line">		<span class="type">short</span> s=<span class="number">1</span>, s = s+<span class="number">1</span>; </span><br><span class="line"></span><br><span class="line">        <span class="type">short</span> s=<span class="number">1</span>, s+=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">		上面两个代码有没有问题，如果有，那里有问题</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<p>第一个是存在问题的，java默认类型是int， <code>s = s+1</code>里的1就是int类型的，所以等号右边的s+1会被转化成int类型，而一个int类型的值要赋值给short类型的变量，就会报错。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">      s += <span class="number">1</span>; </span><br><span class="line"><span class="comment">//这个是没有问题的。</span></span><br><span class="line"><span class="comment">//因为这个式子等价于：</span></span><br><span class="line"><span class="comment">// s = (s的数据类型)(s + 1);</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="逻辑右移与算数右移"><a href="#逻辑右移与算数右移" class="headerlink" title="逻辑右移与算数右移"></a>逻辑右移与算数右移</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;    <span class="comment">//算数右移，最高位补符号位</span></span><br><span class="line">&gt;&gt;&gt;   <span class="comment">//逻辑右移，最后高位补零</span></span><br><span class="line">此处的-<span class="number">1</span>为<span class="type">int</span>类型，<span class="number">32</span>位    </span><br><span class="line">-<span class="number">1</span>&gt;&gt;<span class="number">1</span> =<span class="number">1111</span> <span class="number">1111</span> = -<span class="number">1</span></span><br><span class="line">-<span class="number">1</span>&gt;&gt;&gt;<span class="number">1</span>=<span class="number">0111</span> <span class="number">1111</span> = <span class="number">2147483647</span> max</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-<span class="number">1</span> 原码：<span class="number">1000 0001</span></span><br><span class="line">   反码：<span class="number">1111 1110</span></span><br><span class="line">   补码：<span class="number">1111 1111</span>     </span><br></pre></td></tr></table></figure>
+
+<h3 id="打印数组名"><a href="#打印数组名" class="headerlink" title="打印数组名"></a>打印数组名</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">		<span class="type">int</span>[] arr = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">3</span>];</span><br><span class="line">		</span><br><span class="line">		System.out.println(arr);      <span class="comment">//[I@2f92e0f4</span></span><br><span class="line">		</span><br><span class="line">		System.out.println(arr[<span class="number">0</span>]);   <span class="comment">//0</span></span><br><span class="line">		System.out.println(arr[<span class="number">1</span>]);   <span class="comment">//0</span></span><br><span class="line">		System.out.println(arr[<span class="number">2</span>]);   <span class="comment">//0</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>未初始化的数组被编译器初始化为0，打印arr出现字符串**[I@2f92e0f4**其中 [ 代表该数据为数组，I 代表数据类型是int，后面的是地址。</p>
+<p>特殊的，如果打印的是一个char数组命，则会直接打印出数组内容</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">test01</span> &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">		</span><br><span class="line">		<span class="type">char</span>[] arr=<span class="keyword">new</span> <span class="title class_">char</span>[]&#123;<span class="string">&#x27;a&#x27;</span>,<span class="string">&#x27;b&#x27;</span>,<span class="string">&#x27;c&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line">		System.out.println(arr);          <span class="comment">//abc</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是因为方法的重载，public void println(char[] x) 是直接打印出内容，其余几个类型是打印地址。</p>
+<h3 id="java中只有值传递"><a href="#java中只有值传递" class="headerlink" title="java中只有值传递"></a>java中只有值传递</h3><p>如果想通过方法修改数组可以传递地址，也就是数组名。</p>
+<h3 id="this的本质"><a href="#this的本质" class="headerlink" title="this的本质"></a>this的本质</h3><p>this的本质：代表方法<strong>调用者</strong>的<strong>地址值</strong></p>
+<h3 id="float与long"><a href="#float与long" class="headerlink" title="float与long"></a>float与long</h3><p>long类型的数据后面要加上L或l，float类ing的数据后面要加上f或F，因为整数类型默认是int，浮点类型默认是double。</p>
+<h3 id="Java中的内存分配"><a href="#Java中的内存分配" class="headerlink" title="Java中的内存分配"></a>Java中的内存分配</h3><p>程序在运行时需要在内存分配空间为了提高效率，对空间进行了划分。</p>
+<ul>
+<li>栈 存储局部变量</li>
+<li>堆  存储new出来的东西</li>
+<li>方法区</li>
+<li>本地方法区</li>
+<li>寄存器</li>
+</ul>
+<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>Java中的静态关键字，类中的<strong>变量</strong>&#x2F;<strong>方法</strong>被static修饰，则可以被所有对象共享。并且被static修饰的成员可以直接通过类名进行调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Student</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">show</span><span class="params">()</span>&#123;</span><br><span class="line">        system.out.println(<span class="string">&quot;hahahah&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Demo</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>&#123;</span><br><span class="line">        Students s=<span class="keyword">new</span> <span class="title class_">Students</span>();</span><br><span class="line">        s.show();</span><br><span class="line">        <span class="comment">//直接通过类名调用</span></span><br><span class="line">        Student.show();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在静态方法中没有this关键字，因为静态是随着类的加载而加载的，优先于对象进入内存，而this是随着对象进入内存的，先进内存的不能访问后进内存的，而后进入内存的可以访问先进入内存的。</p>
+<p><strong>静态只能访问静态</strong>，静态的成员方法只能访问静态成员变量和静态的成员方法，非静态的成员方法则可以访问所有。</p>
+<h3 id="变量的就近原则"><a href="#变量的就近原则" class="headerlink" title="变量的就近原则"></a>变量的就近原则</h3><p>使用变量的时候会优先找局部范围，如果想直接使用成员变量可以使用this关键字。及承建的成员变量也符合这个规则，如果想使用父类的成员变量可以使用super关键字。</p>
+<h3 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h3><p>子类会默认调用父类的无参构造方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ExtendDemo</span>&#123;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">666</span>;</span><br><span class="line">    Zi z=<span class="keyword">new</span> <span class="title class_">Zi</span>(<span class="number">666</span>);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Fu</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Fu</span><span class="params">()</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;father&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Fu</span><span class="params">(<span class="type">int</span> a)</span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Zi</span> <span class="keyword">extends</span> <span class="title class_">Fu</span>&#123;</span><br><span class="line">   <span class="keyword">public</span> <span class="title function_">Zi</span><span class="params">(<span class="type">int</span> a)</span>&#123;</span><br><span class="line">     System.out.println(a);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码的输出是什么？是666吗，不，是father 666，这是为什么呢？？？？因为在调用子类的构造方法输出666之前先调用了父类的无参构造方法，要想只输出666有两种方法，<strong>第一种</strong>是清空父类的所有构造方法，如下</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="symbol">Fu</span>&#123;</span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样父类会有一个默认的Fu{},没有影响，特别注意的是就算Fu类定义成下面这个样子也是不行的，因为编译器检测到存在构造方法，就不会自动添加一个无参构造方法，这样子类在调用父类的构造方法时就会出错。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Fu</span>&#123;</span><br><span class="line">   <span class="keyword">public</span> <span class="title function_">Fu</span><span class="params">(<span class="type">int</span> a)</span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二种是使用super关键字</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Fu</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Fu</span><span class="params">()</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;father&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Fu</span><span class="params">(<span class="type">int</span> a)</span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Zi</span> <span class="keyword">extends</span> <span class="title class_">Fu</span>&#123;</span><br><span class="line">   <span class="keyword">public</span> <span class="title function_">Zi</span><span class="params">(<span class="type">int</span> a)</span>&#123;</span><br><span class="line">     <span class="built_in">super</span>(a);</span><br><span class="line">     System.out.println(a);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>super(…)关键字可以访问父类的带参构造方法，this(…)访问本类的构造方法。</p>
+<h3 id="方法重载与方法重写"><a href="#方法重载与方法重写" class="headerlink" title="方法重载与方法重写"></a>方法重载与方法重写</h3><p><strong>方法重写 override</strong> 发生在子类与父类之间，当子类与父类方法声明相同时就发生了方法重写，返回值类型、参数列表不可改变。</p>
+<p>**方法重载 overload ** 发生在同一个类中，当方法名相同但是参数列表不相同时就发生了重载，重载可以使用不同的返回值类型。</p>
+<h3 id="多态"><a href="#多态" class="headerlink" title="多态"></a>多态</h3><p>多态可以理解为一个事物的多种形态，比如水，有固体水、液体水、气体水，可以定义一个水类，固液气采用继承的方式来创建新的类，这样既有了水的共性，又有各自的特性。我上面的表达不就是继承吗？哈，这样说似乎也没什么问题，多态的三个必要条件就是：继承、方法重写、<strong>父类指向子类对象。</strong>继承是多态的前提。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//父类指向子类对象</span></span><br><span class="line">Father fa= <span class="keyword">new</span> <span class="title class_">Son</span>();</span><br></pre></td></tr></table></figure>
+
+<p>对于多态<strong>成员变量</strong>：编译、运行看左边</p>
+<p>看左边指的就是左边的 fa</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//父类</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Father</span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="type">int</span> age=<span class="number">44</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//子类</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Son</span> <span class="keyword">extends</span> <span class="title class_">Father</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age=<span class="number">22</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> Demo&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>&#123;</span><br><span class="line">        <span class="comment">//父类类型 对象 = new 子类类型 ()</span></span><br><span class="line">        Father fa=<span class="keyword">new</span> <span class="title class_">Son</span>();</span><br><span class="line">        System.out.println(fa.age); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果,也就是左边的Father类中的age</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">44</span><br></pre></td></tr></table></figure>
+
+<p>对于多态<strong>成员方法</strong>：编译看左边，运行看右边。</p>
+<p>这里的编译，也就是在运行前，我们写出来，编译器就会检测，如果有错误就不能运行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//父类</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Father</span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">eat</span><span class="params">()</span> &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;爸爸吃饭&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//子类</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Son</span> <span class="keyword">extends</span> <span class="title class_">Father</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">eat</span><span class="params">()</span> &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;儿子吃饭&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">play</span><span class="params">()</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;儿子玩游戏&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> Demo&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>&#123;</span><br><span class="line">        <span class="comment">//父类类型 对象 = new 子类类型 ()</span></span><br><span class="line">        Father fa=<span class="keyword">new</span> <span class="title class_">Son</span>();</span><br><span class="line">        fa.eat();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//下面一句会报错 </span></span><br><span class="line">        <span class="comment">//The method paly() is undefined for the type Father Java(67108964)</span></span><br><span class="line">        fa.paly();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>虽然实际运行时使用的是子类的方法，但是在编译阶段，看的左边的父类，父类中没有这个方法，所以直接编译不通过。父类无法调用子类独有的方法，如何解决这个问题？有两种方案，其一是在父类中增加一个空的play方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//父类</span></span><br><span class="line"> <span class="keyword">class</span> <span class="title class_">Father</span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">eat</span><span class="params">()</span> &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;爸爸吃饭&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">play</span><span class="params">()</span>&#123;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其二是<strong>引用类型转换</strong></p>
+<h4 id="引用类型转换"><a href="#引用类型转换" class="headerlink" title="引用类型转换"></a>引用类型转换</h4><h5 id="向上转型-自动转换"><a href="#向上转型-自动转换" class="headerlink" title="向上转型(自动转换)"></a>向上转型(自动转换)</h5><p>子类向父类转型，可以理解为儿子变为父亲。父类引用指向一个子类对象，就是向上转型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Fteher fa=<span class="keyword">new</span> <span class="title class_">Son</span>();</span><br></pre></td></tr></table></figure>
+
+<p>父类有很多子类，而子类却只有一个父类，所以向上转型是自动的.</p>
+<h5 id="向下转型"><a href="#向下转型" class="headerlink" title="向下转型"></a>向下转型</h5><p>父类向子类转型，需要强制转换，也就是指定转换类型。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Father fa=<span class="keyword">new</span> <span class="title class_">Son</span>();</span><br><span class="line"><span class="comment">//向下转型</span></span><br><span class="line"><span class="comment">//子类类型 子类变量名 =(子类类型) 父类变量名</span></span><br><span class="line">Son fa2=(Son) fa;</span><br><span class="line">fa2.play();</span><br></pre></td></tr></table></figure>
+
+<p>在完成向下转型后，fa2的变量是子类的，方法是子类与父类的和。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//父类</span></span><br><span class="line"> <span class="keyword">class</span> <span class="title class_">Father</span>&#123;</span><br><span class="line">    <span class="type">int</span> age=<span class="number">44</span>;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">eat</span><span class="params">()</span> &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;爸爸吃饭&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">fish</span><span class="params">()</span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;爸爸钓鱼&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//子类</span></span><br><span class="line"> <span class="keyword">class</span> <span class="title class_">Son</span> <span class="keyword">extends</span> <span class="title class_">Father</span>&#123;</span><br><span class="line">    <span class="type">int</span> age=<span class="number">22</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">eat</span><span class="params">()</span> &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;儿子吃饭&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">play</span><span class="params">()</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;儿子玩游戏&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span>  <span class="title class_">Demo</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>&#123;</span><br><span class="line">        <span class="comment">//父类类型 对象 = new 子类类型 ()</span></span><br><span class="line">        Father fa=<span class="keyword">new</span> <span class="title class_">Son</span>();</span><br><span class="line">        fa.eat();</span><br><span class="line">        <span class="comment">//下面一句会报错</span></span><br><span class="line">        Son fa1=(Son) fa;</span><br><span class="line">        System.out.println(fa1.age);</span><br><span class="line">        fa1.fish();</span><br><span class="line">        fa1.play();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">爸爸吃饭</span><br><span class="line">22</span><br><span class="line">爸爸钓鱼</span><br><span class="line">儿子玩游戏</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/language/" rel="tag"># language</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/" rel="prev" title="数据结构（考试篇）">
+      <i class="fa fa-chevron-left"></i> 数据结构（考试篇）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E7%B2%BE%E5%BA%A6"><span class="nav-number">1.</span> <span class="nav-text">损失精度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E5%8F%B3%E7%A7%BB%E4%B8%8E%E7%AE%97%E6%95%B0%E5%8F%B3%E7%A7%BB"><span class="nav-number">2.</span> <span class="nav-text">逻辑右移与算数右移</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%8D%B0%E6%95%B0%E7%BB%84%E5%90%8D"><span class="nav-number">3.</span> <span class="nav-text">打印数组名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java%E4%B8%AD%E5%8F%AA%E6%9C%89%E5%80%BC%E4%BC%A0%E9%80%92"><span class="nav-number">4.</span> <span class="nav-text">java中只有值传递</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#this%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="nav-number">5.</span> <span class="nav-text">this的本质</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#float%E4%B8%8Elong"><span class="nav-number">6.</span> <span class="nav-text">float与long</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="nav-number">7.</span> <span class="nav-text">Java中的内存分配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#static"><span class="nav-number">8.</span> <span class="nav-text">static</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E7%9A%84%E5%B0%B1%E8%BF%91%E5%8E%9F%E5%88%99"><span class="nav-number">9.</span> <span class="nav-text">变量的就近原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%A7%E6%89%BF"><span class="nav-number">10.</span> <span class="nav-text">继承</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E9%87%8D%E8%BD%BD%E4%B8%8E%E6%96%B9%E6%B3%95%E9%87%8D%E5%86%99"><span class="nav-number">11.</span> <span class="nav-text">方法重载与方法重写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E6%80%81"><span class="nav-number">12.</span> <span class="nav-text">多态</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2"><span class="nav-number">12.1.</span> <span class="nav-text">引用类型转换</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%90%91%E4%B8%8A%E8%BD%AC%E5%9E%8B-%E8%87%AA%E5%8A%A8%E8%BD%AC%E6%8D%A2"><span class="nav-number">12.1.1.</span> <span class="nav-text">向上转型(自动转换)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%90%91%E4%B8%8B%E8%BD%AC%E5%9E%8B"><span class="nav-number">12.1.2.</span> <span class="nav-text">向下转型</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:06</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
