@@ -6,6 +6,85 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>AES算法</title>
+    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
+<span id="more"></span>
+
+<p>下面以明文和密钥都是128位来举例。</p>
+<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
+<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
+<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
+<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
+<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
+<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
+<p>比如初始矩阵为</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
+<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
+<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
+<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
+<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
+<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
+<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
+<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
+<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
+<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
+<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
+<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
+<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
+<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
+<p>字节代换：查S盒进行代换</p>
+<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
+<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
+<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
+<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2023柏鹭杯rev1-wp</title>
+    <url>/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/</url>
+    <content><![CDATA[<p>可以看到要求的输入长度是64个字符，前面是简单的验证输入的字符是否合规，红框圈起来的函数是主加密函数，下面可以不用分析了。</p>
+<span id="more"></span>
+
+<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011202957.png"></p>
+<p>动态调试F7步入函数。</p>
+<p>加密部分可以划分为三块，每一块都是用AVX2汇编实现的，类似于进行了内联汇编。这是第一部分，将我们的输入与ebp-40处开始的32个字节进行异或操作并保存到ymm0处。<img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203337.png"></p>
+<p>第二部分是使用vphufb根据ebp-60处的32字节对ymm0处存放的数据进行重排。</p>
+<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203404.png"></p>
+<p>c语言代码表示vpshufb ymm0, ymm0 , index</p>
+<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">for (int i <span class="operator">=</span> <span class="number">0</span><span class="comment">; i &lt; 32; ++i)</span></span><br><span class="line">   &#123;</span><br><span class="line">       ymm0[i] <span class="operator">=</span> ymm0[index[i]]<span class="comment">;</span></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后是比较部分，ebp-20处存放的是比较数据。</p>
+<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203428.png"></p>
+<p>那么逆向过程就是：</p>
+<ol>
+<li>提取比较数据</li>
+<li>重排</li>
+<li>异或</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//加密过程</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> xordata[<span class="number">32</span>] = &#123;      <span class="comment">//异或数据，与input进行异或</span></span><br><span class="line">    <span class="number">0xCD</span>, <span class="number">0xEB</span>, <span class="number">0x5E</span>, <span class="number">0x76</span>, <span class="number">0x0F</span>, <span class="number">0x22</span>, <span class="number">0xAF</span>, <span class="number">0x31</span>, <span class="number">0x82</span>, <span class="number">0x92</span>, <span class="number">0x3C</span>, <span class="number">0xEF</span>, <span class="number">0xB8</span>, <span class="number">0xC1</span>, <span class="number">0x76</span>, <span class="number">0x06</span>, </span><br><span class="line">    <span class="number">0x18</span>, <span class="number">0x2F</span>, <span class="number">0xB5</span>, <span class="number">0x7D</span>, <span class="number">0x7F</span>, <span class="number">0x0A</span>, <span class="number">0xEA</span>, <span class="number">0x85</span>, <span class="number">0x92</span>, <span class="number">0x00</span>, <span class="number">0x89</span>, <span class="number">0xA3</span>, <span class="number">0x2C</span>, <span class="number">0xE2</span>, <span class="number">0xE7</span>, <span class="number">0x32</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> changedata[<span class="number">32</span>] = &#123;     <span class="comment">//重排表</span></span><br><span class="line">    <span class="number">0x0A</span>, <span class="number">0x07</span>, <span class="number">0x06</span>, <span class="number">0x0E</span>, <span class="number">0x02</span>, <span class="number">0x0B</span>, <span class="number">0x03</span>, <span class="number">0x0D</span>, <span class="number">0x01</span>, <span class="number">0x09</span>, <span class="number">0x00</span>, <span class="number">0x05</span>, <span class="number">0x04</span>, <span class="number">0x0F</span>, <span class="number">0x08</span>, <span class="number">0x0C</span>, </span><br><span class="line">    <span class="number">0x1B</span>, <span class="number">0x18</span>, <span class="number">0x17</span>, <span class="number">0x1F</span>, <span class="number">0x14</span>, <span class="number">0x1E</span>, <span class="number">0x12</span>, <span class="number">0x13</span>, <span class="number">0x15</span>, <span class="number">0x1D</span>, <span class="number">0x16</span>, <span class="number">0x1C</span>, <span class="number">0x11</span>, <span class="number">0x10</span>, <span class="number">0x19</span>, <span class="number">0x1A</span>&#125;; </span><br><span class="line">    </span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> cmpdata[<span class="number">32</span>] = &#123;     <span class="comment">//比较数据</span></span><br><span class="line">    <span class="number">0x5F</span>, <span class="number">0x91</span>, <span class="number">0x99</span>, <span class="number">0xE8</span>, <span class="number">0x4E</span>, <span class="number">0xD0</span>, <span class="number">0xB0</span>, <span class="number">0x92</span>, <span class="number">0xB1</span>, <span class="number">0x3C</span>, <span class="number">0x4F</span>, <span class="number">0xF4</span>, <span class="number">0x17</span>, <span class="number">0x76</span>, <span class="number">0xDA</span>, <span class="number">0x12</span>, </span><br><span class="line">    <span class="number">0x2A</span>, <span class="number">0x35</span>, <span class="number">0x01</span>, <span class="number">0x15</span>, <span class="number">0xF9</span>, <span class="number">0x97</span>, <span class="number">0x5E</span>, <span class="number">0x19</span>, <span class="number">0x9D</span>, <span class="number">0xC2</span>, <span class="number">0x15</span>, <span class="number">0x99</span>, <span class="number">0x70</span>, <span class="number">0x7D</span>, <span class="number">0x9F</span>, <span class="number">0xCC</span>&#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> flag[<span class="number">32</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">32</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        flag[changedata[<span class="number">31</span>-i]]=cmpdata[<span class="number">31</span>-i];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">32</span>;j++)</span><br><span class="line">    &#123;</span><br><span class="line">        flag[j]=flag[j]^xordata[j];</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%X&quot;</span>,flag[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//825A10C618D636A058AE633FAA539E70655FEB648697FF84A79F4589B5207027</span></span><br><span class="line"><span class="comment">//flag&#123;ISEC-a49d6b847bdba62c5bfa0a43b69c8575&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145355.png"></p>
+<p>逆向过程没啥障碍，写脚本的时候<code>flag[changedata[31-i]]=cmpdata[31-i];</code>31写成了32，造成了越界，但是非常的不明显<img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145647.png"></p>
+<p>离谱的是vscode有时候能跑起来有时候跑不起来，这里记录一下，以后注意这个问题，可能需要安装一个检测这种小错误的插件。</p>
+]]></content>
+      <tags>
+        <tag>wp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Android学习篇（一）</title>
     <url>/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<h3 id="apk"><a href="#apk" class="headerlink" title="apk"></a>apk</h3><p>APK 的全称是 Android Package，它扩展名为 .apk。APK 是 Android 应用程序的包文件格式。它是 Android 操作系统上安装应用程序的文件类型。APK 实际上是一个<strong>压缩包</strong>，其中包含了应用程序的所有文件，包括代码、资源、图像、音频和其他数据。APK 文件是将应用程序打包并分发到 Android 设备上的主要方式。在电脑上只要将.apk后缀改为7z就可以用压缩工具打开了。</p>
@@ -148,85 +227,6 @@
 ]]></content>
       <tags>
         <tag>Android逆向</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>2023柏鹭杯rev1-wp</title>
-    <url>/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/</url>
-    <content><![CDATA[<p>可以看到要求的输入长度是64个字符，前面是简单的验证输入的字符是否合规，红框圈起来的函数是主加密函数，下面可以不用分析了。</p>
-<span id="more"></span>
-
-<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011202957.png"></p>
-<p>动态调试F7步入函数。</p>
-<p>加密部分可以划分为三块，每一块都是用AVX2汇编实现的，类似于进行了内联汇编。这是第一部分，将我们的输入与ebp-40处开始的32个字节进行异或操作并保存到ymm0处。<img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203337.png"></p>
-<p>第二部分是使用vphufb根据ebp-60处的32字节对ymm0处存放的数据进行重排。</p>
-<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203404.png"></p>
-<p>c语言代码表示vpshufb ymm0, ymm0 , index</p>
-<figure class="highlight abnf"><table><tr><td class="code"><pre><span class="line">for (int i <span class="operator">=</span> <span class="number">0</span><span class="comment">; i &lt; 32; ++i)</span></span><br><span class="line">   &#123;</span><br><span class="line">       ymm0[i] <span class="operator">=</span> ymm0[index[i]]<span class="comment">;</span></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>最后是比较部分，ebp-20处存放的是比较数据。</p>
-<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231011203428.png"></p>
-<p>那么逆向过程就是：</p>
-<ol>
-<li>提取比较数据</li>
-<li>重排</li>
-<li>异或</li>
-</ol>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//加密过程</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> xordata[<span class="number">32</span>] = &#123;      <span class="comment">//异或数据，与input进行异或</span></span><br><span class="line">    <span class="number">0xCD</span>, <span class="number">0xEB</span>, <span class="number">0x5E</span>, <span class="number">0x76</span>, <span class="number">0x0F</span>, <span class="number">0x22</span>, <span class="number">0xAF</span>, <span class="number">0x31</span>, <span class="number">0x82</span>, <span class="number">0x92</span>, <span class="number">0x3C</span>, <span class="number">0xEF</span>, <span class="number">0xB8</span>, <span class="number">0xC1</span>, <span class="number">0x76</span>, <span class="number">0x06</span>, </span><br><span class="line">    <span class="number">0x18</span>, <span class="number">0x2F</span>, <span class="number">0xB5</span>, <span class="number">0x7D</span>, <span class="number">0x7F</span>, <span class="number">0x0A</span>, <span class="number">0xEA</span>, <span class="number">0x85</span>, <span class="number">0x92</span>, <span class="number">0x00</span>, <span class="number">0x89</span>, <span class="number">0xA3</span>, <span class="number">0x2C</span>, <span class="number">0xE2</span>, <span class="number">0xE7</span>, <span class="number">0x32</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> changedata[<span class="number">32</span>] = &#123;     <span class="comment">//重排表</span></span><br><span class="line">    <span class="number">0x0A</span>, <span class="number">0x07</span>, <span class="number">0x06</span>, <span class="number">0x0E</span>, <span class="number">0x02</span>, <span class="number">0x0B</span>, <span class="number">0x03</span>, <span class="number">0x0D</span>, <span class="number">0x01</span>, <span class="number">0x09</span>, <span class="number">0x00</span>, <span class="number">0x05</span>, <span class="number">0x04</span>, <span class="number">0x0F</span>, <span class="number">0x08</span>, <span class="number">0x0C</span>, </span><br><span class="line">    <span class="number">0x1B</span>, <span class="number">0x18</span>, <span class="number">0x17</span>, <span class="number">0x1F</span>, <span class="number">0x14</span>, <span class="number">0x1E</span>, <span class="number">0x12</span>, <span class="number">0x13</span>, <span class="number">0x15</span>, <span class="number">0x1D</span>, <span class="number">0x16</span>, <span class="number">0x1C</span>, <span class="number">0x11</span>, <span class="number">0x10</span>, <span class="number">0x19</span>, <span class="number">0x1A</span>&#125;; </span><br><span class="line">    </span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> cmpdata[<span class="number">32</span>] = &#123;     <span class="comment">//比较数据</span></span><br><span class="line">    <span class="number">0x5F</span>, <span class="number">0x91</span>, <span class="number">0x99</span>, <span class="number">0xE8</span>, <span class="number">0x4E</span>, <span class="number">0xD0</span>, <span class="number">0xB0</span>, <span class="number">0x92</span>, <span class="number">0xB1</span>, <span class="number">0x3C</span>, <span class="number">0x4F</span>, <span class="number">0xF4</span>, <span class="number">0x17</span>, <span class="number">0x76</span>, <span class="number">0xDA</span>, <span class="number">0x12</span>, </span><br><span class="line">    <span class="number">0x2A</span>, <span class="number">0x35</span>, <span class="number">0x01</span>, <span class="number">0x15</span>, <span class="number">0xF9</span>, <span class="number">0x97</span>, <span class="number">0x5E</span>, <span class="number">0x19</span>, <span class="number">0x9D</span>, <span class="number">0xC2</span>, <span class="number">0x15</span>, <span class="number">0x99</span>, <span class="number">0x70</span>, <span class="number">0x7D</span>, <span class="number">0x9F</span>, <span class="number">0xCC</span>&#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> flag[<span class="number">32</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">32</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        flag[changedata[<span class="number">31</span>-i]]=cmpdata[<span class="number">31</span>-i];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">32</span>;j++)</span><br><span class="line">    &#123;</span><br><span class="line">        flag[j]=flag[j]^xordata[j];</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%X&quot;</span>,flag[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//825A10C618D636A058AE633FAA539E70655FEB648697FF84A79F4589B5207027</span></span><br><span class="line"><span class="comment">//flag&#123;ISEC-a49d6b847bdba62c5bfa0a43b69c8575&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145355.png"></p>
-<p>逆向过程没啥障碍，写脚本的时候<code>flag[changedata[31-i]]=cmpdata[31-i];</code>31写成了32，造成了越界，但是非常的不明显<img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145647.png"></p>
-<p>离谱的是vscode有时候能跑起来有时候跑不起来，这里记录一下，以后注意这个问题，可能需要安装一个检测这种小错误的插件。</p>
-]]></content>
-      <tags>
-        <tag>wp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>AES算法</title>
-    <url>/2023/08/18/AES%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h2><p>AES（Advanced Encryption Standard，高级加密标准），不同于RC4这种流加密算法，AES属于<strong>块加密</strong>算法，其分组长度固定为128位，仅支持128位、192位、256位的密钥长度（密钥长度每增加64位，算法的循环次数增加两轮，10、12、14），分别称为AES-128、AES-192、AES-256。AES是一种<strong>对称加密</strong>算法。</p>
-<span id="more"></span>
-
-<p>下面以明文和密钥都是128位来举例。</p>
-<h2 id="存储形式"><a href="#存储形式" class="headerlink" title="存储形式"></a>存储形式</h2><p>16字节的明文以4*4矩阵的形式存储。按照从上至下从左至右的顺序存储。<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803174932.png"></p>
-<h2 id="加密过程"><a href="#加密过程" class="headerlink" title="加密过程"></a>加密过程</h2><p>明文经过<strong>初始变化</strong>然后经过<strong>九轮的循环运算</strong>再经过一轮的<strong>最终轮</strong>运算即可得到密文。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175347.png"></p>
-<p>最终轮相较于九轮循环运算少了列混合的过程，其余三个过程相同。</p>
-<h3 id="初始变换（Intial-round）"><a href="#初始变换（Intial-round）" class="headerlink" title="初始变换（Intial round）"></a>初始变换（Intial round）</h3><p>明文和<strong>子密钥</strong>存储在矩阵按字节进行异或，这一过程称为初始变换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803175921.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180107.png"></p>
-<h3 id="九轮循环运算"><a href="#九轮循环运算" class="headerlink" title="九轮循环运算"></a>九轮循环运算</h3><p>分为四个步骤<strong>字节代换</strong>、<strong>行移位</strong>、<strong>列混合</strong>、<strong>轮密钥加</strong></p>
-<h4 id="字节代换"><a href="#字节代换" class="headerlink" title="字节代换"></a>字节代换</h4><p>简单来讲就是对初始变换后的明文进行查表替换，这个表就是S-box</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180404.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180620.png"></p>
-<p>比如初始矩阵为</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803180742.png"></p>
-<p>第一个元素19，对应S表第一行第九列的元素d4，按照此规律进行全部的替换</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181034.png"></p>
-<p>S-box不是固定不变的，也就是说S-box部分可以被魔改，但是不能随意更改，要符合S-box的设计规范。</p>
-<h4 id="行移位"><a href="#行移位" class="headerlink" title="行移位"></a>行移位</h4><p>矩阵第一行不变，第二行左移一个字节，第三行左移两个字节，第三行左移三个字节</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181615.png"></p>
-<h4 id="列混合"><a href="#列混合" class="headerlink" title="列混合"></a>列混合</h4><p>将输入矩阵<strong>左乘</strong>一个给定的4*4矩阵，但是这里的矩阵相乘的<strong>加</strong>和<strong>乘</strong>的规则不同于我们在线代课上接触的。</p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803181829.png"></p>
-<h5 id="加和乘规则"><a href="#加和乘规则" class="headerlink" title="加和乘规则"></a>加和乘规则</h5><p>简单来讲把<strong>加</strong>替换为了<strong>异或</strong>操作<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200828.png"></p>
-<p>对于<strong>乘法</strong>，我们就将其规则记作下面的 ” · “再mod上m(x)吧！！！因为是在有限域2^8中，所以最终的结果不能存在大于等于八的次数<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803235059.png"></p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205004.png"></p>
-<p>经过列混合得到<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803205352.png"></p>
-<h4 id="轮密钥加"><a href="#轮密钥加" class="headerlink" title="轮密钥加"></a>轮密钥加</h4><p>将得到的矩阵与<strong>子密钥矩阵</strong>进行异或 </p>
-<p><img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803182348.png"></p>
-<h3 id="密钥扩展"><a href="#密钥扩展" class="headerlink" title="密钥扩展"></a>密钥扩展</h3><p>上述的过程所提及的密钥都是子密钥矩阵，子密钥矩阵是初始密钥矩阵通过密钥扩展得到的，密钥矩阵经密钥扩展得到十个子密钥矩阵，运用到十次加密中（九轮循环+最终轮）<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803184432.png"></p>
-<p>前四列是初始的，后面的都是计算得来的，计算时讨论下标是不是4的倍数。</p>
-<p><strong>T函数</strong> ：字循环、字节代换、轮常量异或</p>
-<p>字循环：将一列的四个字节循环左移一个字节如【b0,b1,b2,b3】–&gt;【b1,b2,b3,b0】</p>
-<p>字节代换：查S盒进行代换</p>
-<p>轮常量异或：给定10列常量。将前两步得到的结果与轮常量Rcon[j]进行异或，j表示轮数。轮常量数组中的每一个元素为一个32位的双字，且低24位恒为0.高八位（1字节）按如下规则定义：Rcon[1]&#x3D;1,Rcon[i]&#x3D;2*Rcon[i-1]<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200147.png"></p>
-<p>重复扩展过程得到全部的子密钥矩阵<img src="/2023/08/18/AES%E7%AE%97%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20230803200329.png"></p>
-<h2 id="算法特征"><a href="#算法特征" class="headerlink" title="算法特征"></a>算法特征</h2><p>128位（16字节）一组、S-box、列混合、行移位等过程</p>
-<p>可以进行<strong>魔改</strong>的部分：S-box、列混合、轮密钥加、行移位等过程的顺序可以进行调整。</p>
-]]></content>
-      <tags>
-        <tag>密码学</tag>
       </tags>
   </entry>
   <entry>
@@ -435,6 +435,29 @@
       </tags>
   </entry>
   <entry>
+    <title>GoogleCTF</title>
+    <url>/2023/06/27/GoogleCTF/</url>
+    <content><![CDATA[<h1 id="oldschool"><a href="#oldschool" class="headerlink" title="oldschool"></a>oldschool</h1><p>当时做的时候就很奇怪，为什么单步调试输入相应的用户名和密码就显示success，而直接运行程序提交相同的数据就是错误，更奇怪的是当时写的脚本能更正确解除第一组，而后面的矩阵用z3求逆都出现了问题，当时只是怀疑加了反调试修改了数据，但又不知从何处检查。。。。。。</p>
+<span id="more"></span>
+
+<p>查看交叉引用，发现第一处反调试</p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162148.png"></p>
+<p>如果检查到正在调试该值加上7。</p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162100.png"></p>
+<p>直接查看负责检查调试的那个函数的交叉引用，即可将所有的反调试一网打尽。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162706.png"></p>
+<p>下一处是<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162948.png"></p>
+<p>如果检查到调试，会对选中的这个数组进行异或处理，正常情况下是异或上2，这里是异或上了4。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627163209.png"></p>
+<p>第三处在这里<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162651.png"></p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627164040.png"></p>
+<p>找到这三处反调试，在运算之前下一个断点，ida动态调试，找的if——debug这个参数，可以看到他的值为1，我们直接将其改成0即可，后面的数据就全都是正确的了。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627182900.png"></p>
+<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627181844.png"></p>
+<p>这个脚本和之前的脚本只有两处区别，其一是填充的matx矩阵不同，也就是v18的值，我们只要在v18之后设置断点，然后读出数据即可(v18的数据收到反调试的影响)，其二就是xor_arr这个异或矩阵，这个异或矩阵也是收到了反调试的影响。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">matx = [[<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x10</span>, <span class="number">0x13</span>, <span class="number">0x1B</span>],</span><br><span class="line">        [<span class="number">0x8</span>, <span class="number">0x1F</span>, <span class="number">0x8</span>, <span class="number">0x17</span>, <span class="number">0x1E</span>],</span><br><span class="line">        [<span class="number">0x1D</span>, <span class="number">0x3</span>, <span class="number">0x1C</span>, <span class="number">0xA</span>, <span class="number">0x15</span>],</span><br><span class="line">        [<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x08</span>, <span class="number">0x10</span>, <span class="number">0x1C</span>],</span><br><span class="line">        [<span class="number">0x0B</span>, <span class="number">0x1E</span>, <span class="number">0x07</span>, <span class="number">0x14</span>, <span class="number">0x07</span>],]  <span class="comment">#这里填v18，username加密后的数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">rows = <span class="number">5</span></span><br><span class="line">cols = <span class="number">5</span></span><br><span class="line"></span><br><span class="line">arr = [[z3.BitVec(<span class="string">f&#x27;arr_<span class="subst">&#123;i&#125;</span>_<span class="subst">&#123;j&#125;</span>&#x27;</span>, <span class="number">6</span>) <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows)]</span><br><span class="line">s = Solver() </span><br><span class="line"></span><br><span class="line"><span class="comment"># for i in range(5):</span></span><br><span class="line"><span class="comment">#     for j in range(5):</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &gt;= 0)</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &lt;= 0x7f)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        v28 = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">            v28 = ((arr[i][m]&amp;<span class="number">0xff</span>) * (matx[k][i]&amp;<span class="number">0xff</span>) + (v28&amp;<span class="number">0xff</span>)) &amp; <span class="number">0x1f</span></span><br><span class="line">        <span class="keyword">if</span> k == m:</span><br><span class="line">            s.add(v28 == <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">if</span> k != m:</span><br><span class="line">            s.add(v28 == <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">inv = []</span><br><span class="line"><span class="keyword">if</span> s.check() == sat:</span><br><span class="line">    model = s.model()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows):</span><br><span class="line">        row = [model.evaluate(arr[i][j]).as_long() <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)]</span><br><span class="line">        inv.append(row)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;err&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;v18的逆矩阵为:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第n列循环右移n字节</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(inv)):</span><br><span class="line">    <span class="keyword">if</span> i == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">4</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">3</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">2</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">1</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;调换位置后的逆矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">xor_arr = [[<span class="number">0x1B</span>, <span class="number">0x00</span>, <span class="number">0x0A</span>, <span class="number">0x0D</span>, <span class="number">0x08</span>],</span><br><span class="line">           [<span class="number">0x18</span>, <span class="number">0x0F</span>, <span class="number">0x1C</span>, <span class="number">0x06</span>, <span class="number">0x07</span>],</span><br><span class="line">           [<span class="number">0x12</span>, <span class="number">0x05</span>, <span class="number">0x0C</span>, <span class="number">0x02</span>, <span class="number">0x04</span>],</span><br><span class="line">           [<span class="number">0x1D</span>, <span class="number">0x1F</span>, <span class="number">0x09</span>, <span class="number">0x13</span>, <span class="number">0x01</span>],</span><br><span class="line">           [<span class="number">0x1E</span>, <span class="number">0x11</span>, <span class="number">0x0B</span>, <span class="number">0x16</span>, <span class="number">0x19</span>]]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] ^= xor_arr[k][m]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;异或后的矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">index_arr = [<span class="number">0x00000010</span>, <span class="number">0x0000000E</span>, <span class="number">0x0000000D</span>, <span class="number">0x00000002</span>, <span class="number">0x0000000B</span>, <span class="number">0x00000011</span>, <span class="number">0x00000015</span>, <span class="number">0x0000001E</span>, <span class="number">0x00000007</span>, <span class="number">0x00000018</span>, <span class="number">0x00000012</span>, <span class="number">0x0000001C</span>, <span class="number">0x0000001A</span>, <span class="number">0x00000001</span>, <span class="number">0x0000000C</span>, <span class="number">0x00000006</span>, <span class="number">0x0000001F</span>, <span class="number">0x00000019</span>, <span class="number">0x00000000</span>, <span class="number">0x00000017</span>, <span class="number">0x00000014</span>, <span class="number">0x00000016</span>, <span class="number">0x00000008</span>, <span class="number">0x0000001B</span>, <span class="number">0x00000004</span>, <span class="number">0x00000003</span>, <span class="number">0x00000013</span>, <span class="number">0x00000005</span>, <span class="number">0x00000009</span>, <span class="number">0x0000000A</span>, <span class="number">0x0000001D</span>, <span class="number">0x0000000F</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] = index_arr.index(inv[k][m])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;索引:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">chr_arr = [<span class="number">0x32</span>, <span class="number">0x33</span>, <span class="number">0x34</span>, <span class="number">0x35</span>, <span class="number">0x36</span>, <span class="number">0x37</span>, <span class="number">0x38</span>, <span class="number">0x39</span>, <span class="number">0x41</span>, <span class="number">0x42</span>, <span class="number">0x43</span>, <span class="number">0x44</span>, <span class="number">0x45</span>, <span class="number">0x46</span>, <span class="number">0x47</span>, <span class="number">0x48</span>, <span class="number">0x4A</span>, <span class="number">0x4B</span>, <span class="number">0x4C</span>, <span class="number">0x4D</span>, <span class="number">0x4E</span>, <span class="number">0x50</span>, <span class="number">0x51</span>, <span class="number">0x52</span>, <span class="number">0x53</span>, <span class="number">0x54</span>, <span class="number">0x55</span>, <span class="number">0x56</span>, <span class="number">0x57</span>, <span class="number">0x58</span>, <span class="number">0x59</span>, <span class="number">0x5A</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="built_in">chr</span>(chr_arr[inv[i][j]]), end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;-&#x27;</span>, end=<span class="string">&#x27;&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>总结：下次遇到这种题目，如果很相信自己的逻辑和脚本，一直不对的话就去查看一下有无反调试。</p>
+]]></content>
+  </entry>
+  <entry>
     <title>Java疑难杂症</title>
     <url>/2023/11/19/Java%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87/</url>
     <content><![CDATA[<p>跟着GitHub上的 27天成为java大神 项目学习Java。</p>
@@ -523,29 +546,6 @@
         <tag>java</tag>
         <tag>language</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>GoogleCTF</title>
-    <url>/2023/06/27/GoogleCTF/</url>
-    <content><![CDATA[<h1 id="oldschool"><a href="#oldschool" class="headerlink" title="oldschool"></a>oldschool</h1><p>当时做的时候就很奇怪，为什么单步调试输入相应的用户名和密码就显示success，而直接运行程序提交相同的数据就是错误，更奇怪的是当时写的脚本能更正确解除第一组，而后面的矩阵用z3求逆都出现了问题，当时只是怀疑加了反调试修改了数据，但又不知从何处检查。。。。。。</p>
-<span id="more"></span>
-
-<p>查看交叉引用，发现第一处反调试</p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162148.png"></p>
-<p>如果检查到正在调试该值加上7。</p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162100.png"></p>
-<p>直接查看负责检查调试的那个函数的交叉引用，即可将所有的反调试一网打尽。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162706.png"></p>
-<p>下一处是<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162948.png"></p>
-<p>如果检查到调试，会对选中的这个数组进行异或处理，正常情况下是异或上2，这里是异或上了4。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627163209.png"></p>
-<p>第三处在这里<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627162651.png"></p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627164040.png"></p>
-<p>找到这三处反调试，在运算之前下一个断点，ida动态调试，找的if——debug这个参数，可以看到他的值为1，我们直接将其改成0即可，后面的数据就全都是正确的了。<img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627182900.png"></p>
-<p><img src="/2023/06/27/GoogleCTF/QQ%E6%88%AA%E5%9B%BE20230627181844.png"></p>
-<p>这个脚本和之前的脚本只有两处区别，其一是填充的matx矩阵不同，也就是v18的值，我们只要在v18之后设置断点，然后读出数据即可(v18的数据收到反调试的影响)，其二就是xor_arr这个异或矩阵，这个异或矩阵也是收到了反调试的影响。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">matx = [[<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x10</span>, <span class="number">0x13</span>, <span class="number">0x1B</span>],</span><br><span class="line">        [<span class="number">0x8</span>, <span class="number">0x1F</span>, <span class="number">0x8</span>, <span class="number">0x17</span>, <span class="number">0x1E</span>],</span><br><span class="line">        [<span class="number">0x1D</span>, <span class="number">0x3</span>, <span class="number">0x1C</span>, <span class="number">0xA</span>, <span class="number">0x15</span>],</span><br><span class="line">        [<span class="number">0x12</span>, <span class="number">0x1D</span>, <span class="number">0x08</span>, <span class="number">0x10</span>, <span class="number">0x1C</span>],</span><br><span class="line">        [<span class="number">0x0B</span>, <span class="number">0x1E</span>, <span class="number">0x07</span>, <span class="number">0x14</span>, <span class="number">0x07</span>],]  <span class="comment">#这里填v18，username加密后的数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">rows = <span class="number">5</span></span><br><span class="line">cols = <span class="number">5</span></span><br><span class="line"></span><br><span class="line">arr = [[z3.BitVec(<span class="string">f&#x27;arr_<span class="subst">&#123;i&#125;</span>_<span class="subst">&#123;j&#125;</span>&#x27;</span>, <span class="number">6</span>) <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows)]</span><br><span class="line">s = Solver() </span><br><span class="line"></span><br><span class="line"><span class="comment"># for i in range(5):</span></span><br><span class="line"><span class="comment">#     for j in range(5):</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &gt;= 0)</span></span><br><span class="line"><span class="comment">#         s.add(arr[i][j] &lt;= 0x7f)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        v28 = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">            v28 = ((arr[i][m]&amp;<span class="number">0xff</span>) * (matx[k][i]&amp;<span class="number">0xff</span>) + (v28&amp;<span class="number">0xff</span>)) &amp; <span class="number">0x1f</span></span><br><span class="line">        <span class="keyword">if</span> k == m:</span><br><span class="line">            s.add(v28 == <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">if</span> k != m:</span><br><span class="line">            s.add(v28 == <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">inv = []</span><br><span class="line"><span class="keyword">if</span> s.check() == sat:</span><br><span class="line">    model = s.model()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(rows):</span><br><span class="line">        row = [model.evaluate(arr[i][j]).as_long() <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(cols)]</span><br><span class="line">        inv.append(row)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;err&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;v18的逆矩阵为:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第n列循环右移n字节</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(inv)):</span><br><span class="line">    <span class="keyword">if</span> i == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">4</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">3</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">2</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>]</span><br><span class="line">    <span class="keyword">elif</span> i == <span class="number">1</span>:</span><br><span class="line">        inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>], inv[i][<span class="number">4</span>] = inv[i][<span class="number">4</span>], inv[i][<span class="number">0</span>], inv[i][<span class="number">1</span>], inv[i][<span class="number">2</span>], inv[i][<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;调换位置后的逆矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">xor_arr = [[<span class="number">0x1B</span>, <span class="number">0x00</span>, <span class="number">0x0A</span>, <span class="number">0x0D</span>, <span class="number">0x08</span>],</span><br><span class="line">           [<span class="number">0x18</span>, <span class="number">0x0F</span>, <span class="number">0x1C</span>, <span class="number">0x06</span>, <span class="number">0x07</span>],</span><br><span class="line">           [<span class="number">0x12</span>, <span class="number">0x05</span>, <span class="number">0x0C</span>, <span class="number">0x02</span>, <span class="number">0x04</span>],</span><br><span class="line">           [<span class="number">0x1D</span>, <span class="number">0x1F</span>, <span class="number">0x09</span>, <span class="number">0x13</span>, <span class="number">0x01</span>],</span><br><span class="line">           [<span class="number">0x1E</span>, <span class="number">0x11</span>, <span class="number">0x0B</span>, <span class="number">0x16</span>, <span class="number">0x19</span>]]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] ^= xor_arr[k][m]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;异或后的矩阵:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">index_arr = [<span class="number">0x00000010</span>, <span class="number">0x0000000E</span>, <span class="number">0x0000000D</span>, <span class="number">0x00000002</span>, <span class="number">0x0000000B</span>, <span class="number">0x00000011</span>, <span class="number">0x00000015</span>, <span class="number">0x0000001E</span>, <span class="number">0x00000007</span>, <span class="number">0x00000018</span>, <span class="number">0x00000012</span>, <span class="number">0x0000001C</span>, <span class="number">0x0000001A</span>, <span class="number">0x00000001</span>, <span class="number">0x0000000C</span>, <span class="number">0x00000006</span>, <span class="number">0x0000001F</span>, <span class="number">0x00000019</span>, <span class="number">0x00000000</span>, <span class="number">0x00000017</span>, <span class="number">0x00000014</span>, <span class="number">0x00000016</span>, <span class="number">0x00000008</span>, <span class="number">0x0000001B</span>, <span class="number">0x00000004</span>, <span class="number">0x00000003</span>, <span class="number">0x00000013</span>, <span class="number">0x00000005</span>, <span class="number">0x00000009</span>, <span class="number">0x0000000A</span>, <span class="number">0x0000001D</span>, <span class="number">0x0000000F</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        inv[k][m] = index_arr.index(inv[k][m])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;索引:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(inv)</span><br><span class="line"></span><br><span class="line">chr_arr = [<span class="number">0x32</span>, <span class="number">0x33</span>, <span class="number">0x34</span>, <span class="number">0x35</span>, <span class="number">0x36</span>, <span class="number">0x37</span>, <span class="number">0x38</span>, <span class="number">0x39</span>, <span class="number">0x41</span>, <span class="number">0x42</span>, <span class="number">0x43</span>, <span class="number">0x44</span>, <span class="number">0x45</span>, <span class="number">0x46</span>, <span class="number">0x47</span>, <span class="number">0x48</span>, <span class="number">0x4A</span>, <span class="number">0x4B</span>, <span class="number">0x4C</span>, <span class="number">0x4D</span>, <span class="number">0x4E</span>, <span class="number">0x50</span>, <span class="number">0x51</span>, <span class="number">0x52</span>, <span class="number">0x53</span>, <span class="number">0x54</span>, <span class="number">0x55</span>, <span class="number">0x56</span>, <span class="number">0x57</span>, <span class="number">0x58</span>, <span class="number">0x59</span>, <span class="number">0x5A</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="built_in">chr</span>(chr_arr[inv[i][j]]), end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;-&#x27;</span>, end=<span class="string">&#x27;&#x27;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>总结：下次遇到这种题目，如果很相信自己的逻辑和脚本，一直不对的话就去查看一下有无反调试。</p>
-]]></content>
   </entry>
   <entry>
     <title>PE文件学习篇</title>
@@ -795,6 +795,35 @@
       </tags>
   </entry>
   <entry>
+    <title>RC4</title>
+    <url>/2023/08/20/RC4/</url>
+    <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>RC4是<strong>对称密码</strong>算法中的<strong>流密码</strong>加密算法，对称及加解密的密钥相同，流密码意思是加密是逐字节进行的与之对应的就是<strong>块加密</strong>。</p>
+<span id="more"></span>
+
+<h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h2><p>RC4生成一种称为密钥流的伪随机流（S表），他与明文通过异或操作混合，以达到加密的目的，解密时与明文进行异或操作。其密钥流由两部分组成，分别是KSA和PRGA。可以简单的理解为RC4由这两部分组成。</p>
+<p><strong>KSA</strong> 部分的代码。密钥的长度一般为5<del>16字节及40</del>128位，通常不超过256位。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    j=(j+S[i]+key[i % keylength]) % <span class="number">256</span>;  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>PRGA</strong> 根据待加密的data进行置换，得到的子密码k与data进行异或即可得到密文</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">i,j,t=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(m=<span class="number">0</span>;j&lt;datalength;m++)</span><br><span class="line">&#123;</span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>合并起来的代码</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Swap</span><span class="params">(<span class="type">int</span>*a,<span class="type">int</span>*b)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    t=*a;</span><br><span class="line">    *a=*b;</span><br><span class="line">    *b=t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> key[]=<span class="string">&quot;fishjump&quot;</span>;</span><br><span class="line">    <span class="type">int</span> keylength=<span class="built_in">strlen</span>(key);</span><br><span class="line">    <span class="type">int</span> S[<span class="number">255</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      j=((j+S[i]+key[i % keylength]) % <span class="number">256</span>);  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">      Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    j=<span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span> data[]=<span class="string">&quot;mzyloveyy&quot;</span>;</span><br><span class="line">    <span class="type">int</span> datalength=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> m=<span class="number">0</span>;m&lt;datalength;m++)</span><br><span class="line">  &#123; </span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    <span class="type">int</span> k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%x\n&quot;</span>,data[m]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>验证一下成果</p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234509.png"></p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234535.png"></p>
+<p>okk。</p>
+<h2 id="特征"><a href="#特征" class="headerlink" title="特征"></a><strong>特征</strong></h2><p>总结一下，如何在茫茫人海中一眼认出RC4？<strong>256位的数组</strong>，<strong>交换函数</strong>，异或，over。</p>
+<p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+        <tag>对称加密</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>angr学习</title>
     <url>/2023/05/28/angr%E5%AD%A6%E4%B9%A0/</url>
     <content><![CDATA[<p>早就听闻了angr，之前看wp也有大佬使用了angr，上一次打开angrctf一头雾水，还要装环境啥的，就先搁置了。现在趁着军训开始angr的学习。</p>
@@ -962,35 +991,6 @@
 <h2 id="14-angr-shared-library"><a href="#14-angr-shared-library" class="headerlink" title="14_angr_shared_library"></a>14_angr_shared_library</h2><h2 id><a href="#" class="headerlink" title></a></h2>]]></content>
       <tags>
         <tag>angr</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>RC4</title>
-    <url>/2023/08/20/RC4/</url>
-    <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>RC4是<strong>对称密码</strong>算法中的<strong>流密码</strong>加密算法，对称及加解密的密钥相同，流密码意思是加密是逐字节进行的与之对应的就是<strong>块加密</strong>。</p>
-<span id="more"></span>
-
-<h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h2><p>RC4生成一种称为密钥流的伪随机流（S表），他与明文通过异或操作混合，以达到加密的目的，解密时与明文进行异或操作。其密钥流由两部分组成，分别是KSA和PRGA。可以简单的理解为RC4由这两部分组成。</p>
-<p><strong>KSA</strong> 部分的代码。密钥的长度一般为5<del>16字节及40</del>128位，通常不超过256位。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    j=(j+S[i]+key[i % keylength]) % <span class="number">256</span>;  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>PRGA</strong> 根据待加密的data进行置换，得到的子密码k与data进行异或即可得到密文</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">i,j,t=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(m=<span class="number">0</span>;j&lt;datalength;m++)</span><br><span class="line">&#123;</span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>合并起来的代码</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Swap</span><span class="params">(<span class="type">int</span>*a,<span class="type">int</span>*b)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    t=*a;</span><br><span class="line">    *a=*b;</span><br><span class="line">    *b=t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> key[]=<span class="string">&quot;fishjump&quot;</span>;</span><br><span class="line">    <span class="type">int</span> keylength=<span class="built_in">strlen</span>(key);</span><br><span class="line">    <span class="type">int</span> S[<span class="number">255</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      j=((j+S[i]+key[i % keylength]) % <span class="number">256</span>);  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">      Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    j=<span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span> data[]=<span class="string">&quot;mzyloveyy&quot;</span>;</span><br><span class="line">    <span class="type">int</span> datalength=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> m=<span class="number">0</span>;m&lt;datalength;m++)</span><br><span class="line">  &#123; </span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    <span class="type">int</span> k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%x\n&quot;</span>,data[m]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>验证一下成果</p>
-<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234509.png"></p>
-<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234535.png"></p>
-<p>okk。</p>
-<h2 id="特征"><a href="#特征" class="headerlink" title="特征"></a><strong>特征</strong></h2><p>总结一下，如何在茫茫人海中一眼认出RC4？<strong>256位的数组</strong>，<strong>交换函数</strong>，异或，over。</p>
-<p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
-]]></content>
-      <tags>
-        <tag>密码学</tag>
-        <tag>对称加密</tag>
       </tags>
   </entry>
   <entry>
@@ -1476,59 +1476,6 @@
       </tags>
   </entry>
   <entry>
-    <title>gcc常用命令</title>
-    <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure>
-
-<p>默认生成a.out的可执行文件，main.c经历了<strong>预处理</strong>、<strong>汇编</strong>、<strong>编译</strong>、<strong>链接</strong>操作</p>
-<span id="more"></span>
-
-<p><strong>2.</strong> 指定输出文件的文件名 <strong>-o</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure>
-
-<p>生成可执行文件main</p>
-<p><strong>3.</strong> 预处理 -E</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -E main.c -o main.i</span><br></pre></td></tr></table></figure>
-
-<p>最简单的打印hello，world都要大几百行代码。预处理的作用是直接将#include&lt;xxx.h&gt;、#include”xxx.h”还有宏进行直接的复制粘贴操作.尖括号&lt;&gt;和双引号”“的区别在于，尖括号包含的头文件预处理器会直接搜索指定目录，双引号包含的头文件预处理器则优先在当前目录下查找。也就是系统的头文件我们一般都使用尖括号&lt;&gt;,自己定义的则使用双引号。gcc有选项可以更改目录，这里不再多说。</p>
-<p><strong>4.</strong> 编译生成汇编代码</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -S main.i</span><br></pre></td></tr></table></figure>
-
-<p>生成名为main.s的文本文件，里面是汇编语言。</p>
-<p><strong>5.</strong> 汇编</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c main.s</span><br></pre></td></tr></table></figure>
-
-<p>汇编器将汇编代码转换成目标文件main.o</p>
-<p><strong>6.</strong> 链接</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.o -o main</span><br></pre></td></tr></table></figure>
-
-<p>链接器将目标文件链接为可执行文件-o为优化等级，-O1、-O2、-O3，级别越大优化效果越好。</p>
-<h3 id="多文件编译方法"><a href="#多文件编译方法" class="headerlink" title="多文件编译方法"></a>多文件编译方法</h3><p>对于add.h、add.c、main.c三个文件</p>
-<p>add.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>add.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>main.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>1.直接源码到可执行文件</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c add.c -o main</span><br></pre></td></tr></table></figure>
-
-<p>生成名为main的可执行文件</p>
-<p><strong>2.分别编译各个源文件，然后进行链接</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c add.c    #生成add.o</span><br><span class="line">gcc -c main.c   #生成main.o</span><br><span class="line">gcc -o add.o main.o -o main     #链接生成可执行文件</span><br></pre></td></tr></table></figure>
-
-<p>两种方法各有优缺点，第一种简便但是需要对所有文件进行重新编译，第二种方法可以只重新编译修改的文件，而不需要浪费时间重新编译整个工程。（详情请看另一篇介绍编译与链接的文章）</p>
-<p>参考文章：<a href="https://blog.csdn.net/yinjiabin/article/details/7731817">linux gcc编译多个源文件的方法_yinjiabin的博客-CSDN博客</a></p>
-]]></content>
-      <tags>
-        <tag>gcc</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ctfshow刷题</title>
     <url>/2023/10/01/ctfshow%E5%88%B7%E9%A2%98/</url>
     <content><![CDATA[<p>每周做点题目</p>
@@ -1623,6 +1570,77 @@
       <tags>
         <tag>language</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>gcc常用命令</title>
+    <url>/2023/08/18/gcc%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p><strong>1.<strong>首先是最常用的，</strong>源文件生成可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure>
+
+<p>默认生成a.out的可执行文件，main.c经历了<strong>预处理</strong>、<strong>汇编</strong>、<strong>编译</strong>、<strong>链接</strong>操作</p>
+<span id="more"></span>
+
+<p><strong>2.</strong> 指定输出文件的文件名 <strong>-o</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成可执行文件main</p>
+<p><strong>3.</strong> 预处理 -E</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -E main.c -o main.i</span><br></pre></td></tr></table></figure>
+
+<p>最简单的打印hello，world都要大几百行代码。预处理的作用是直接将#include&lt;xxx.h&gt;、#include”xxx.h”还有宏进行直接的复制粘贴操作.尖括号&lt;&gt;和双引号”“的区别在于，尖括号包含的头文件预处理器会直接搜索指定目录，双引号包含的头文件预处理器则优先在当前目录下查找。也就是系统的头文件我们一般都使用尖括号&lt;&gt;,自己定义的则使用双引号。gcc有选项可以更改目录，这里不再多说。</p>
+<p><strong>4.</strong> 编译生成汇编代码</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -S main.i</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main.s的文本文件，里面是汇编语言。</p>
+<p><strong>5.</strong> 汇编</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c main.s</span><br></pre></td></tr></table></figure>
+
+<p>汇编器将汇编代码转换成目标文件main.o</p>
+<p><strong>6.</strong> 链接</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.o -o main</span><br></pre></td></tr></table></figure>
+
+<p>链接器将目标文件链接为可执行文件-o为优化等级，-O1、-O2、-O3，级别越大优化效果越好。</p>
+<h3 id="多文件编译方法"><a href="#多文件编译方法" class="headerlink" title="多文件编译方法"></a>多文件编译方法</h3><p>对于add.h、add.c、main.c三个文件</p>
+<p>add.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>add.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;add.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> b=<span class="number">10</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;a+b=%d\n&quot;</span>,addd(a,b));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>1.直接源码到可执行文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc main.c add.c -o main</span><br></pre></td></tr></table></figure>
+
+<p>生成名为main的可执行文件</p>
+<p><strong>2.分别编译各个源文件，然后进行链接</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -c add.c    #生成add.o</span><br><span class="line">gcc -c main.c   #生成main.o</span><br><span class="line">gcc -o add.o main.o -o main     #链接生成可执行文件</span><br></pre></td></tr></table></figure>
+
+<p>两种方法各有优缺点，第一种简便但是需要对所有文件进行重新编译，第二种方法可以只重新编译修改的文件，而不需要浪费时间重新编译整个工程。（详情请看另一篇介绍编译与链接的文章）</p>
+<p>参考文章：<a href="https://blog.csdn.net/yinjiabin/article/details/7731817">linux gcc编译多个源文件的方法_yinjiabin的博客-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>gcc</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2022/12/18/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
   </entry>
   <entry>
     <title>rust入门（一）</title>
@@ -1731,6 +1749,54 @@
       </tags>
   </entry>
   <entry>
+    <title>初识OLLVM</title>
+    <url>/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/</url>
+    <content><![CDATA[<h3 id="OLLVM"><a href="#OLLVM" class="headerlink" title="OLLVM"></a>OLLVM</h3><p>OLLVM是一个基于LLVM的框架的混淆器，主要功能有三：指令替换、混淆控制流、控制流平坦化。一言以蔽之，ollvm可以用来混淆程序，增加逆向难度。</p>
+<span id="more"></span>
+
+<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>那么什么是LLVM呢？LLVM（low level virtual machine）是一个编译器框架，是一系列模块化、可重用的编译器及工具链技术的集合。</p>
+<p><img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20231230213344.png"></p>
+<p>通过这张图，可以很好的理解llvm的作用。</p>
+<p>第一部分：Clang作为前端接收C（各种语言）源文件，生成中间代码IR<img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/QQ%E6%88%AA%E5%9B%BE20231230213931.png"></p>
+<p>第二部分：中间代码IR经pass的优化处理得到新的IR，不同的PASS对应不同的优化</p>
+<p>第三部分：生成机器码</p>
+<h3 id="OLLVM原理"><a href="#OLLVM原理" class="headerlink" title="OLLVM原理"></a>OLLVM原理</h3><p>费这么大篇幅介绍LLVM肯定是有用的，前面讲了OLLVM是基于LLVM，最大的区别在于PASS不同，我的理解是LLVM的pass是用来优化的，而OLLVM的PASS是用来混淆的。</p>
+<h3 id="OLLVM的环境搭建"><a href="#OLLVM的环境搭建" class="headerlink" title="OLLVM的环境搭建"></a>OLLVM的环境搭建</h3><p>涉及到gcc、g++以及各种环境，建议直接在Ubuntu使用docker一步到位</p>
+<p><a href="https://www.bilibili.com/read/cv13148903/">跟着铁头干混淆3 ubuntu下用docker编译ollvm(保证成功) - 哔哩哔哩 (bilibili.com)</a></p>
+<h3 id="OLLVM的使用"><a href="#OLLVM的使用" class="headerlink" title="OLLVM的使用"></a>OLLVM的使用</h3><h4 id="控制流平坦化"><a href="#控制流平坦化" class="headerlink" title="控制流平坦化"></a>控制流平坦化</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -fla : 激活控制流平坦化</li>
+<li>-mllvm -split : 激活基本块分割</li>
+<li>-mllvm -split_num&#x3D;3 : 指定基本块分割的数目</li>
+</ul>
+<p>语法</p>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">clang 选项一 选项二 选项<span class="built_in">N</span> 原码 -o 可执行文件</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">clang -mmlvm -fla test.c -o test</span><br></pre></td></tr></table></figure>
+
+<h4 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -bcf : 激活虚假控制流</li>
+<li>-mllvm -bcf_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1</li>
+<li>-mllvm -bcf_prob&#x3D;40 : 每个基本块被混淆的概率，这里每个基本块被混淆的概率为40%，默认为 30 %</li>
+</ul>
+<p>语法同上</p>
+<h4 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -sub : 激活指令替代</li>
+<li>-mllvm -sub_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1次</li>
+</ul>
+<p>语法同上</p>
+<p>下一篇文章介绍各个混淆实现的效果。</p>
+<p>参考链接：</p>
+<p><a href="https://jev0n.com/2022/07/07/ollvm-0.html">OLLVM混淆学习（0）——环境搭建及混淆初体验 - 思泉 | Jev0n</a></p>
+<p><a href="https://www.cnblogs.com/lqerio/p/16009042.html#Clang">LLVM 简介 （一） - Erio - 博客园 (cnblogs.com)</a></p>
+]]></content>
+      <tags>
+        <tag>OLLVM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>动态链接库（DLL）及其工作原理</title>
     <url>/2023/08/21/%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%EF%BC%88DLL%EF%BC%89%E5%8F%8A%E5%85%B6%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h3 id="动态链接库"><a href="#动态链接库" class="headerlink" title="动态链接库"></a><strong>动态链接库</strong></h3><blockquote>
@@ -1786,78 +1852,6 @@
 ]]></content>
       <tags>
         <tag>DLL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2022/12/18/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>数据结构（考试篇）</title>
-    <url>/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/</url>
-    <content><![CDATA[<h3 id="二叉树的先序遍历、后序遍历、中序遍历"><a href="#二叉树的先序遍历、后序遍历、中序遍历" class="headerlink" title="二叉树的先序遍历、后序遍历、中序遍历"></a>二叉树的先序遍历、后序遍历、中序遍历</h3><p><strong>先序遍历：</strong>根节点—&gt;左节点–&gt;右节点</p>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108092718.png"></p>
-<span id="more"></span>
-
-<p>这个过程是递归的，比如说访问了左节点B之后不是去访问右节点C，而是去访问了以B为根节点的左节点D。顺序有个规律，可以看作是这个小人逆时针跑了一圈：A B D H I E J E C F K G</p>
-<p><strong>后序遍历：</strong>左节点–&gt;右节点–&gt;根节点</p>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108093513.png"></p>
-<p>按照递归<strong>左右根</strong>就能排出来，排序小技巧是如图所示，当成一串葡萄，逆时针剪下最外面的一个单一葡萄。</p>
-<p><strong>中序遍历：</strong>左节点–&gt;根节点–&gt;右节点</p>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108094014.png"></p>
-<p>小技巧是看作竖直方向上的投影，其顺序是：HDIBEJAFKCG</p>
-<p>参考：<a href="https://blog.csdn.net/chinesekobe/article/details/110874773">数据结构——二叉树先序、中序、后序及层次四种遍历（C语言版）_中序遍历-CSDN博客</a></p>
-<h3 id="度、节点计算"><a href="#度、节点计算" class="headerlink" title="度、节点计算"></a><strong>度、节点计算</strong></h3><p><strong>入度</strong>为0则为根节点，其余节点入度为1</p>
-<p><strong>出度</strong>则是子节点的个数，可取0、1、2。</p>
-<p>总入度&#x3D;节点总数-1，总入度&#x3D;总出度</p>
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">记节点出度为0、1、2的节点数分别为n0、n1、n2</span><br><span class="line">则总出度<span class="attribute">N</span>=n1+n2*2</span><br><span class="line">总结点数=n0+n1+n2</span><br><span class="line">根据 总入度=节点总数-1，总入度=总出度</span><br><span class="line">则n0+n1+<span class="attribute">n2-1</span>=n2*2+n1</span><br><span class="line">所以<span class="attribute">n0</span>=n2+1</span><br></pre></td></tr></table></figure>
-
-<p>一棵二叉树有十个度为2的节点，5个度为1的节点，求节点总数。10*2+5&#x3D;n-1     n&#x3D;25+1&#x3D;26   26&#x3D;15&#x3D;11     </p>
-<p>节点总数等于度1+度2+度0，因此求出度为0的节点即可，即度2+1，所以10+1&#x3D;11个。</p>
-<p>参考：<a href="https://blog.csdn.net/qq_41126936/article/details/126539411">【精选】二叉树——度以及节点数的计算_二叉树节点和度的计算_不想做咸鱼的霉霉的博客-CSDN博客</a></p>
-<h3 id="计算时间复杂度"><a href="#计算时间复杂度" class="headerlink" title="计算时间复杂度"></a>计算时间复杂度</h3><ul>
-<li>用常数1取代所有加法常数 O(199)—-&gt;O(1)</li>
-<li>只保留最高阶O(n^2+n)—&gt;O(n^2)</li>
-<li>去除最高阶常数O(2*N^2)—-&gt;O(N^2)</li>
-</ul>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108104447.png"></p>
-<p>O(2*N+10)—-&gt;O(N)</p>
-<figure class="highlight gcode"><table><tr><td class="code"><pre><span class="line">下面程序段的时间复杂度为（）。</span><br><span class="line"></span><br><span class="line">i=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span><span class="comment">(i&lt;=n)</span></span><br><span class="line"></span><br><span class="line">i=i*<span class="number">3</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">(A)</span> O<span class="comment">(n)</span>       <span class="comment">(B)</span> O<span class="comment">(3n)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">(C)</span> O<span class="comment">(log3n)</span>   <span class="comment">(D)</span> O<span class="comment">(n3)</span></span><br></pre></td></tr></table></figure>
-
-<p>正确答案是c，3^log3n&#x3D;n。</p>
-<h3 id="存取结构"><a href="#存取结构" class="headerlink" title="存取结构"></a>存取结构</h3><p>顺序存取和随机存取</p>
-<p><strong>随机存取（Random Access）</strong>，指的是当存储器中的数据被读取或写入时，所需要的时间与该数据所在的物理地址无关，数组采用的就是随机存取，通过下标进行存取，存取arr[1]和存取arr[100]没有时间上的区别</p>
-<p><strong>顺序存取（Sequential access）</strong>是一种按记录的逻辑顺序进行读写操作的存取方法，所需的时间与数据所在的位置有关。</p>
-<h3 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h3><p>顺序、链式、索引、哈希存储，后三个可以归为随机存储。</p>
-<h4 id="顺序存储："><a href="#顺序存储：" class="headerlink" title="顺序存储："></a>顺序存储：</h4><p>相邻的数据存储在物理位置上相邻的存储单元。</p>
-<p>优点：节省存储空间、可以实现随机存取</p>
-<p>缺点：修改不方便、产生磁盘碎片</p>
-<p><strong>随机存储：</strong></p>
-<p>相邻的数据物理位置可以不相邻。</p>
-<p>优点：不会产生磁盘碎片、修改数据方便</p>
-<p>缺点：占用空间大、查找时比顺序存储慢，且只能实现顺序存取</p>
-<h3 id="树和森林"><a href="#树和森林" class="headerlink" title="树和森林"></a>树和森林</h3><p><strong>树</strong>是一种非线性数据结构，树由唯一的根和若干互不相交的子树组成。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095442.png"></p>
-<p><strong>森林</strong>是树的集合。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095612.png"></p>
-<p><strong>树到二叉树</strong>的转化规则是：左孩子右兄弟。每个节点左指针指向第一个孩子，右指针指向他在树中相邻的兄弟。根节点没有兄弟，所以对应的二叉树无右子树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115101837.png"></p>
-<p>森林到二叉树，先将森林里的每棵树转为二叉树，然后再第一棵树转换的二叉树的右子树接上第二棵树转化的二叉树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115102215.png"></p>
-<p>参考：<a href="https://blog.csdn.net/mynaiskey/article/details/124842989">树、森林与二叉树的转换_已知树的结点数怎么求森林的左右子数-CSDN博客</a></p>
-]]></content>
-      <tags>
-        <tag>数据结构</tag>
       </tags>
   </entry>
   <entry>
@@ -1934,6 +1928,60 @@
         <tag>UPX</tag>
         <tag>运行时压缩</tag>
         <tag>壳</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据结构（考试篇）</title>
+    <url>/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/</url>
+    <content><![CDATA[<h3 id="二叉树的先序遍历、后序遍历、中序遍历"><a href="#二叉树的先序遍历、后序遍历、中序遍历" class="headerlink" title="二叉树的先序遍历、后序遍历、中序遍历"></a>二叉树的先序遍历、后序遍历、中序遍历</h3><p><strong>先序遍历：</strong>根节点—&gt;左节点–&gt;右节点</p>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108092718.png"></p>
+<span id="more"></span>
+
+<p>这个过程是递归的，比如说访问了左节点B之后不是去访问右节点C，而是去访问了以B为根节点的左节点D。顺序有个规律，可以看作是这个小人逆时针跑了一圈：A B D H I E J E C F K G</p>
+<p><strong>后序遍历：</strong>左节点–&gt;右节点–&gt;根节点</p>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108093513.png"></p>
+<p>按照递归<strong>左右根</strong>就能排出来，排序小技巧是如图所示，当成一串葡萄，逆时针剪下最外面的一个单一葡萄。</p>
+<p><strong>中序遍历：</strong>左节点–&gt;根节点–&gt;右节点</p>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108094014.png"></p>
+<p>小技巧是看作竖直方向上的投影，其顺序是：HDIBEJAFKCG</p>
+<p>参考：<a href="https://blog.csdn.net/chinesekobe/article/details/110874773">数据结构——二叉树先序、中序、后序及层次四种遍历（C语言版）_中序遍历-CSDN博客</a></p>
+<h3 id="度、节点计算"><a href="#度、节点计算" class="headerlink" title="度、节点计算"></a><strong>度、节点计算</strong></h3><p><strong>入度</strong>为0则为根节点，其余节点入度为1</p>
+<p><strong>出度</strong>则是子节点的个数，可取0、1、2。</p>
+<p>总入度&#x3D;节点总数-1，总入度&#x3D;总出度</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">记节点出度为0、1、2的节点数分别为n0、n1、n2</span><br><span class="line">则总出度<span class="attribute">N</span>=n1+n2*2</span><br><span class="line">总结点数=n0+n1+n2</span><br><span class="line">根据 总入度=节点总数-1，总入度=总出度</span><br><span class="line">则n0+n1+<span class="attribute">n2-1</span>=n2*2+n1</span><br><span class="line">所以<span class="attribute">n0</span>=n2+1</span><br></pre></td></tr></table></figure>
+
+<p>一棵二叉树有十个度为2的节点，5个度为1的节点，求节点总数。10*2+5&#x3D;n-1     n&#x3D;25+1&#x3D;26   26&#x3D;15&#x3D;11     </p>
+<p>节点总数等于度1+度2+度0，因此求出度为0的节点即可，即度2+1，所以10+1&#x3D;11个。</p>
+<p>参考：<a href="https://blog.csdn.net/qq_41126936/article/details/126539411">【精选】二叉树——度以及节点数的计算_二叉树节点和度的计算_不想做咸鱼的霉霉的博客-CSDN博客</a></p>
+<h3 id="计算时间复杂度"><a href="#计算时间复杂度" class="headerlink" title="计算时间复杂度"></a>计算时间复杂度</h3><ul>
+<li>用常数1取代所有加法常数 O(199)—-&gt;O(1)</li>
+<li>只保留最高阶O(n^2+n)—&gt;O(n^2)</li>
+<li>去除最高阶常数O(2*N^2)—-&gt;O(N^2)</li>
+</ul>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108104447.png"></p>
+<p>O(2*N+10)—-&gt;O(N)</p>
+<figure class="highlight gcode"><table><tr><td class="code"><pre><span class="line">下面程序段的时间复杂度为（）。</span><br><span class="line"></span><br><span class="line">i=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span><span class="comment">(i&lt;=n)</span></span><br><span class="line"></span><br><span class="line">i=i*<span class="number">3</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">(A)</span> O<span class="comment">(n)</span>       <span class="comment">(B)</span> O<span class="comment">(3n)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">(C)</span> O<span class="comment">(log3n)</span>   <span class="comment">(D)</span> O<span class="comment">(n3)</span></span><br></pre></td></tr></table></figure>
+
+<p>正确答案是c，3^log3n&#x3D;n。</p>
+<h3 id="存取结构"><a href="#存取结构" class="headerlink" title="存取结构"></a>存取结构</h3><p>顺序存取和随机存取</p>
+<p><strong>随机存取（Random Access）</strong>，指的是当存储器中的数据被读取或写入时，所需要的时间与该数据所在的物理地址无关，数组采用的就是随机存取，通过下标进行存取，存取arr[1]和存取arr[100]没有时间上的区别</p>
+<p><strong>顺序存取（Sequential access）</strong>是一种按记录的逻辑顺序进行读写操作的存取方法，所需的时间与数据所在的位置有关。</p>
+<h3 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h3><p>顺序、链式、索引、哈希存储，后三个可以归为随机存储。</p>
+<h4 id="顺序存储："><a href="#顺序存储：" class="headerlink" title="顺序存储："></a>顺序存储：</h4><p>相邻的数据存储在物理位置上相邻的存储单元。</p>
+<p>优点：节省存储空间、可以实现随机存取</p>
+<p>缺点：修改不方便、产生磁盘碎片</p>
+<p><strong>随机存储：</strong></p>
+<p>相邻的数据物理位置可以不相邻。</p>
+<p>优点：不会产生磁盘碎片、修改数据方便</p>
+<p>缺点：占用空间大、查找时比顺序存储慢，且只能实现顺序存取</p>
+<h3 id="树和森林"><a href="#树和森林" class="headerlink" title="树和森林"></a>树和森林</h3><p><strong>树</strong>是一种非线性数据结构，树由唯一的根和若干互不相交的子树组成。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095442.png"></p>
+<p><strong>森林</strong>是树的集合。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095612.png"></p>
+<p><strong>树到二叉树</strong>的转化规则是：左孩子右兄弟。每个节点左指针指向第一个孩子，右指针指向他在树中相邻的兄弟。根节点没有兄弟，所以对应的二叉树无右子树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115101837.png"></p>
+<p>森林到二叉树，先将森林里的每棵树转为二叉树，然后再第一棵树转换的二叉树的右子树接上第二棵树转化的二叉树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115102215.png"></p>
+<p>参考：<a href="https://blog.csdn.net/mynaiskey/article/details/124842989">树、森林与二叉树的转换_已知树的结点数怎么求森林的左右子数-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>数据结构</tag>
       </tags>
   </entry>
   <entry>
@@ -2386,6 +2434,40 @@
       </tags>
   </entry>
   <entry>
+    <title>计算机网络（一）</title>
+    <url>/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h3 id="协议栈"><a href="#协议栈" class="headerlink" title="协议栈"></a>协议栈</h3><p>指的是操作系统中的<strong>网络控制软件</strong>。</p>
+<h3 id="套接字"><a href="#套接字" class="headerlink" title="套接字"></a>套接字</h3><p>套接字的实体就是<strong>通信控制信息</strong>，在协议栈的内部有一块专门用于存储控制信息的内存空间，具体是什么呢？通信对象的IP、端口号、通信状态等。协议栈是根据套接字中记录的控制信息来工作的。在终端使用netstat命令显示套接字内容<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115020243.png"></p>
+<span id="more"></span>
+
+<p>上图的每一行实际上就相当于一个套接字，拿一个具体的来说</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">TCP</span>    <span class="number">192.168.101.101:53369</span>  <span class="number">39.137.107.210</span>:https   ESTABLISHED     <span class="number">11844</span></span><br></pre></td></tr></table></figure>
+
+<p>PID为11844的程序正在使用IP地址为192.168.101.101的网卡与IP地址为39.137.107.210的对象进行通信，http指代特定端口，53369是本机使用的端口。</p>
+<p>通信操作中使用的<strong>控制信息</strong>分为两类。 </p>
+<p>（1）头部中记录的信息 </p>
+<p>（2）套接字（协议栈中的内存空间）中记录的信息</p>
+<h2 id="通信过程"><a href="#通信过程" class="headerlink" title="通信过程"></a>通信过程</h2><h3 id="创建套接字"><a href="#创建套接字" class="headerlink" title="创建套接字"></a>创建套接字</h3><p>创建套接字时，首先分配一个套接字所需的内存空间，然后向其 中写入初始状态。</p>
+<h3 id="连接服务器"><a href="#连接服务器" class="headerlink" title="连接服务器"></a>连接服务器</h3><p>创建套接字后，应用程序调用connect，随后协议栈将本地的套接字与服务器的套接字进行<strong>连接</strong>。这里的连接指的是通信双方交换控制信息。客户端会将IP地址和端口号等信息告知服务器。</p>
+<h4 id="连接的具体操作"><a href="#连接的具体操作" class="headerlink" title="连接的具体操作"></a>连接的具体操作</h4><figure class="highlight bnf"><table><tr><td class="code"><pre><span class="line">connect（<span class="attribute">&lt; 描述符 &gt;</span>, <span class="attribute">&lt; 服务器 IP 地址和端口号 &gt;</span>, …）</span><br></pre></td></tr></table></figure>
+
+<p>客户端会创建一个包含表示开始数据收发操作的控制信息<strong>头部</strong>，其中最重点的部分是接收方和发送方的端口号。<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115022815.png"></p>
+<p>随后头部的SYN会被设置为1表示连接。到此TCP头部创建好了，接下来TCP模块会将信息传递给IP模块。IP模块负责执行网络包的收发操作，网络包经IP模块通过网络到达服务器，服务器的IP模块将接收到的数据传递给TCP模块，服务器的TCP模块根据TCP头部信息找到端口号对应的套接字。接下来服务器的TCP模块工作流程和上述客户端工作流程相同。网络包到达客户端后会通过IP模块到达TCP模块，并通过头部信息确认连接是否成功，如果SYN为1则代表成功，这时会向套接字中写入服务器的IP地址和端口号等信息。</p>
+<p>我们可以认为连接完毕后有一个管子将客户端和服务器的两个套接字连接起来了，往后通过这根管子收发数据。连接操作完成后控制流被交回到应用程序。</p>
+<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><p>连接完成后进入收发阶段。应用程序首先会调用write将要发送的数据交给协议栈，协议栈收到数据后执行发送操作。</p>
+<p>协议栈并不是已收到数据就进行发送操作的，这样会产生大量的小网络包，导致网络效率下降。通常会累计一定的数据长度才会发送。说到长度，有两个比较重要的参数：</p>
+<p><strong>MTU</strong>：一个网络包的最大长度，以太网中一般为 1500 字节。 </p>
+<p><strong>MSS</strong>：除去头部之后，一个网络包所能容纳的 TCP 数据的最大 长度。</p>
+<p>如果数据长度很大，则会被拆分会若干个块<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115030254.png"></p>
+<h4 id="确认信息是否到达"><a href="#确认信息是否到达" class="headerlink" title="确认信息是否到达"></a>确认信息是否到达</h4><p>通过“序号”和“ACK 号”可以确认接收方是否收到了网络包。</p>
+<p><strong>ACK号：</strong>与头部相对距离。</p>
+<h3 id="断开并删除套接字"><a href="#断开并删除套接字" class="headerlink" title="断开并删除套接字"></a>断开并删除套接字</h3><p>客户端应用程序调用close断开到戒子，结束数据收发操作。</p>
+]]></content>
+      <tags>
+        <tag>计算机网络</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>编写虚拟机</title>
     <url>/2023/05/21/%E7%BC%96%E5%86%99%E8%99%9A%E6%8B%9F%E6%9C%BA/</url>
     <content><![CDATA[<p>注意，接下来要实现的虚拟机不是VMware那种有完整操作的虚拟机，而是JVM这种（解释器），更像一个翻译，可以将汇编语言转成高级语言。我们将用代码模拟计算机的硬件组件。</p>
@@ -2578,87 +2660,5 @@
 <p>将二进制(机器码)翻译成高级语言，我们可以再套一层虚拟机，将我们的c语言转变成这个汇编。通过这次虚拟机的实现过程，对计算机行为有了更进一步的了解。</p>
 <p><a href="https://www.jmeiners.com/lc3-vm/"><a href="https://www.jmeiners.com/lc3-vm/">Write your Own Virtual Machine (jmeiners.com)</a></a></p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>计算机网络（一）</title>
-    <url>/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h3 id="协议栈"><a href="#协议栈" class="headerlink" title="协议栈"></a>协议栈</h3><p>指的是操作系统中的<strong>网络控制软件</strong>。</p>
-<h3 id="套接字"><a href="#套接字" class="headerlink" title="套接字"></a>套接字</h3><p>套接字的实体就是<strong>通信控制信息</strong>，在协议栈的内部有一块专门用于存储控制信息的内存空间，具体是什么呢？通信对象的IP、端口号、通信状态等。协议栈是根据套接字中记录的控制信息来工作的。在终端使用netstat命令显示套接字内容<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115020243.png"></p>
-<span id="more"></span>
-
-<p>上图的每一行实际上就相当于一个套接字，拿一个具体的来说</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">TCP</span>    <span class="number">192.168.101.101:53369</span>  <span class="number">39.137.107.210</span>:https   ESTABLISHED     <span class="number">11844</span></span><br></pre></td></tr></table></figure>
-
-<p>PID为11844的程序正在使用IP地址为192.168.101.101的网卡与IP地址为39.137.107.210的对象进行通信，http指代特定端口，53369是本机使用的端口。</p>
-<p>通信操作中使用的<strong>控制信息</strong>分为两类。 </p>
-<p>（1）头部中记录的信息 </p>
-<p>（2）套接字（协议栈中的内存空间）中记录的信息</p>
-<h2 id="通信过程"><a href="#通信过程" class="headerlink" title="通信过程"></a>通信过程</h2><h3 id="创建套接字"><a href="#创建套接字" class="headerlink" title="创建套接字"></a>创建套接字</h3><p>创建套接字时，首先分配一个套接字所需的内存空间，然后向其 中写入初始状态。</p>
-<h3 id="连接服务器"><a href="#连接服务器" class="headerlink" title="连接服务器"></a>连接服务器</h3><p>创建套接字后，应用程序调用connect，随后协议栈将本地的套接字与服务器的套接字进行<strong>连接</strong>。这里的连接指的是通信双方交换控制信息。客户端会将IP地址和端口号等信息告知服务器。</p>
-<h4 id="连接的具体操作"><a href="#连接的具体操作" class="headerlink" title="连接的具体操作"></a>连接的具体操作</h4><figure class="highlight bnf"><table><tr><td class="code"><pre><span class="line">connect（<span class="attribute">&lt; 描述符 &gt;</span>, <span class="attribute">&lt; 服务器 IP 地址和端口号 &gt;</span>, …）</span><br></pre></td></tr></table></figure>
-
-<p>客户端会创建一个包含表示开始数据收发操作的控制信息<strong>头部</strong>，其中最重点的部分是接收方和发送方的端口号。<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115022815.png"></p>
-<p>随后头部的SYN会被设置为1表示连接。到此TCP头部创建好了，接下来TCP模块会将信息传递给IP模块。IP模块负责执行网络包的收发操作，网络包经IP模块通过网络到达服务器，服务器的IP模块将接收到的数据传递给TCP模块，服务器的TCP模块根据TCP头部信息找到端口号对应的套接字。接下来服务器的TCP模块工作流程和上述客户端工作流程相同。网络包到达客户端后会通过IP模块到达TCP模块，并通过头部信息确认连接是否成功，如果SYN为1则代表成功，这时会向套接字中写入服务器的IP地址和端口号等信息。</p>
-<p>我们可以认为连接完毕后有一个管子将客户端和服务器的两个套接字连接起来了，往后通过这根管子收发数据。连接操作完成后控制流被交回到应用程序。</p>
-<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><p>连接完成后进入收发阶段。应用程序首先会调用write将要发送的数据交给协议栈，协议栈收到数据后执行发送操作。</p>
-<p>协议栈并不是已收到数据就进行发送操作的，这样会产生大量的小网络包，导致网络效率下降。通常会累计一定的数据长度才会发送。说到长度，有两个比较重要的参数：</p>
-<p><strong>MTU</strong>：一个网络包的最大长度，以太网中一般为 1500 字节。 </p>
-<p><strong>MSS</strong>：除去头部之后，一个网络包所能容纳的 TCP 数据的最大 长度。</p>
-<p>如果数据长度很大，则会被拆分会若干个块<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115030254.png"></p>
-<h4 id="确认信息是否到达"><a href="#确认信息是否到达" class="headerlink" title="确认信息是否到达"></a>确认信息是否到达</h4><p>通过“序号”和“ACK 号”可以确认接收方是否收到了网络包。</p>
-<p><strong>ACK号：</strong>与头部相对距离。</p>
-<h3 id="断开并删除套接字"><a href="#断开并删除套接字" class="headerlink" title="断开并删除套接字"></a>断开并删除套接字</h3><p>客户端应用程序调用close断开到戒子，结束数据收发操作。</p>
-]]></content>
-      <tags>
-        <tag>计算机网络</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>初识OLLVM</title>
-    <url>/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/</url>
-    <content><![CDATA[<h3 id="OLLVM"><a href="#OLLVM" class="headerlink" title="OLLVM"></a>OLLVM</h3><p>OLLVM是一个基于LLVM的框架的混淆器，主要功能有三：指令替换、混淆控制流、控制流平坦化。一言以蔽之，ollvm可以用来混淆程序，增加逆向难度。</p>
-<span id="more"></span>
-
-<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>那么什么是LLVM呢？LLVM（low level virtual machine）是一个编译器框架，是一系列模块化、可重用的编译器及工具链技术的集合。</p>
-<p><img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20231230213344.png"></p>
-<p>通过这张图，可以很好的理解llvm的作用。</p>
-<p>第一部分：Clang作为前端接收C（各种语言）源文件，生成中间代码IR<img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/QQ%E6%88%AA%E5%9B%BE20231230213931.png"></p>
-<p>第二部分：中间代码IR经pass的优化处理得到新的IR，不同的PASS对应不同的优化</p>
-<p>第三部分：生成机器码</p>
-<h3 id="OLLVM原理"><a href="#OLLVM原理" class="headerlink" title="OLLVM原理"></a>OLLVM原理</h3><p>费这么大篇幅介绍LLVM肯定是有用的，前面讲了OLLVM是基于LLVM，最大的区别在于PASS不同，我的理解是LLVM的pass是用来优化的，而OLLVM的PASS是用来混淆的。</p>
-<h3 id="OLLVM的环境搭建"><a href="#OLLVM的环境搭建" class="headerlink" title="OLLVM的环境搭建"></a>OLLVM的环境搭建</h3><p>涉及到gcc、g++以及各种环境，建议直接在Ubuntu使用docker一步到位</p>
-<p><a href="https://www.bilibili.com/read/cv13148903/">跟着铁头干混淆3 ubuntu下用docker编译ollvm(保证成功) - 哔哩哔哩 (bilibili.com)</a></p>
-<h3 id="OLLVM的使用"><a href="#OLLVM的使用" class="headerlink" title="OLLVM的使用"></a>OLLVM的使用</h3><h4 id="控制流平坦化"><a href="#控制流平坦化" class="headerlink" title="控制流平坦化"></a>控制流平坦化</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -fla : 激活控制流平坦化</li>
-<li>-mllvm -split : 激活基本块分割</li>
-<li>-mllvm -split_num&#x3D;3 : 指定基本块分割的数目</li>
-</ul>
-<p>语法</p>
-<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">clang 选项一 选项二 选项<span class="built_in">N</span> 原码 -o 可执行文件</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">clang -mmlvm -fla test.c -o test</span><br></pre></td></tr></table></figure>
-
-<h4 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -bcf : 激活虚假控制流</li>
-<li>-mllvm -bcf_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1</li>
-<li>-mllvm -bcf_prob&#x3D;40 : 每个基本块被混淆的概率，这里每个基本块被混淆的概率为40%，默认为 30 %</li>
-</ul>
-<p>语法同上</p>
-<h4 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -sub : 激活指令替代</li>
-<li>-mllvm -sub_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1次</li>
-</ul>
-<p>语法同上</p>
-<p>下一篇文章介绍各个混淆实现的效果。</p>
-<p>参考链接：</p>
-<p><a href="https://jev0n.com/2022/07/07/ollvm-0.html">OLLVM混淆学习（0）——环境搭建及混淆初体验 - 思泉 | Jev0n</a></p>
-<p><a href="https://www.cnblogs.com/lqerio/p/16009042.html#Clang">LLVM 简介 （一） - Erio - 博客园 (cnblogs.com)</a></p>
-]]></content>
-      <tags>
-        <tag>OLLVM</tag>
-      </tags>
   </entry>
 </search>
