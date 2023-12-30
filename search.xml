@@ -467,10 +467,10 @@
 <li>本地方法区</li>
 <li>寄存器</li>
 </ul>
-<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>Java中的静态关键字，类中的<strong>变量</strong>&#x2F;<strong>方法</strong>被static修饰，则可以被所有对象共享。并且被static修饰的成员可以直接通过类名进行调用。</p>
+<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>Java中的静态关键字，类中的<strong>变量</strong>&#x2F;<strong>方法</strong>被static修饰，则可以被所有对象<strong>共享</strong>。并且被static修饰的成员可以直接通过类名进行调用。</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Student</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">show</span><span class="params">()</span>&#123;</span><br><span class="line">        system.out.println(<span class="string">&quot;hahahah&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Demo</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>&#123;</span><br><span class="line">        Students s=<span class="keyword">new</span> <span class="title class_">Students</span>();</span><br><span class="line">        s.show();</span><br><span class="line">        <span class="comment">//直接通过类名调用</span></span><br><span class="line">        Student.show();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>在静态方法中没有this关键字，因为静态是随着类的加载而加载的，优先于对象进入内存，而this是随着对象进入内存的，先进内存的不能访问后进内存的，而后进入内存的可以访问先进入内存的。</p>
+<p>在静态方法中没有this关键字，因为静态是<strong>随着类的加载而加载的</strong>（存放在堆中的静态区），优先于对象进入内存，而this是随着对象进入内存的，先进内存的不能访问后进内存的，而后进入内存的可以访问先进入内存的。</p>
 <p><strong>静态只能访问静态</strong>，静态的成员方法只能访问静态成员变量和静态的成员方法，非静态的成员方法则可以访问所有。</p>
 <h3 id="变量的就近原则"><a href="#变量的就近原则" class="headerlink" title="变量的就近原则"></a>变量的就近原则</h3><p>使用变量的时候会优先找局部范围，如果想直接使用成员变量可以使用this关键字。及承建的成员变量也符合这个规则，如果想使用父类的成员变量可以使用super关键字。</p>
 <h3 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h3><p>子类会默认调用父类的无参构造方法</p>
@@ -2611,6 +2611,54 @@
 ]]></content>
       <tags>
         <tag>计算机网络</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>初识OLLVM</title>
+    <url>/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/</url>
+    <content><![CDATA[<h3 id="OLLVM"><a href="#OLLVM" class="headerlink" title="OLLVM"></a>OLLVM</h3><p>OLLVM是一个基于LLVM的框架的混淆器，主要功能有三：指令替换、混淆控制流、控制流平坦化。一言以蔽之，ollvm可以用来混淆程序，增加逆向难度。</p>
+<span id="more"></span>
+
+<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>那么什么是LLVM呢？LLVM（low level virtual machine）是一个编译器框架，是一系列模块化、可重用的编译器及工具链技术的集合。</p>
+<p><img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20231230213344.png"></p>
+<p>通过这张图，可以很好的理解llvm的作用。</p>
+<p>第一部分：Clang作为前端接收C（各种语言）源文件，生成中间代码IR<img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/QQ%E6%88%AA%E5%9B%BE20231230213931.png"></p>
+<p>第二部分：中间代码IR经pass的优化处理得到新的IR，不同的PASS对应不同的优化</p>
+<p>第三部分：生成机器码</p>
+<h3 id="OLLVM原理"><a href="#OLLVM原理" class="headerlink" title="OLLVM原理"></a>OLLVM原理</h3><p>费这么大篇幅介绍LLVM肯定是有用的，前面讲了OLLVM是基于LLVM，最大的区别在于PASS不同，我的理解是LLVM的pass是用来优化的，而OLLVM的PASS是用来混淆的。</p>
+<h3 id="OLLVM的环境搭建"><a href="#OLLVM的环境搭建" class="headerlink" title="OLLVM的环境搭建"></a>OLLVM的环境搭建</h3><p>涉及到gcc、g++以及各种环境，建议直接在Ubuntu使用docker一步到位</p>
+<p><a href="https://www.bilibili.com/read/cv13148903/">跟着铁头干混淆3 ubuntu下用docker编译ollvm(保证成功) - 哔哩哔哩 (bilibili.com)</a></p>
+<h3 id="OLLVM的使用"><a href="#OLLVM的使用" class="headerlink" title="OLLVM的使用"></a>OLLVM的使用</h3><h4 id="控制流平坦化"><a href="#控制流平坦化" class="headerlink" title="控制流平坦化"></a>控制流平坦化</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -fla : 激活控制流平坦化</li>
+<li>-mllvm -split : 激活基本块分割</li>
+<li>-mllvm -split_num&#x3D;3 : 指定基本块分割的数目</li>
+</ul>
+<p>语法</p>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">clang 选项一 选项二 选项<span class="built_in">N</span> 原码 -o 可执行文件</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">clang -mmlvm -fla test.c -o test</span><br></pre></td></tr></table></figure>
+
+<h4 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -bcf : 激活虚假控制流</li>
+<li>-mllvm -bcf_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1</li>
+<li>-mllvm -bcf_prob&#x3D;40 : 每个基本块被混淆的概率，这里每个基本块被混淆的概率为40%，默认为 30 %</li>
+</ul>
+<p>语法同上</p>
+<h4 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -sub : 激活指令替代</li>
+<li>-mllvm -sub_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1次</li>
+</ul>
+<p>语法同上</p>
+<p>下一篇文章介绍各个混淆实现的效果。</p>
+<p>参考链接：</p>
+<p><a href="https://jev0n.com/2022/07/07/ollvm-0.html">OLLVM混淆学习（0）——环境搭建及混淆初体验 - 思泉 | Jev0n</a></p>
+<p><a href="https://www.cnblogs.com/lqerio/p/16009042.html#Clang">LLVM 简介 （一） - Erio - 博客园 (cnblogs.com)</a></p>
+]]></content>
+      <tags>
+        <tag>OLLVM</tag>
       </tags>
   </entry>
 </search>
