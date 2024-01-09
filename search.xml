@@ -1043,6 +1043,129 @@
       </tags>
   </entry>
   <entry>
+    <title>csapp.lab</title>
+    <url>/2023/03/24/csapp-lab/</url>
+    <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
+<li><a href="https://blog.csdn.net/FlamelNW/article/details/123039299">https://blog.csdn.net/FlamelNW/article/details/123039299</a></li>
+<li></li>
+</ul>
+<h2 id="int"><a href="#int" class="headerlink" title="int"></a>int</h2><h3 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h3><p>x^y using only ~ and &amp;,用按位运算~和&amp;实现异或。</p>
+<p>&amp;是1、1的时候返回1，^是0、1的时候返回1,就拿4和5举例子吧</p>
+<p>4：0100  0100 1011 1010 0101 1011</p>
+<p>5：0101  0100 1010 1010 0101 1011</p>
+<p>x、y是未知的，所以进行~运算的时候一定是对他两个同时。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> z=<span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> w=<span class="number">0</span>;</span><br><span class="line">  z=x&amp;y;<span class="comment">//0100</span></span><br><span class="line">  x=~x;<span class="comment">//1011</span></span><br><span class="line">  y=~y;<span class="comment">//1010</span></span><br><span class="line">  w=x&amp;y;<span class="comment">//1010</span></span><br><span class="line">  w=~w;<span class="comment">//0101</span></span><br><span class="line">  z=~z;<span class="comment">//1011</span></span><br><span class="line">  z=z&amp;w;<span class="comment">//0001</span></span><br><span class="line">  <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png"></p>
+<p>成功，其实很大程度是连蒙带猜的，毕竟就这两种运算。看看大佬是怎么分析的<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png"></p>
+<p>思路：用(x&amp;y)定位出共同的1所在，用(<del>x&amp;</del>y)定位出共同的0所在，其余部位就是既有1又有0啦，然后非全0部位和非全1部位进行&amp;运算<del>(x&amp;y)&amp;</del>(<del>x&amp;</del>y)</p>
+<h3 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h3><p>return minimum two’s complement integer，返回补码最小值。</p>
+<p>对于一个正数，它的二进制形式就是它的原码，正数的原码补码反码相同。</p>
+<p>对于一个负数，反码是将除符号位以外的位全部取反，补码就是将反码加上1。</p>
+<p>对于-1</p>
+<p>原码：1000 0001</p>
+<p>反码：1111 1110</p>
+<p>补码：1111 1111</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png"></p>
+<p>补码最小值，及第32位为1，其余位为0</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">   <span class="type">int</span> min =<span class="number">1</span>;</span><br><span class="line">   min=min&lt;&lt;<span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h3><p>returns 1 if x is the maximum, two’s complement number,and 0 otherwise，传来的参数是补码的最大值则返回1，其余情况返回0。</p>
+<p>从上图我们可以看到，补码的最大值紧挨着补码的最小值，所以我们只要将最小值减1即可，可是题目不允许使用移位操作符。</p>
+<p>经过很长时间的思考，发现根本表示不出最大值，参考了一下，豁然开朗，可以假设传入的参数就是就是最大值。我们可以看出最大值有一个特性，那就是max+1&#x3D;<del>(max+1),也不能完全说是特性吧，因为-1也拥有这个属性，仅此两个。首先我们可以通过max^(</del>(max+1)),如果其值返回0那我们可以锁定-1和max这两种情况,接下来我们在排除其是-1这种情况。我们只要找出-1的特性即可，(-1+1)&amp;-1&#x3D;0,其他的任何数都满足不了这一点。这种做法可以实现函数功能，却没有满足操作符的数量，使用了11个操作符，题目规定不能大于10。参考过后修改一下操作数变成9啦。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">isMax</span><span class="params">(<span class="type">int</span> x)</span><span class="comment">//如果是max则返回1，其余返回0</span></span><br><span class="line">&#123; <span class="comment">//int a=((x+1)&amp;~0);//如果x等于-1则返回0，其余的所有数都是非零</span></span><br><span class="line">  <span class="type">int</span> a=x+<span class="number">1</span>;<span class="comment">//这样也能判断是否为-1</span></span><br><span class="line">  <span class="type">int</span> b=(x^(~(x+<span class="number">1</span>)));<span class="comment">//如果是max或—1则返回0，其余的会返回非0</span></span><br><span class="line">  <span class="type">int</span> c=!!(!a)^(!b);！！可以使非零值返回<span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参考一下<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png"></p>
+<h3 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h3><p>return 1 if all odd-numbered bits in word set to 1，如果所有的奇数位都为1则返回1，最左侧为第31位，最右侧为第0位。</p>
+<p>我们可以看看奇数位为1的数有什么共同点。<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png"></p>
+<p>额，这我只能说是毫无头绪好吧。奇数位必须为1，偶数位不做要求。灵光一现：左移偶数位，得到的数一定是负数。然而并没有什么卵用。直接选择参考。data&#x3D;1010 1010(32位)，参数x^data,如果x满足要求，则返回data。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//题目要求可以使用的最大的数为0xff即1010 1010 我们要通过移位操作构造出32位奇数位全为1的data</span></span><br><span class="line"><span class="type">int</span> a=<span class="number">0xAA</span>;<span class="comment">//1010 1010</span></span><br><span class="line"><span class="type">int</span> a2=a&lt;&lt;<span class="number">8</span>|a;<span class="comment">//1010 1010 x 2</span></span><br><span class="line"><span class="type">int</span> data=((a2&lt;&lt;<span class="number">16</span>)|a2);<span class="comment">//1010 1010 x 4 32位</span></span><br><span class="line"><span class="type">int</span> mid=x&amp;data;<span class="comment">//x的偶数位全部变成0，奇数位是1则1，是0则0,即如果x奇数位全部为1则返回data</span></span><br><span class="line"><span class="type">int</span> final=mid^data；<span class="comment">//如果x为符合，则mid==data，则异或结果为0</span></span><br><span class="line"><span class="keyword">return</span> !final;<span class="comment">//final为0则符合，题目让返回1    </span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>可以这么说，这题要是不看点提示，想一天也想不来。还是按位操作这里有所欠缺。</p>
+<h3 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h3><p>return -x ，返回-x。即返回一个数的相反数</p>
+<p>这题比较简单，我们直接看一个数和他的相反数在二进制形式上有什么异同点。可以看出，只要按位取反再加上1即可</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//0000 0001   1</span></span><br><span class="line"><span class="comment">//1111 1111  -1</span></span><br><span class="line"><span class="comment">//0000 0010   2</span></span><br><span class="line"><span class="comment">//1111 1110  -2</span></span><br><span class="line"><span class="comment">//0111 1111   127</span></span><br><span class="line"><span class="comment">//1000 0001  -127</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x)+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h3><p>return 1 if 0x30 &lt;&#x3D; x &lt;&#x3D; 0x39 (ASCII codes for characters ‘0’ to ‘9’)，如果传来的参数是数字则反回1</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment">//0x30  0011 0000</span></span><br><span class="line"><span class="comment">//0x31  0011 0001</span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="comment">//0x39  0011 1001</span></span><br><span class="line"><span class="type">int</span> a=(x&gt;&gt;<span class="number">4</span>)^<span class="number">3</span>(<span class="number">0011b</span>);<span class="comment">//若a为0，则说明前28位相同，我们只用再判断后四位即可,若不同则返回值非零</span></span><br><span class="line"><span class="type">int</span> b=(x&gt;&gt;<span class="number">4</span>)^(x+((~<span class="number">10</span>)+<span class="number">1</span>)&gt;&gt;<span class="number">4</span>);<span class="comment">//后四位如果是0~9则返回非零，如果不是则返回0</span></span><br><span class="line"><span class="keyword">return</span> !(a|(!b));<span class="comment">//如果前28位相同，且后四位小于10则返回1</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>解释一下最后一行，假设x是数字，则a&#x3D;0，b≠0，c&#x3D;!b&#x3D;0，所以a|(!b)&#x3D;0，反之a|(!b)≠0，所以在前面加上一个！。</p>
+<h3 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h3><p>same as x ? y : z   如果x非零则返回y如果x为零则返回z。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=!!x;<span class="comment">//如果x为零则返回0，如果x非零则返回1</span></span><br><span class="line"><span class="type">int</span> b=(~a)+<span class="number">1</span>;<span class="comment">//如果a=0则返回0(全0)，如果a＝1则返回—1(全1)</span></span><br><span class="line"><span class="keyword">return</span> ((b&amp;y)+((~b)&amp;z));<span class="comment">//如果x为零则b为零，则返回z，反之返回y</span></span><br><span class="line"><span class="comment">//最后的return 也可以写成这样：return (b&amp;y)|((~b)&amp;z)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h3><p>if x &lt;&#x3D; y  then return 1, else return 0  如果x&lt;&#x3D;y,返回1，反之返回0</p>
+<p>Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=x+((~y)+<span class="number">1</span>);<span class="comment">//a=x-y,如果a&lt;0，则a的最高位为1，如果a&gt;=0,最高位时0，这样有点不好实现，因为小于和等于没在一起</span></span><br><span class="line"><span class="type">int</span> b=y+((~x)+<span class="number">1</span>);<span class="comment">//b=y-x,如果y&gt;=x,则b的最高位为0，反之b的最高位为1</span></span><br><span class="line"><span class="type">int</span> c=b&gt;&gt;<span class="number">31</span>;<span class="comment">//如果成立则返回全0，如果不成立则返回全1</span></span><br><span class="line"><span class="keyword">return</span> c+<span class="number">1</span>；</span><br></pre></td></tr></table></figure>
+
+<p>本来以为简简单单大功告成，进行测试发现没分，cao,上面的方法只适合同符号比较。   y&gt;&#x3D;x等价于y-x&gt;&#x3D;0在数学是行得通的，可是在计算机中要考虑 溢出问题。也就是可能会出现一些比较诡异的情况：</p>
+<p>当y&lt;0,x&gt;0时，可能出现y-x&gt;0的情况，比如1000 0000-0000 0001<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png"></p>
+<p>可以看到，由于第一位的1变成了0，所以就变成了正数。</p>
+<p>当y&gt;0,x&lt;0时，可能出现y-x&lt;0的情况，比如0000 0001-1000 0000<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png"></p>
+<p>有什么是可以肯定的呢，符号不同时，正数肯定比负数大，符号相同时看差值。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//我测真的烦</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> singX=(x&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//如果不&amp;1，负数情况下就会返回-1</span></span><br><span class="line">    <span class="type">int</span> signY=(y&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="type">int</span> signY_X=((y+(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//y-x如果大于等于则返回0，小于则返回1</span></span><br><span class="line">    <span class="type">int</span> checknSign=signX^signY;<span class="comment">//相同为0，不同为1</span></span><br><span class="line">    <span class="keyword">return</span> (!checkSign&amp;!signY_X)|(checkSign&amp;signX)</span><br><span class="line">&#125;          符号相同，看差的符号         符号不同时，x&lt;<span class="number">0</span>则返回<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这个return比较长，我们分开来看一下其实很简单，</p>
+<p>左半部分：!checkSign&amp;!signY_X，符号相等的情况，符号相等不用考虑溢出的问题，我们可以直接根据差值的符号进行大小的判断，符号相等则check为0，signY_X如果满足则为0，否则为1，这里我们倒换一下，也就是满足时返回1，不满足时返回0，如果出现符号不相等，则左半部分返回0</p>
+<p>右半部分：如果符号相同则右半部分返回0，如果符号不同，那么我们只需要看x的符号即可，如果x是负数，一定满足条件则返回他的符号1</p>
+<p>反思：卡在这里很久很久，因为什么？？？一个很重要的原因对按位运算|掌握得不够熟悉，看到很多师傅的解前面有很多都使用了|，从这一题往后很难不用到|，不能再简单的使用加减。</p>
+<h3 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h3><p>implement the ! operator, using all of   the legal operators except !</p>
+<p> Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<p>使用其他合规操作符实现！，也就是传入的参数为0则返回1，非零则返回0</p>
+<p>思路零：未完成</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//0   0000 0000     0的相反数是0 相反数和自身异或取其符号位，为零则为零，非零则为1</span></span><br><span class="line"><span class="comment">//正数 0000 1110</span></span><br><span class="line"><span class="comment">//负数 1000 0100</span></span><br><span class="line"><span class="comment">//0 异或0为0</span></span><br><span class="line">   <span class="type">int</span> signX=(X&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取x的符号，负数则为1</span></span><br><span class="line">   <span class="type">int</span> _signX=((~x+<span class="number">1</span>)&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取-x的符号</span></span><br><span class="line">   <span class="keyword">return</span> signX^_signX^<span class="number">1</span>;</span><br><span class="line">   <span class="comment">//零异或上自己的相反数为0，其他数为1，在异或上1，改变符号</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="type">int</span> xor0=(<span class="number">0</span>^x)&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;x为零和正数则为<span class="number">0</span>，负数返回<span class="number">1</span></span><br><span class="line">    <span class="comment">//我们需要这样一个数，等于零时返回1，其余时候返回0 死循环</span></span><br></pre></td></tr></table></figure>
+
+<p>运行失败，看以下错误原因</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png"></p>
+<p>0x80000也就是最小数10000000这里出现了错误，我们知道对于有符号整型，负数范围比正数大一，所以表示不出来最小数的相反数，这个数和零一样，相反数等于自身。收到一位师傅的启发，我们可以给符号位取反，这样0x80000的符号位就变成0，不造成影响</p>
+<p>思路一：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> _x=~x+<span class="number">1</span>;</span><br><span class="line">   <span class="type">int</span> sign=(((~x&amp;~_x))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign;</span><br><span class="line">   取反后非零数相反数进行&amp;运算符号位为<span class="number">0</span>，如果不进行取反操作则不能绕过<span class="number">0x8000</span>这个存在，它的相反数和自身符号相同都为<span class="number">1</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p>思路二：</p>
+<p>一个非零数或上自己的相反数其符号位总是1，最小值0x8000也不例外，虽然它的相反数无法表示，但其最高位都是1</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> sign=(x|(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>;如果是零则返回<span class="number">0000</span>，非零则返回<span class="number">1111</span></span><br><span class="line">    <span class="keyword">return</span> sign+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>都是用到相反数，只是如果使用异或的话不可行，因为0和min的相反数最高位相同，所以只能考虑使用|或&amp;。</p>
+<h3 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h3><p>return the minimum number of bits required to represent x in   two’s complement    返回用二进制补码表示x的最小位数，比如1、0只用一位即可表示</p>
+<p>-1也是1，因为-1的补码是1111 1111其实等价于1，补码101和1101代表的都是-3，所以-3最少需要三位，补码的最高位是符号位，就像非负数01和001、0001代表的都是1，前面有多少0都无关紧要，对于负数的补码，前面有多少个1都无关紧要，用数学来解释的话就是最高的两位之和是个定值，对于101最高两位是-2&#x3D;-2，对于1101最高两位是-4+2&#x3D;-2。</p>
+<p>负数以补码的形式储存，正数的原码补码反码相同。思路：如果是整数那就检索其最高位的1的位置，如果1首先出现在了第三位，比如0101，最高位的1所在的位置就是3，那么这个数最少就可以用3+1位来表示,加的那个1是符号位。对于负数，我们检索其最高位0出现的位置，11101，0出现在第2位，那么最少可以用2+1（符号位）来表示此数，对于-1也就是全1，可以用1表示，仍然符合，也就是它的第0位是0然后我们加上1。</p>
+<p>那么怎么检索呢？一个一个来肯定是不能满足操作符数量上的要求的。可以用二分法，我们处理的int是32位的，我们可以先检测它的前十六位，比如说如果全部位0，那么肯定可以用16及更少的位来表示它，再检测其余十六位的前八位，如果不全为零，那么我们继续缩小范围，检测前八位的前四位……</p>
+<p>具体怎么实现还是参考的网上的，两个主要操作：计数和缩小范围</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> a0,a1,a2,a4,a8,a16;</span><br><span class="line">   <span class="type">int</span> w;<span class="comment">//位数</span></span><br><span class="line">   <span class="type">int</span> sign=x&gt;&gt;<span class="number">31</span>;<span class="comment">//如果是正数返回全0，如果是负数返回全1</span></span><br><span class="line">   x=(~sign&amp;x)|(sign&amp;~x);<span class="comment">//如果是非负数则返回x，如果是负数则按位取反</span></span><br><span class="line">   a16=(!!(x&gt;&gt;<span class="number">16</span>))&lt;&lt;<span class="number">4</span>;<span class="comment">//右移16位，两次取非，左移4；如果如果没出现1则高16位为0则返回0，如果出现1则非零则返回16</span></span><br><span class="line">   x=x&gt;&gt;a16;<span class="comment">//如果高十六位非零，右移16位；</span></span><br><span class="line">   a8=(!!(x&gt;&gt;<span class="number">8</span>))&lt;&lt;<span class="number">3</span>;<span class="comment">//如果前十六位为0，则检测其前24位，如果无1，则返回0，如果出现1，则返回8；如果前十六位不为0，则检测32~25位，如果为0则返回0，否则返回8</span></span><br><span class="line">   x=x&gt;&gt;a8;<span class="comment">//如果a8非零则右移8位；</span></span><br><span class="line">   a4=(!!(x&gt;&gt;<span class="number">4</span>)&lt;&lt;<span class="number">2</span>);<span class="comment">//如果前8位为零的话，检测其前28位；如果前8位不为为零的话，这一步检测其前四位（32~29位），如果非零则返回4，为零返回0；</span></span><br><span class="line">   x=x&gt;&gt;a4;</span><br><span class="line">   a2=!!(x&gt;&gt;<span class="number">2</span>)&lt;&lt;<span class="number">1</span>;<span class="comment">//如果24位为零的话，则只检测其前30位，为零则返回0，出现1则返回2；</span></span><br><span class="line">   x=x&gt;&gt;a2;<span class="comment">//如果a2非零则右移四位</span></span><br><span class="line">   a1=!!(x&gt;&gt;<span class="number">1</span>);<span class="comment">//如果前30位为零的话，则检测其前31位。</span></span><br><span class="line">   x=x&gt;&gt;a1;<span class="comment">//如果a1非零则右移两位</span></span><br><span class="line">   a0=x;<span class="comment">//如果前31位为零，那么x要么是1，要么是0</span></span><br><span class="line">   w=a0+a1+a2+a4+a8+a16+<span class="number">1</span>;</span><br><span class="line">   <span class="keyword">return</span> w;<span class="comment">//1是符号位</span></span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="float"><a href="#float" class="headerlink" title="float"></a>float</h2><p>float型 符号 阶码 尾数位分别为 1、8、23，</p>
+<p>规格化的，尾数以隐含的1开头，E&#x3D;e-bias</p>
+<p>非规格化的，尾数无隐含的1，E&#x3D;1-bias</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328115316.png"></p>
+<h3 id="floatScale2"><a href="#floatScale2" class="headerlink" title="floatScale2"></a>floatScale2</h3><p>Return bit-level equivalent of expression 2*f for floating point argument f.将传来的参数当成float的位级表示，返回浮点数乘2的位级表示，如果是NAN和极大值(阶码全部为1)则返回0x800000(1000 0000)</p>
+<p>思路：对于规格话数，乘2只需要将阶码+1，其它位保持不变</p>
+<p> 非规格化的数左移一位即可得到2倍，原因见下图。参考：<a href="https://blog.csdn.net/qq_43855740/article/details/106843924">https://blog.csdn.net/qq_43855740/article/details/106843924</a></p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328140534.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;   <span class="comment">//拿1来举例子0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> s=((uf&gt;&gt;<span class="number">31</span>)&lt;&lt;<span class="number">31</span>);<span class="comment">//符号            0    0000 0000    0000 0000 0000 0000 0000 000 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> e=((uf&gt;&gt;<span class="number">23</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码     0    0000 0000    0000 0000 0000 0000 0000 000</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> m=((uf&lt;&lt;<span class="number">9</span>)&gt;&gt;<span class="number">9</span>);<span class="comment">//获得尾数           0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0</span>)</span><br><span class="line">   <span class="keyword">return</span> (uf&lt;&lt;<span class="number">1</span>)|s;<span class="comment">//非规格化数左移1位变为两倍，再恢复其符号位</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0x7f800000</span>)<span class="comment">//无穷大和非规格化数 无穷大的二倍还是无穷大</span></span><br><span class="line">   <span class="keyword">return</span> uf;</span><br><span class="line">  e=(((uf&gt;&gt;<span class="number">23</span>)+<span class="number">1</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码+1 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> r=s+e+m;</span><br><span class="line">  <span class="keyword">return</span> r;                     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="floatFloat2Int"><a href="#floatFloat2Int" class="headerlink" title="floatFloat2Int"></a>floatFloat2Int</h3><p>Return bit-level equivalent of expression (int) f  for floating point argument f.将浮点型转换为位级等价整数 Anything out of range (including NaN and infinity) should return 0x80000000u.</p>
+<p>取出他的符号 指数和尾数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">    <span class="type">int</span> s=uf&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;<span class="comment">//取符号</span></span><br><span class="line">     <span class="type">int</span> e=(uf&lt;&lt;<span class="number">1</span>&gt;&gt;<span class="number">24</span>)<span class="number">-127</span>;<span class="comment">//e属于(-127~126)</span></span><br><span class="line">     <span class="type">int</span> m=uf&lt;&lt;<span class="number">9</span>&gt;&gt;<span class="number">9</span>;<span class="comment">//尾数</span></span><br><span class="line">     m=m+<span class="number">0x800000</span>;</span><br><span class="line">     <span class="type">int</span> r=<span class="number">0x80000000</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)<span class="comment">//小数点左移，实际的数就是0.xxx</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">31</span>)<span class="comment">//溢出，包括NaN</span></span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">23</span>)</span><br><span class="line">        m=(m&lt;&lt;(e<span class="number">-23</span>));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        m=(m&gt;&gt;(<span class="number">23</span>-e));</span><br><span class="line">    <span class="type">int</span> mSign=m&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(s)<span class="comment">//如果传来的参数是负数，那么我们直接将得到的数取反</span></span><br><span class="line">      <span class="keyword">return</span> -m;</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//传参为正数</span></span><br><span class="line">      <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="floatPower2"><a href="#floatPower2" class="headerlink" title="floatPower2"></a>floatPower2</h3><p>Return bit-level equivalent of the expression 2.0^x  (2.0 raised to the power x) for any 32-bit integer x.以浮点数形式返回2^x&#x3D;r</p>
+<p>2的多少次方，其尾数全零，隐含1，我们只需要将e改为127+x即可</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="type">int</span> e=x+<span class="number">127</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;=<span class="number">255</span>) </span><br><span class="line">        <span class="keyword">return</span> <span class="number">0x7F000000</span>u;<span class="comment">//返回+INF（正无穷大）</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> (e&lt;&lt;<span class="number">23</span>)|<span class="number">0</span>;</span><br><span class="line">       </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328212413.png"></p>
+<p>完结撒花</p>
+]]></content>
+      <tags>
+        <tag>lab</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>bomblab</title>
     <url>/2023/06/02/bomblab/</url>
     <content><![CDATA[<p>解压完出现了三个文件bomb、bomb.c、readme，其中bomb.c是实验的源代码，不过他最重要的部分被删除了。我们可以通过将可执行文件bomb反汇编来查看内部情况。通过objdump -d bomb &gt; bomb.asm我们获得了一个新的文件，内容是bomb的汇编代码。</p>
@@ -1178,126 +1301,88 @@
 ]]></content>
   </entry>
   <entry>
-    <title>csapp.lab</title>
-    <url>/2023/03/24/csapp-lab/</url>
-    <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
-
+    <title>csapp笔记</title>
+    <url>/2022/12/21/csapp/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
+<h1 id="第一章-计算机系统漫游"><a href="#第一章-计算机系统漫游" class="headerlink" title="第一章 计算机系统漫游"></a>第一章 计算机系统漫游</h1><p>不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。</p>
 <span id="more"></span>
 
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
-<li><a href="https://blog.csdn.net/FlamelNW/article/details/123039299">https://blog.csdn.net/FlamelNW/article/details/123039299</a></li>
-<li></li>
-</ul>
-<h2 id="int"><a href="#int" class="headerlink" title="int"></a>int</h2><h3 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h3><p>x^y using only ~ and &amp;,用按位运算~和&amp;实现异或。</p>
-<p>&amp;是1、1的时候返回1，^是0、1的时候返回1,就拿4和5举例子吧</p>
-<p>4：0100  0100 1011 1010 0101 1011</p>
-<p>5：0101  0100 1010 1010 0101 1011</p>
-<p>x、y是未知的，所以进行~运算的时候一定是对他两个同时。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> z=<span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> w=<span class="number">0</span>;</span><br><span class="line">  z=x&amp;y;<span class="comment">//0100</span></span><br><span class="line">  x=~x;<span class="comment">//1011</span></span><br><span class="line">  y=~y;<span class="comment">//1010</span></span><br><span class="line">  w=x&amp;y;<span class="comment">//1010</span></span><br><span class="line">  w=~w;<span class="comment">//0101</span></span><br><span class="line">  z=~z;<span class="comment">//1011</span></span><br><span class="line">  z=z&amp;w;<span class="comment">//0001</span></span><br><span class="line">  <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="信息就是位-上下文"><a href="#信息就是位-上下文" class="headerlink" title="信息就是位+上下文"></a>信息就是位+上下文</h5><p>0和1组成位，也成为比特，八个位组成一组称为字节。系统之中所有的信息都是由一串比特表示的，区分不同数据对象的唯一方法就是对照上下文。举个简单的例子，0110 0100，这么一串比特，它既能表示二进制数，又能表示ASCII对应的值d，具体表示什么要联系上下文。</p>
+<h5 id="了解编译系统如何工作的益处（书上这么写的不是我总结的）"><a href="#了解编译系统如何工作的益处（书上这么写的不是我总结的）" class="headerlink" title="了解编译系统如何工作的益处（书上这么写的不是我总结的）"></a>了解编译系统如何工作的益处（书上这么写的不是我总结的）</h5><p>1.优化程序性能</p>
+<p>2.理解链接时出现的错误</p>
+<p>3.避免安全漏洞</p>
+<h5 id="了解shell"><a href="#了解shell" class="headerlink" title="了解shell"></a>了解shell</h5><p>第一章中不停的在提及shell。shell是一个命令解释器，他输出一个提示符，等待输入一个命令符，然后执行这个命令。简单的理解一下，Windows系统中我们打开一个程序需要点击其图像，Linux则需要我们输入命令行来打开，shell就是那个供用户输入命令行的程序。shell是一个应用程序，连接了用户和linux内核。参考：(<a href="http://c.biancheng.net/view/706.html">http://c.biancheng.net/view/706.html</a>)</p>
+<h5 id="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"><a href="#系统是硬件和软件互相交织的集合体（简单介绍一下硬件）" class="headerlink" title="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"></a>系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</h5><h6 id="1-总线"><a href="#1-总线" class="headerlink" title="1.总线"></a>1.总线</h6><p>像神经一样，贯穿于整个系统，携带信息字节并负责在各个部门传递</p>
+<h6 id="2-I-x2F-O设备"><a href="#2-I-x2F-O设备" class="headerlink" title="2.I&#x2F;O设备"></a>2.I&#x2F;O设备</h6><p>及输入&#x2F;输出设备，键盘、鼠标为输入设备，显示器和磁盘为输出设备。</p>
+<h6 id="3-主存"><a href="#3-主存" class="headerlink" title="3.主存"></a>3.主存</h6><p>主存是一个临时存储设备，在处理器执行程序时，用来存放程序和程序处理的数据。</p>
+<h6 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4.处理器"></a>4.处理器</h6><p>中央处理单元（CPU），简称处理器，世界是（或执行）存储在主存中指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向主存中的某条机器语言指令（即含有该指令的地址）。</p>
+<h5 id="不大不小的疑惑"><a href="#不大不小的疑惑" class="headerlink" title="不大不小的疑惑"></a>不大不小的疑惑</h5><p>此时年轻懵懂的我不明白为什么有很多很多人念着Linux系统的好，Windows这种图形化控着与此相比有什么难以弥补的劣势？据说以后工作实践中，项目大多也是基于Linux完成的，有时间了一定好好了解一下其中的内幕。</p>
+<h1 id="第二章-信息的表示和处理"><a href="#第二章-信息的表示和处理" class="headerlink" title="第二章 信息的表示和处理"></a>第二章 信息的表示和处理</h1><h6 id="研究数字的实际表示的意义"><a href="#研究数字的实际表示的意义" class="headerlink" title="研究数字的实际表示的意义"></a>研究数字的实际表示的意义</h6><p> 能够了解可以表时得知和不同算术运算的属性。从而使程序正确工作，更具可移植性，更安全。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png"></p>
+<h6 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h6><p>大多数计算机使用8位的块（字节）作为最小的可寻址的内存单元。机器级的程序将内存视为一个非常大的字节数组，称为虚拟内存。内存的每个字节都由一个唯一的数字来标识，称为它的地址。所有可能地址的集合称为虚拟地址空间。</p>
+<h6 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h6><p>二进制表示起来过用冗长，而十进制与二进制的转化很麻烦，十六进制表示起来很方便。如果二进制位数不是4的倍数，最左侧补0。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png"></p>
+<p>j代表的是16进制0的数量。前面的i是1的数量，注意只能是1,11,111,1111这四种表示。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307203238.png"></p>
+<h5 id="整型"><a href="#整型" class="headerlink" title="整型"></a>整型</h5><h6 id="字数据大小"><a href="#字数据大小" class="headerlink" title="字数据大小"></a>字数据大小</h6><p>字长决定虚拟地址空间的最大大小，我们常说的32位64位都是指的字长，32位字长虚拟地址空间为2的32次方及4GB。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204456.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204729.png"></p>
+<p>#include&lt;stdint.h&gt;中有关于int32_t等的宏定义，确定的大小可以避免很多麻烦，程序的可移植性也更高。</p>
+<h6 id="寻址和字节顺序"><a href="#寻址和字节顺序" class="headerlink" title="寻址和字节顺序"></a>寻址和字节顺序</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307205643.png"></p>
+<p>可以这样说，大端是更符合我们日常思维的那一种。两种端序没有优劣之分，选择哪种字节顺序没有技术上的理由。我们只需选择一种并且始终如一地坚持。</p>
+<h6 id="C语言中的逻辑运算"><a href="#C语言中的逻辑运算" class="headerlink" title="C语言中的逻辑运算"></a>C语言中的逻辑运算</h6><p>逻辑运算和按位运算有很大的不同，其一逻辑运算中所有的非零参数都表示TRUE，0参表FALSE，其二，如果对第一个参数求值就能确定表达式的结果，那么逻辑运算就不会对第二个参数求值。</p>
+<h6 id="C语言中的移位运算"><a href="#C语言中的移位运算" class="headerlink" title="C语言中的移位运算"></a>C语言中的移位运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307222226.png"></p>
+<p>几乎所有的编译器都对有符号数使用算数右移（保留最高位），对于无符号数，右移必须是逻辑的。Java中x&gt;&gt;&gt;k是逻辑右移，x&gt;&gt;k是算数右移。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307223156.png"></p>
+<h6 id="强制类型转换"><a href="#强制类型转换" class="headerlink" title="强制类型转换"></a>强制类型转换</h6><p>强制类型转换结果保持位不变，改变的是对位的解析方式</p>
+<h6 id="有符号和无符号处理"><a href="#有符号和无符号处理" class="headerlink" title="有符号和无符号处理"></a>有符号和无符号处理</h6><p>当表达式中同时出现也有符号和无符号，那么C语言会隐式的将有符号数转换为无符号数（位不变），例如表达式-1&lt;0u返回的结果是0，也就是表达式错误，因为将-1的补码按照无符号数来解析。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324010451.png"></p>
+<p>看着好像没什么问题，但是当len等于0，在运算0-1时，计算机会当作0+(-1),因为默认是有符号，而len是无符号的。所以(-1)要从补码转换成无符号数也就是T2U，也就是UMax，所以程序会进入死循环，并且访问到a的非法元素。</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324012052.png"></p>
+<p>A.当s比t短的时候会错误的返回1</p>
+<p>B.两数相减得到负数会当作无符号数处理，最高位为1也就是一个很大的数大于零</p>
+<p>C.改为return strlen(s)&gt;strlen(t)</p>
+<h6 id="扩展一个数字的位表示"><a href="#扩展一个数字的位表示" class="headerlink" title="扩展一个数字的位表示"></a>扩展一个数字的位表示</h6><p>如果想扩展一个数字，只需要在它的最高位补上n个符号位，比如说101表示-3，在最左侧加1变为1101还是表示-3，我们可以看到它最高位与后一位的和-8+4&#x3D;-4这也是扩展前符号位的值，我们再给它扩展一位变为11101它还是表示-3，对于非负数我们只需在其前面补上0即可，正好今天在做datalab的howManyBits，和这个正好是相关的，刚开始看到网上师傅举得例子还有点懵，为啥101和1101代表的都是-3，所以我们可以知道有无数种形式的补码可以表示-3，而101是最短的一种。</p>
+<h6 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h6><p>截断无符号数：</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324001954.png"></p>
+<h6 id="对于整数运算最后的思考-模运算"><a href="#对于整数运算最后的思考-模运算" class="headerlink" title="对于整数运算最后的思考 模运算"></a>对于整数运算最后的思考 模运算</h6><p>计算机执行整数运算实际上是一种模运算，什么是模运算呢？模运算也就是求余运算，在前面我们可以看到几乎所有的溢出都采取了模最高位取余数的方法。补码的表示，可以使正数加上负数的补码等于减去其原码比如</p>
+<figure class="highlight basic"><table><tr><td class="code"><pre><span class="line"><span class="number">3</span>-<span class="number">2</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>-<span class="number">0000</span> <span class="number">0010</span>=  <span class="number">0000</span> <span class="number">0001</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>+<span class="number">1111</span> <span class="number">1110</span>=<span class="number">1</span> <span class="number">0000</span> <span class="number">0001</span>//最高位舍去</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png"></p>
-<p>成功，其实很大程度是连蒙带猜的，毕竟就这两种运算。看看大佬是怎么分析的<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png"></p>
-<p>思路：用(x&amp;y)定位出共同的1所在，用(<del>x&amp;</del>y)定位出共同的0所在，其余部位就是既有1又有0啦，然后非全0部位和非全1部位进行&amp;运算<del>(x&amp;y)&amp;</del>(<del>x&amp;</del>y)</p>
-<h3 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h3><p>return minimum two’s complement integer，返回补码最小值。</p>
-<p>对于一个正数，它的二进制形式就是它的原码，正数的原码补码反码相同。</p>
-<p>对于一个负数，反码是将除符号位以外的位全部取反，补码就是将反码加上1。</p>
-<p>对于-1</p>
-<p>原码：1000 0001</p>
-<p>反码：1111 1110</p>
-<p>补码：1111 1111</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png"></p>
-<p>补码最小值，及第32位为1，其余位为0</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">   <span class="type">int</span> min =<span class="number">1</span>;</span><br><span class="line">   min=min&lt;&lt;<span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h5><h6 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h6><p>二进制小数，小数点左边是二的非负权（非负幂），小数点右边是二的负权，这一点和十进制小数并无区别。</p>
+<p>二进制小数只能精确的表示形如（x*2的y次幂）的数</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091512.png"></p>
+<h6 id="IEEE浮点数表示"><a href="#IEEE浮点数表示" class="headerlink" title="IEEE浮点数表示"></a>IEEE浮点数表示</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091842.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327092231.png"></p>
+<p>正如书中提到的，浮点数看起来比较深奥难懂，但它是建立在小而一致的原则之上的。</p>
+<p>根据exp的值，可以分为三种不同的情况，规格化的、非规格化的或特殊值</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093637.png"></p>
+<h6 id="规格化得值"><a href="#规格化得值" class="headerlink" title="规格化得值"></a>规格化得值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093742.png"></p>
+<p>小数点在f段最高位的左侧，隐含的以1开头表示。</p>
+<h6 id="偏置值"><a href="#偏置值" class="headerlink" title="偏置值"></a>偏置值</h6><p>这个师傅讲的比较简单明了：</p>
+<p>拿单精度来说，（规格化）e的取值范围是0000 0001<del>1111 1110也就是1</del>254，肯定不能只使用无符号表示，因为这样只能表示非负数，所以使用E&#x3D;e-Bias，其范围就是-126<del>127，那么为什么不直接用补码表示e呢？这样E的范围就是1111 1111</del>0111 1111&#x3D;（-128~127），可以看出使用偏置和使用补码表示的范围相差不大，还可以不用考虑符号</p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327134820.png"></p>
+<h6 id="非规格化的值"><a href="#非规格化的值" class="headerlink" title="非规格化的值"></a>非规格化的值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327094556.png"></p>
+<h6 id="特殊值"><a href="#特殊值" class="headerlink" title="特殊值"></a>特殊值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327095039.png"></p>
+<h6 id="舍入"><a href="#舍入" class="headerlink" title="舍入"></a>舍入</h6><p>浮点数浮点数采用向偶数最接近的偶数舍入的方法，这样对与那些处在中间的数在50%的时间里会向上舍入(1.5—&gt;2)，在另外的50%的时间会向下舍入(2.5—&gt;2)。</p>
+<h6 id="浮点数运算"><a href="#浮点数运算" class="headerlink" title="浮点数运算"></a>浮点数运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210735.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210747.png"></p>
+<p>下面是对3丢失的解释，所以说浮点数计算不符合结合律</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">对于float</span> <span class="string">符号位</span> <span class="string">阶码</span> <span class="string">尾数分别为</span> <span class="number">1</span> <span class="number">8</span> <span class="number">23</span></span><br><span class="line"><span class="number">1e10</span> <span class="string">=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0000</span><span class="string">）</span></span><br><span class="line">     <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0000 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">表示成浮点数</span>   <span class="string">bias=127</span> <span class="string">所以E=127+33=160=1010</span> <span class="number">0000</span></span><br><span class="line"><span class="number">1e10</span></span><br><span class="line"><span class="string">浮点数：0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span> </span><br><span class="line"><span class="number">1e10</span><span class="string">+3=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">）</span></span><br><span class="line">      <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0011 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">浮点数</span> <span class="string">=0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span></span><br><span class="line"><span class="string">可以看出后面括号里的的3=0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">直接被舍掉了</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h3><p>returns 1 if x is the maximum, two’s complement number,and 0 otherwise，传来的参数是补码的最大值则返回1，其余情况返回0。</p>
-<p>从上图我们可以看到，补码的最大值紧挨着补码的最小值，所以我们只要将最小值减1即可，可是题目不允许使用移位操作符。</p>
-<p>经过很长时间的思考，发现根本表示不出最大值，参考了一下，豁然开朗，可以假设传入的参数就是就是最大值。我们可以看出最大值有一个特性，那就是max+1&#x3D;<del>(max+1),也不能完全说是特性吧，因为-1也拥有这个属性，仅此两个。首先我们可以通过max^(</del>(max+1)),如果其值返回0那我们可以锁定-1和max这两种情况,接下来我们在排除其是-1这种情况。我们只要找出-1的特性即可，(-1+1)&amp;-1&#x3D;0,其他的任何数都满足不了这一点。这种做法可以实现函数功能，却没有满足操作符的数量，使用了11个操作符，题目规定不能大于10。参考过后修改一下操作数变成9啦。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">isMax</span><span class="params">(<span class="type">int</span> x)</span><span class="comment">//如果是max则返回1，其余返回0</span></span><br><span class="line">&#123; <span class="comment">//int a=((x+1)&amp;~0);//如果x等于-1则返回0，其余的所有数都是非零</span></span><br><span class="line">  <span class="type">int</span> a=x+<span class="number">1</span>;<span class="comment">//这样也能判断是否为-1</span></span><br><span class="line">  <span class="type">int</span> b=(x^(~(x+<span class="number">1</span>)));<span class="comment">//如果是max或—1则返回0，其余的会返回非0</span></span><br><span class="line">  <span class="type">int</span> c=!!(!a)^(!b);！！可以使非零值返回<span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>参考一下<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png"></p>
-<h3 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h3><p>return 1 if all odd-numbered bits in word set to 1，如果所有的奇数位都为1则返回1，最左侧为第31位，最右侧为第0位。</p>
-<p>我们可以看看奇数位为1的数有什么共同点。<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png"></p>
-<p>额，这我只能说是毫无头绪好吧。奇数位必须为1，偶数位不做要求。灵光一现：左移偶数位，得到的数一定是负数。然而并没有什么卵用。直接选择参考。data&#x3D;1010 1010(32位)，参数x^data,如果x满足要求，则返回data。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//题目要求可以使用的最大的数为0xff即1010 1010 我们要通过移位操作构造出32位奇数位全为1的data</span></span><br><span class="line"><span class="type">int</span> a=<span class="number">0xAA</span>;<span class="comment">//1010 1010</span></span><br><span class="line"><span class="type">int</span> a2=a&lt;&lt;<span class="number">8</span>|a;<span class="comment">//1010 1010 x 2</span></span><br><span class="line"><span class="type">int</span> data=((a2&lt;&lt;<span class="number">16</span>)|a2);<span class="comment">//1010 1010 x 4 32位</span></span><br><span class="line"><span class="type">int</span> mid=x&amp;data;<span class="comment">//x的偶数位全部变成0，奇数位是1则1，是0则0,即如果x奇数位全部为1则返回data</span></span><br><span class="line"><span class="type">int</span> final=mid^data；<span class="comment">//如果x为符合，则mid==data，则异或结果为0</span></span><br><span class="line"><span class="keyword">return</span> !final;<span class="comment">//final为0则符合，题目让返回1    </span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>可以这么说，这题要是不看点提示，想一天也想不来。还是按位操作这里有所欠缺。</p>
-<h3 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h3><p>return -x ，返回-x。即返回一个数的相反数</p>
-<p>这题比较简单，我们直接看一个数和他的相反数在二进制形式上有什么异同点。可以看出，只要按位取反再加上1即可</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//0000 0001   1</span></span><br><span class="line"><span class="comment">//1111 1111  -1</span></span><br><span class="line"><span class="comment">//0000 0010   2</span></span><br><span class="line"><span class="comment">//1111 1110  -2</span></span><br><span class="line"><span class="comment">//0111 1111   127</span></span><br><span class="line"><span class="comment">//1000 0001  -127</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x)+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h3><p>return 1 if 0x30 &lt;&#x3D; x &lt;&#x3D; 0x39 (ASCII codes for characters ‘0’ to ‘9’)，如果传来的参数是数字则反回1</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment">//0x30  0011 0000</span></span><br><span class="line"><span class="comment">//0x31  0011 0001</span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="comment">//0x39  0011 1001</span></span><br><span class="line"><span class="type">int</span> a=(x&gt;&gt;<span class="number">4</span>)^<span class="number">3</span>(<span class="number">0011b</span>);<span class="comment">//若a为0，则说明前28位相同，我们只用再判断后四位即可,若不同则返回值非零</span></span><br><span class="line"><span class="type">int</span> b=(x&gt;&gt;<span class="number">4</span>)^(x+((~<span class="number">10</span>)+<span class="number">1</span>)&gt;&gt;<span class="number">4</span>);<span class="comment">//后四位如果是0~9则返回非零，如果不是则返回0</span></span><br><span class="line"><span class="keyword">return</span> !(a|(!b));<span class="comment">//如果前28位相同，且后四位小于10则返回1</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>解释一下最后一行，假设x是数字，则a&#x3D;0，b≠0，c&#x3D;!b&#x3D;0，所以a|(!b)&#x3D;0，反之a|(!b)≠0，所以在前面加上一个！。</p>
-<h3 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h3><p>same as x ? y : z   如果x非零则返回y如果x为零则返回z。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=!!x;<span class="comment">//如果x为零则返回0，如果x非零则返回1</span></span><br><span class="line"><span class="type">int</span> b=(~a)+<span class="number">1</span>;<span class="comment">//如果a=0则返回0(全0)，如果a＝1则返回—1(全1)</span></span><br><span class="line"><span class="keyword">return</span> ((b&amp;y)+((~b)&amp;z));<span class="comment">//如果x为零则b为零，则返回z，反之返回y</span></span><br><span class="line"><span class="comment">//最后的return 也可以写成这样：return (b&amp;y)|((~b)&amp;z)</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h3><p>if x &lt;&#x3D; y  then return 1, else return 0  如果x&lt;&#x3D;y,返回1，反之返回0</p>
-<p>Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=x+((~y)+<span class="number">1</span>);<span class="comment">//a=x-y,如果a&lt;0，则a的最高位为1，如果a&gt;=0,最高位时0，这样有点不好实现，因为小于和等于没在一起</span></span><br><span class="line"><span class="type">int</span> b=y+((~x)+<span class="number">1</span>);<span class="comment">//b=y-x,如果y&gt;=x,则b的最高位为0，反之b的最高位为1</span></span><br><span class="line"><span class="type">int</span> c=b&gt;&gt;<span class="number">31</span>;<span class="comment">//如果成立则返回全0，如果不成立则返回全1</span></span><br><span class="line"><span class="keyword">return</span> c+<span class="number">1</span>；</span><br></pre></td></tr></table></figure>
-
-<p>本来以为简简单单大功告成，进行测试发现没分，cao,上面的方法只适合同符号比较。   y&gt;&#x3D;x等价于y-x&gt;&#x3D;0在数学是行得通的，可是在计算机中要考虑 溢出问题。也就是可能会出现一些比较诡异的情况：</p>
-<p>当y&lt;0,x&gt;0时，可能出现y-x&gt;0的情况，比如1000 0000-0000 0001<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png"></p>
-<p>可以看到，由于第一位的1变成了0，所以就变成了正数。</p>
-<p>当y&gt;0,x&lt;0时，可能出现y-x&lt;0的情况，比如0000 0001-1000 0000<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png"></p>
-<p>有什么是可以肯定的呢，符号不同时，正数肯定比负数大，符号相同时看差值。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//我测真的烦</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> singX=(x&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//如果不&amp;1，负数情况下就会返回-1</span></span><br><span class="line">    <span class="type">int</span> signY=(y&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="type">int</span> signY_X=((y+(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//y-x如果大于等于则返回0，小于则返回1</span></span><br><span class="line">    <span class="type">int</span> checknSign=signX^signY;<span class="comment">//相同为0，不同为1</span></span><br><span class="line">    <span class="keyword">return</span> (!checkSign&amp;!signY_X)|(checkSign&amp;signX)</span><br><span class="line">&#125;          符号相同，看差的符号         符号不同时，x&lt;<span class="number">0</span>则返回<span class="number">1</span></span><br></pre></td></tr></table></figure>
-
-<p>这个return比较长，我们分开来看一下其实很简单，</p>
-<p>左半部分：!checkSign&amp;!signY_X，符号相等的情况，符号相等不用考虑溢出的问题，我们可以直接根据差值的符号进行大小的判断，符号相等则check为0，signY_X如果满足则为0，否则为1，这里我们倒换一下，也就是满足时返回1，不满足时返回0，如果出现符号不相等，则左半部分返回0</p>
-<p>右半部分：如果符号相同则右半部分返回0，如果符号不同，那么我们只需要看x的符号即可，如果x是负数，一定满足条件则返回他的符号1</p>
-<p>反思：卡在这里很久很久，因为什么？？？一个很重要的原因对按位运算|掌握得不够熟悉，看到很多师傅的解前面有很多都使用了|，从这一题往后很难不用到|，不能再简单的使用加减。</p>
-<h3 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h3><p>implement the ! operator, using all of   the legal operators except !</p>
-<p> Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
-<p>使用其他合规操作符实现！，也就是传入的参数为0则返回1，非零则返回0</p>
-<p>思路零：未完成</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//0   0000 0000     0的相反数是0 相反数和自身异或取其符号位，为零则为零，非零则为1</span></span><br><span class="line"><span class="comment">//正数 0000 1110</span></span><br><span class="line"><span class="comment">//负数 1000 0100</span></span><br><span class="line"><span class="comment">//0 异或0为0</span></span><br><span class="line">   <span class="type">int</span> signX=(X&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取x的符号，负数则为1</span></span><br><span class="line">   <span class="type">int</span> _signX=((~x+<span class="number">1</span>)&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取-x的符号</span></span><br><span class="line">   <span class="keyword">return</span> signX^_signX^<span class="number">1</span>;</span><br><span class="line">   <span class="comment">//零异或上自己的相反数为0，其他数为1，在异或上1，改变符号</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="type">int</span> xor0=(<span class="number">0</span>^x)&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;x为零和正数则为<span class="number">0</span>，负数返回<span class="number">1</span></span><br><span class="line">    <span class="comment">//我们需要这样一个数，等于零时返回1，其余时候返回0 死循环</span></span><br></pre></td></tr></table></figure>
-
-<p>运行失败，看以下错误原因</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png"></p>
-<p>0x80000也就是最小数10000000这里出现了错误，我们知道对于有符号整型，负数范围比正数大一，所以表示不出来最小数的相反数，这个数和零一样，相反数等于自身。收到一位师傅的启发，我们可以给符号位取反，这样0x80000的符号位就变成0，不造成影响</p>
-<p>思路一：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> _x=~x+<span class="number">1</span>;</span><br><span class="line">   <span class="type">int</span> sign=(((~x&amp;~_x))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign;</span><br><span class="line">   取反后非零数相反数进行&amp;运算符号位为<span class="number">0</span>，如果不进行取反操作则不能绕过<span class="number">0x8000</span>这个存在，它的相反数和自身符号相同都为<span class="number">1</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
-
-<p>思路二：</p>
-<p>一个非零数或上自己的相反数其符号位总是1，最小值0x8000也不例外，虽然它的相反数无法表示，但其最高位都是1</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> sign=(x|(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>;如果是零则返回<span class="number">0000</span>，非零则返回<span class="number">1111</span></span><br><span class="line">    <span class="keyword">return</span> sign+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>都是用到相反数，只是如果使用异或的话不可行，因为0和min的相反数最高位相同，所以只能考虑使用|或&amp;。</p>
-<h3 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h3><p>return the minimum number of bits required to represent x in   two’s complement    返回用二进制补码表示x的最小位数，比如1、0只用一位即可表示</p>
-<p>-1也是1，因为-1的补码是1111 1111其实等价于1，补码101和1101代表的都是-3，所以-3最少需要三位，补码的最高位是符号位，就像非负数01和001、0001代表的都是1，前面有多少0都无关紧要，对于负数的补码，前面有多少个1都无关紧要，用数学来解释的话就是最高的两位之和是个定值，对于101最高两位是-2&#x3D;-2，对于1101最高两位是-4+2&#x3D;-2。</p>
-<p>负数以补码的形式储存，正数的原码补码反码相同。思路：如果是整数那就检索其最高位的1的位置，如果1首先出现在了第三位，比如0101，最高位的1所在的位置就是3，那么这个数最少就可以用3+1位来表示,加的那个1是符号位。对于负数，我们检索其最高位0出现的位置，11101，0出现在第2位，那么最少可以用2+1（符号位）来表示此数，对于-1也就是全1，可以用1表示，仍然符合，也就是它的第0位是0然后我们加上1。</p>
-<p>那么怎么检索呢？一个一个来肯定是不能满足操作符数量上的要求的。可以用二分法，我们处理的int是32位的，我们可以先检测它的前十六位，比如说如果全部位0，那么肯定可以用16及更少的位来表示它，再检测其余十六位的前八位，如果不全为零，那么我们继续缩小范围，检测前八位的前四位……</p>
-<p>具体怎么实现还是参考的网上的，两个主要操作：计数和缩小范围</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> a0,a1,a2,a4,a8,a16;</span><br><span class="line">   <span class="type">int</span> w;<span class="comment">//位数</span></span><br><span class="line">   <span class="type">int</span> sign=x&gt;&gt;<span class="number">31</span>;<span class="comment">//如果是正数返回全0，如果是负数返回全1</span></span><br><span class="line">   x=(~sign&amp;x)|(sign&amp;~x);<span class="comment">//如果是非负数则返回x，如果是负数则按位取反</span></span><br><span class="line">   a16=(!!(x&gt;&gt;<span class="number">16</span>))&lt;&lt;<span class="number">4</span>;<span class="comment">//右移16位，两次取非，左移4；如果如果没出现1则高16位为0则返回0，如果出现1则非零则返回16</span></span><br><span class="line">   x=x&gt;&gt;a16;<span class="comment">//如果高十六位非零，右移16位；</span></span><br><span class="line">   a8=(!!(x&gt;&gt;<span class="number">8</span>))&lt;&lt;<span class="number">3</span>;<span class="comment">//如果前十六位为0，则检测其前24位，如果无1，则返回0，如果出现1，则返回8；如果前十六位不为0，则检测32~25位，如果为0则返回0，否则返回8</span></span><br><span class="line">   x=x&gt;&gt;a8;<span class="comment">//如果a8非零则右移8位；</span></span><br><span class="line">   a4=(!!(x&gt;&gt;<span class="number">4</span>)&lt;&lt;<span class="number">2</span>);<span class="comment">//如果前8位为零的话，检测其前28位；如果前8位不为为零的话，这一步检测其前四位（32~29位），如果非零则返回4，为零返回0；</span></span><br><span class="line">   x=x&gt;&gt;a4;</span><br><span class="line">   a2=!!(x&gt;&gt;<span class="number">2</span>)&lt;&lt;<span class="number">1</span>;<span class="comment">//如果24位为零的话，则只检测其前30位，为零则返回0，出现1则返回2；</span></span><br><span class="line">   x=x&gt;&gt;a2;<span class="comment">//如果a2非零则右移四位</span></span><br><span class="line">   a1=!!(x&gt;&gt;<span class="number">1</span>);<span class="comment">//如果前30位为零的话，则检测其前31位。</span></span><br><span class="line">   x=x&gt;&gt;a1;<span class="comment">//如果a1非零则右移两位</span></span><br><span class="line">   a0=x;<span class="comment">//如果前31位为零，那么x要么是1，要么是0</span></span><br><span class="line">   w=a0+a1+a2+a4+a8+a16+<span class="number">1</span>;</span><br><span class="line">   <span class="keyword">return</span> w;<span class="comment">//1是符号位</span></span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="float"><a href="#float" class="headerlink" title="float"></a>float</h2><p>float型 符号 阶码 尾数位分别为 1、8、23，</p>
-<p>规格化的，尾数以隐含的1开头，E&#x3D;e-bias</p>
-<p>非规格化的，尾数无隐含的1，E&#x3D;1-bias</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328115316.png"></p>
-<h3 id="floatScale2"><a href="#floatScale2" class="headerlink" title="floatScale2"></a>floatScale2</h3><p>Return bit-level equivalent of expression 2*f for floating point argument f.将传来的参数当成float的位级表示，返回浮点数乘2的位级表示，如果是NAN和极大值(阶码全部为1)则返回0x800000(1000 0000)</p>
-<p>思路：对于规格话数，乘2只需要将阶码+1，其它位保持不变</p>
-<p> 非规格化的数左移一位即可得到2倍，原因见下图。参考：<a href="https://blog.csdn.net/qq_43855740/article/details/106843924">https://blog.csdn.net/qq_43855740/article/details/106843924</a></p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328140534.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;   <span class="comment">//拿1来举例子0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> s=((uf&gt;&gt;<span class="number">31</span>)&lt;&lt;<span class="number">31</span>);<span class="comment">//符号            0    0000 0000    0000 0000 0000 0000 0000 000 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> e=((uf&gt;&gt;<span class="number">23</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码     0    0000 0000    0000 0000 0000 0000 0000 000</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> m=((uf&lt;&lt;<span class="number">9</span>)&gt;&gt;<span class="number">9</span>);<span class="comment">//获得尾数           0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0</span>)</span><br><span class="line">   <span class="keyword">return</span> (uf&lt;&lt;<span class="number">1</span>)|s;<span class="comment">//非规格化数左移1位变为两倍，再恢复其符号位</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0x7f800000</span>)<span class="comment">//无穷大和非规格化数 无穷大的二倍还是无穷大</span></span><br><span class="line">   <span class="keyword">return</span> uf;</span><br><span class="line">  e=(((uf&gt;&gt;<span class="number">23</span>)+<span class="number">1</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码+1 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> r=s+e+m;</span><br><span class="line">  <span class="keyword">return</span> r;                     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="floatFloat2Int"><a href="#floatFloat2Int" class="headerlink" title="floatFloat2Int"></a>floatFloat2Int</h3><p>Return bit-level equivalent of expression (int) f  for floating point argument f.将浮点型转换为位级等价整数 Anything out of range (including NaN and infinity) should return 0x80000000u.</p>
-<p>取出他的符号 指数和尾数。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">    <span class="type">int</span> s=uf&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;<span class="comment">//取符号</span></span><br><span class="line">     <span class="type">int</span> e=(uf&lt;&lt;<span class="number">1</span>&gt;&gt;<span class="number">24</span>)<span class="number">-127</span>;<span class="comment">//e属于(-127~126)</span></span><br><span class="line">     <span class="type">int</span> m=uf&lt;&lt;<span class="number">9</span>&gt;&gt;<span class="number">9</span>;<span class="comment">//尾数</span></span><br><span class="line">     m=m+<span class="number">0x800000</span>;</span><br><span class="line">     <span class="type">int</span> r=<span class="number">0x80000000</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)<span class="comment">//小数点左移，实际的数就是0.xxx</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">31</span>)<span class="comment">//溢出，包括NaN</span></span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">23</span>)</span><br><span class="line">        m=(m&lt;&lt;(e<span class="number">-23</span>));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        m=(m&gt;&gt;(<span class="number">23</span>-e));</span><br><span class="line">    <span class="type">int</span> mSign=m&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(s)<span class="comment">//如果传来的参数是负数，那么我们直接将得到的数取反</span></span><br><span class="line">      <span class="keyword">return</span> -m;</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//传参为正数</span></span><br><span class="line">      <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="floatPower2"><a href="#floatPower2" class="headerlink" title="floatPower2"></a>floatPower2</h3><p>Return bit-level equivalent of the expression 2.0^x  (2.0 raised to the power x) for any 32-bit integer x.以浮点数形式返回2^x&#x3D;r</p>
-<p>2的多少次方，其尾数全零，隐含1，我们只需要将e改为127+x即可</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="type">int</span> e=x+<span class="number">127</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;=<span class="number">255</span>) </span><br><span class="line">        <span class="keyword">return</span> <span class="number">0x7F000000</span>u;<span class="comment">//返回+INF（正无穷大）</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> (e&lt;&lt;<span class="number">23</span>)|<span class="number">0</span>;</span><br><span class="line">       </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328212413.png"></p>
-<p>完结撒花</p>
+<h1 id="第三章-程序的机器级表示"><a href="#第三章-程序的机器级表示" class="headerlink" title="第三章  程序的机器级表示"></a>第三章  程序的机器级表示</h1><h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>从十六位过渡到64位不显得突兀，在指令后面加了字符后缀，确定大小<img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114357.png"></p>
+<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114424.png"></p>
+<h2 id="访问信息"><a href="#访问信息" class="headerlink" title="访问信息"></a>访问信息</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405120704.png"></p>
+<h2 id="ATT和Intel"><a href="#ATT和Intel" class="headerlink" title="ATT和Intel"></a>ATT和Intel</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405122311.png"></p>
+<p>之前接触的是intel的导致我以为这里出现了错误</p>
+<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><p>更新一点对栈的认知，之前一直以为将栈顶的值pop之后，内存中的值会消失，原来值会一直存在，直到被覆盖。</p>
+<h2 id="算术和逻辑操作"><a href="#算术和逻辑操作" class="headerlink" title="算术和逻辑操作"></a>算术和逻辑操作</h2><h3 id="算术操作"><a href="#算术操作" class="headerlink" title="算术操作"></a>算术操作</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405214930.png"></p>
+<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405220431.png"></p>
+<h2 id="函数传参和寄存器的关系"><a href="#函数传参和寄存器的关系" class="headerlink" title="函数传参和寄存器的关系"></a>函数传参和寄存器的关系</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230406093404.png"></p>
+<p>是按照这个顺序进行传参，并且返回值默认是ax。</p>
 ]]></content>
       <tags>
-        <tag>lab</tag>
+        <tag>阅读</tag>
+        <tag>CSAPP</tag>
       </tags>
   </entry>
   <entry>
@@ -1437,91 +1522,6 @@
       <tags>
         <tag>csapp</tag>
         <tag>lab</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>csapp笔记</title>
-    <url>/2022/12/21/csapp/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
-<h1 id="第一章-计算机系统漫游"><a href="#第一章-计算机系统漫游" class="headerlink" title="第一章 计算机系统漫游"></a>第一章 计算机系统漫游</h1><p>不知道是个人的原因，还是此章节比较特殊的原因，读了一遍，感觉没有进脑子什么东西。查看了一些笔记，说是有一定的C语言基础即可阅读，而第一章更是给读者们找自信的一个章节，这使我十分的迷茫。遇到困难我们就要勇敢的面对困难，硬着头皮整理一下吧。</p>
-<span id="more"></span>
-
-<h5 id="信息就是位-上下文"><a href="#信息就是位-上下文" class="headerlink" title="信息就是位+上下文"></a>信息就是位+上下文</h5><p>0和1组成位，也成为比特，八个位组成一组称为字节。系统之中所有的信息都是由一串比特表示的，区分不同数据对象的唯一方法就是对照上下文。举个简单的例子，0110 0100，这么一串比特，它既能表示二进制数，又能表示ASCII对应的值d，具体表示什么要联系上下文。</p>
-<h5 id="了解编译系统如何工作的益处（书上这么写的不是我总结的）"><a href="#了解编译系统如何工作的益处（书上这么写的不是我总结的）" class="headerlink" title="了解编译系统如何工作的益处（书上这么写的不是我总结的）"></a>了解编译系统如何工作的益处（书上这么写的不是我总结的）</h5><p>1.优化程序性能</p>
-<p>2.理解链接时出现的错误</p>
-<p>3.避免安全漏洞</p>
-<h5 id="了解shell"><a href="#了解shell" class="headerlink" title="了解shell"></a>了解shell</h5><p>第一章中不停的在提及shell。shell是一个命令解释器，他输出一个提示符，等待输入一个命令符，然后执行这个命令。简单的理解一下，Windows系统中我们打开一个程序需要点击其图像，Linux则需要我们输入命令行来打开，shell就是那个供用户输入命令行的程序。shell是一个应用程序，连接了用户和linux内核。参考：(<a href="http://c.biancheng.net/view/706.html">http://c.biancheng.net/view/706.html</a>)</p>
-<h5 id="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"><a href="#系统是硬件和软件互相交织的集合体（简单介绍一下硬件）" class="headerlink" title="系统是硬件和软件互相交织的集合体（简单介绍一下硬件）"></a>系统是硬件和软件互相交织的集合体（简单介绍一下硬件）</h5><h6 id="1-总线"><a href="#1-总线" class="headerlink" title="1.总线"></a>1.总线</h6><p>像神经一样，贯穿于整个系统，携带信息字节并负责在各个部门传递</p>
-<h6 id="2-I-x2F-O设备"><a href="#2-I-x2F-O设备" class="headerlink" title="2.I&#x2F;O设备"></a>2.I&#x2F;O设备</h6><p>及输入&#x2F;输出设备，键盘、鼠标为输入设备，显示器和磁盘为输出设备。</p>
-<h6 id="3-主存"><a href="#3-主存" class="headerlink" title="3.主存"></a>3.主存</h6><p>主存是一个临时存储设备，在处理器执行程序时，用来存放程序和程序处理的数据。</p>
-<h6 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4.处理器"></a>4.处理器</h6><p>中央处理单元（CPU），简称处理器，世界是（或执行）存储在主存中指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向主存中的某条机器语言指令（即含有该指令的地址）。</p>
-<h5 id="不大不小的疑惑"><a href="#不大不小的疑惑" class="headerlink" title="不大不小的疑惑"></a>不大不小的疑惑</h5><p>此时年轻懵懂的我不明白为什么有很多很多人念着Linux系统的好，Windows这种图形化控着与此相比有什么难以弥补的劣势？据说以后工作实践中，项目大多也是基于Linux完成的，有时间了一定好好了解一下其中的内幕。</p>
-<h1 id="第二章-信息的表示和处理"><a href="#第二章-信息的表示和处理" class="headerlink" title="第二章 信息的表示和处理"></a>第二章 信息的表示和处理</h1><h6 id="研究数字的实际表示的意义"><a href="#研究数字的实际表示的意义" class="headerlink" title="研究数字的实际表示的意义"></a>研究数字的实际表示的意义</h6><p> 能够了解可以表时得知和不同算术运算的属性。从而使程序正确工作，更具可移植性，更安全。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224173354.png"></p>
-<h6 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h6><p>大多数计算机使用8位的块（字节）作为最小的可寻址的内存单元。机器级的程序将内存视为一个非常大的字节数组，称为虚拟内存。内存的每个字节都由一个唯一的数字来标识，称为它的地址。所有可能地址的集合称为虚拟地址空间。</p>
-<h6 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h6><p>二进制表示起来过用冗长，而十进制与二进制的转化很麻烦，十六进制表示起来很方便。如果二进制位数不是4的倍数，最左侧补0。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230224174927.png"></p>
-<p>j代表的是16进制0的数量。前面的i是1的数量，注意只能是1,11,111,1111这四种表示。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307203238.png"></p>
-<h5 id="整型"><a href="#整型" class="headerlink" title="整型"></a>整型</h5><h6 id="字数据大小"><a href="#字数据大小" class="headerlink" title="字数据大小"></a>字数据大小</h6><p>字长决定虚拟地址空间的最大大小，我们常说的32位64位都是指的字长，32位字长虚拟地址空间为2的32次方及4GB。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204456.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307204729.png"></p>
-<p>#include&lt;stdint.h&gt;中有关于int32_t等的宏定义，确定的大小可以避免很多麻烦，程序的可移植性也更高。</p>
-<h6 id="寻址和字节顺序"><a href="#寻址和字节顺序" class="headerlink" title="寻址和字节顺序"></a>寻址和字节顺序</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307205643.png"></p>
-<p>可以这样说，大端是更符合我们日常思维的那一种。两种端序没有优劣之分，选择哪种字节顺序没有技术上的理由。我们只需选择一种并且始终如一地坚持。</p>
-<h6 id="C语言中的逻辑运算"><a href="#C语言中的逻辑运算" class="headerlink" title="C语言中的逻辑运算"></a>C语言中的逻辑运算</h6><p>逻辑运算和按位运算有很大的不同，其一逻辑运算中所有的非零参数都表示TRUE，0参表FALSE，其二，如果对第一个参数求值就能确定表达式的结果，那么逻辑运算就不会对第二个参数求值。</p>
-<h6 id="C语言中的移位运算"><a href="#C语言中的移位运算" class="headerlink" title="C语言中的移位运算"></a>C语言中的移位运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307222226.png"></p>
-<p>几乎所有的编译器都对有符号数使用算数右移（保留最高位），对于无符号数，右移必须是逻辑的。Java中x&gt;&gt;&gt;k是逻辑右移，x&gt;&gt;k是算数右移。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230307223156.png"></p>
-<h6 id="强制类型转换"><a href="#强制类型转换" class="headerlink" title="强制类型转换"></a>强制类型转换</h6><p>强制类型转换结果保持位不变，改变的是对位的解析方式</p>
-<h6 id="有符号和无符号处理"><a href="#有符号和无符号处理" class="headerlink" title="有符号和无符号处理"></a>有符号和无符号处理</h6><p>当表达式中同时出现也有符号和无符号，那么C语言会隐式的将有符号数转换为无符号数（位不变），例如表达式-1&lt;0u返回的结果是0，也就是表达式错误，因为将-1的补码按照无符号数来解析。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324010451.png"></p>
-<p>看着好像没什么问题，但是当len等于0，在运算0-1时，计算机会当作0+(-1),因为默认是有符号，而len是无符号的。所以(-1)要从补码转换成无符号数也就是T2U，也就是UMax，所以程序会进入死循环，并且访问到a的非法元素。</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324012052.png"></p>
-<p>A.当s比t短的时候会错误的返回1</p>
-<p>B.两数相减得到负数会当作无符号数处理，最高位为1也就是一个很大的数大于零</p>
-<p>C.改为return strlen(s)&gt;strlen(t)</p>
-<h6 id="扩展一个数字的位表示"><a href="#扩展一个数字的位表示" class="headerlink" title="扩展一个数字的位表示"></a>扩展一个数字的位表示</h6><p>如果想扩展一个数字，只需要在它的最高位补上n个符号位，比如说101表示-3，在最左侧加1变为1101还是表示-3，我们可以看到它最高位与后一位的和-8+4&#x3D;-4这也是扩展前符号位的值，我们再给它扩展一位变为11101它还是表示-3，对于非负数我们只需在其前面补上0即可，正好今天在做datalab的howManyBits，和这个正好是相关的，刚开始看到网上师傅举得例子还有点懵，为啥101和1101代表的都是-3，所以我们可以知道有无数种形式的补码可以表示-3，而101是最短的一种。</p>
-<h6 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h6><p>截断无符号数：</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230324001954.png"></p>
-<h6 id="对于整数运算最后的思考-模运算"><a href="#对于整数运算最后的思考-模运算" class="headerlink" title="对于整数运算最后的思考 模运算"></a>对于整数运算最后的思考 模运算</h6><p>计算机执行整数运算实际上是一种模运算，什么是模运算呢？模运算也就是求余运算，在前面我们可以看到几乎所有的溢出都采取了模最高位取余数的方法。补码的表示，可以使正数加上负数的补码等于减去其原码比如</p>
-<figure class="highlight basic"><table><tr><td class="code"><pre><span class="line"><span class="number">3</span>-<span class="number">2</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>-<span class="number">0000</span> <span class="number">0010</span>=  <span class="number">0000</span> <span class="number">0001</span></span><br><span class="line"><span class="symbol">0000 </span><span class="number">0011</span>+<span class="number">1111</span> <span class="number">1110</span>=<span class="number">1</span> <span class="number">0000</span> <span class="number">0001</span>//最高位舍去</span><br></pre></td></tr></table></figure>
-
-<h5 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h5><h6 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h6><p>二进制小数，小数点左边是二的非负权（非负幂），小数点右边是二的负权，这一点和十进制小数并无区别。</p>
-<p>二进制小数只能精确的表示形如（x*2的y次幂）的数</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091512.png"></p>
-<h6 id="IEEE浮点数表示"><a href="#IEEE浮点数表示" class="headerlink" title="IEEE浮点数表示"></a>IEEE浮点数表示</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327091842.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327092231.png"></p>
-<p>正如书中提到的，浮点数看起来比较深奥难懂，但它是建立在小而一致的原则之上的。</p>
-<p>根据exp的值，可以分为三种不同的情况，规格化的、非规格化的或特殊值</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093637.png"></p>
-<h6 id="规格化得值"><a href="#规格化得值" class="headerlink" title="规格化得值"></a>规格化得值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327093742.png"></p>
-<p>小数点在f段最高位的左侧，隐含的以1开头表示。</p>
-<h6 id="偏置值"><a href="#偏置值" class="headerlink" title="偏置值"></a>偏置值</h6><p>这个师傅讲的比较简单明了：</p>
-<p>拿单精度来说，（规格化）e的取值范围是0000 0001<del>1111 1110也就是1</del>254，肯定不能只使用无符号表示，因为这样只能表示非负数，所以使用E&#x3D;e-Bias，其范围就是-126<del>127，那么为什么不直接用补码表示e呢？这样E的范围就是1111 1111</del>0111 1111&#x3D;（-128~127），可以看出使用偏置和使用补码表示的范围相差不大，还可以不用考虑符号</p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327134820.png"></p>
-<h6 id="非规格化的值"><a href="#非规格化的值" class="headerlink" title="非规格化的值"></a>非规格化的值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327094556.png"></p>
-<h6 id="特殊值"><a href="#特殊值" class="headerlink" title="特殊值"></a>特殊值</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327095039.png"></p>
-<h6 id="舍入"><a href="#舍入" class="headerlink" title="舍入"></a>舍入</h6><p>浮点数浮点数采用向偶数最接近的偶数舍入的方法，这样对与那些处在中间的数在50%的时间里会向上舍入(1.5—&gt;2)，在另外的50%的时间会向下舍入(2.5—&gt;2)。</p>
-<h6 id="浮点数运算"><a href="#浮点数运算" class="headerlink" title="浮点数运算"></a>浮点数运算</h6><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210735.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230327210747.png"></p>
-<p>下面是对3丢失的解释，所以说浮点数计算不符合结合律</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">对于float</span> <span class="string">符号位</span> <span class="string">阶码</span> <span class="string">尾数分别为</span> <span class="number">1</span> <span class="number">8</span> <span class="number">23</span></span><br><span class="line"><span class="number">1e10</span> <span class="string">=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0000</span><span class="string">）</span></span><br><span class="line">     <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0000 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">表示成浮点数</span>   <span class="string">bias=127</span> <span class="string">所以E=127+33=160=1010</span> <span class="number">0000</span></span><br><span class="line"><span class="number">1e10</span></span><br><span class="line"><span class="string">浮点数：0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span> </span><br><span class="line"><span class="number">1e10</span><span class="string">+3=</span> <span class="number">0010 </span><span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">010</span><span class="string">（0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">）</span></span><br><span class="line">      <span class="string">=1.0</span> <span class="number">0101 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">1011 </span><span class="number">1110 </span><span class="number">0100 </span><span class="number">0000 </span><span class="number">0011 </span><span class="string">X</span> <span class="number">2</span><span class="string">^33</span></span><br><span class="line"><span class="string">浮点数</span> <span class="string">=0</span> <span class="number">1010 </span><span class="number">0000 </span><span class="number">0010 </span><span class="number">1010 </span><span class="number">0000 </span><span class="number">0101 </span><span class="number">1111 </span><span class="number">0010</span></span><br><span class="line"><span class="string">可以看出后面括号里的的3=0</span> <span class="number">0000 </span><span class="number">0011</span><span class="string">直接被舍掉了</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="第三章-程序的机器级表示"><a href="#第三章-程序的机器级表示" class="headerlink" title="第三章  程序的机器级表示"></a>第三章  程序的机器级表示</h1><h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>从十六位过渡到64位不显得突兀，在指令后面加了字符后缀，确定大小<img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114357.png"></p>
-<p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405114424.png"></p>
-<h2 id="访问信息"><a href="#访问信息" class="headerlink" title="访问信息"></a>访问信息</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405120704.png"></p>
-<h2 id="ATT和Intel"><a href="#ATT和Intel" class="headerlink" title="ATT和Intel"></a>ATT和Intel</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405122311.png"></p>
-<p>之前接触的是intel的导致我以为这里出现了错误</p>
-<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><p>更新一点对栈的认知，之前一直以为将栈顶的值pop之后，内存中的值会消失，原来值会一直存在，直到被覆盖。</p>
-<h2 id="算术和逻辑操作"><a href="#算术和逻辑操作" class="headerlink" title="算术和逻辑操作"></a>算术和逻辑操作</h2><h3 id="算术操作"><a href="#算术操作" class="headerlink" title="算术操作"></a>算术操作</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405214930.png"></p>
-<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230405220431.png"></p>
-<h2 id="函数传参和寄存器的关系"><a href="#函数传参和寄存器的关系" class="headerlink" title="函数传参和寄存器的关系"></a>函数传参和寄存器的关系</h2><p><img src="/2022/12/21/csapp/QQ%E6%88%AA%E5%9B%BE20230406093404.png"></p>
-<p>是按照这个顺序进行传参，并且返回值默认是ax。</p>
-]]></content>
-      <tags>
-        <tag>阅读</tag>
-        <tag>CSAPP</tag>
       </tags>
   </entry>
   <entry>
