@@ -205,8 +205,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2024-01-10 00:10:10" itemprop="dateCreated datePublished" datetime="2024-01-10T00:10:10+08:00">2024-01-10</time>
+              <time title="创建时间：2024-01-10 00:10:10 / 修改时间：00:11:00" itemprop="dateCreated datePublished" datetime="2024-01-10T00:10:10+08:00">2024-01-10</time>
             </span>
 
           <br>
@@ -215,7 +216,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>549</span>
+              <span>550</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -237,43 +238,14 @@
           <h3 id="控制流扁平化"><a href="#控制流扁平化" class="headerlink" title="控制流扁平化"></a>控制流扁平化</h3><p>目的是展平程序的控制流程图。</p>
 <p>测试源码：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> &#123;</span><br><span class="line">  <span class="type">int</span> a = atoi(argv[<span class="number">1</span>]);</span><br><span class="line">  <span class="keyword">if</span>(a == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>gcc编译：<img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240110000230.png"></p>
-<p>clang-4.0 -mllvm -fla -mllvm -split -mllvm -split_num&#x3D;3 test01.c -o test01混淆：</p>
-<p><img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240110000220.png"></p>
-<p>大量的while构成的无限循环，可读性十分差<img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240110000428.png"></p>
-<h3 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h3><blockquote>
-<p>此方法通过在当前基本块之前添加一个基本块来修改函数调用图。这个新的基本块包含一个不透明的谓词，然后有条件地跳转到原始的基本块。</p>
-<p>原始的基本块也被克隆并填充了随机选择的垃圾指令。</p>
-</blockquote>
-<p><strong>不透明谓词：</strong>指的是<strong>一个表达式</strong>，它的值是确定的，但是对于分析者，程序不执行到特定位置是个很难知道真假的。静态分析器也无法推断出这个值。<img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109223155.png"></p>
-<p><img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109223232.png"></p>
-<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/46259412">(9 封私信 &#x2F; 80 条消息) 利用不透明谓词混淆代码的原理是什么？ - 知乎 (zhihu.com)</a></p>
-<p>测试源代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> &#123;</span><br><span class="line">  <span class="type">int</span> a = atoi(argv[<span class="number">1</span>]);</span><br><span class="line">  <span class="keyword">if</span>(a == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>gcc直接编译得到：</p>
-<p><img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109223351.png"></p>
-<p>流程图：<img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109223415.png"></p>
-<p>clang -mllvm -bcf选项处理编译：<img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109223527.png"></p>
-<p>流程图：<img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109223546.png"></p>
-<p>这里的不透明谓词是</p>
-<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">( y &gt;= <span class="number">10</span> &amp;&amp; (((<span class="name">x</span> - <span class="number">1</span>) * x) &amp; <span class="number">1</span>) != <span class="number">0</span> )</span><br></pre></td></tr></table></figure>
-
-<p>((x - 1) * x)奇数乘偶数，得到的必然是偶数，偶数二进制形式最低位必然为0，所以不满足不等于0，&amp;&amp;的右侧表达式结果必然为假，无论y取何值，do while都不会执行第二次。</p>
-<h3 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h3><p>可以实现加法、减法、和、或、异或的替换。也就是说可以把简单的运算用一种复杂的方法实现。</p>
-<p>源码：</p>
-<p><img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109171021.png"></p>
-<p>先用gcc编译得到一个参考对照程序，就是c&#x3D;a+b</p>
-<p><img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109170749.png"></p>
-<p>经过**-sub**选项处理</p>
-<p><img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109170810.png"></p>
-<p>ecx存放5，edx存放3，esi存放0，esi&#x3D;esi-ecx （-5），ecx存放0，ecx&#x3D;ecx-edx（-3）,esi&#x3D;esi+ecx，（-8）eax&#x3D;eax-esi（8），实现的效果就是5+3–&gt;-((-5)+(-3))<img src="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/QQ%E6%88%AA%E5%9B%BE20240109172441.png"></p>
-<p><strong>-mllvm -sub_loop&#x3D;x</strong></p>
-<p>使用该选项可以实现指定处理的次数x。</p>
-<p>下一篇文章介绍如何对抗ollvm混淆。</p>
-<p>参考：<a target="_blank" rel="noopener" href="https://github.com/obfuscator-llvm/obfuscator/wiki/Control-Flow-Flattening">Control Flow Flattening · obfuscator-llvm&#x2F;obfuscator Wiki · GitHub</a></p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/01/10/OLLVM%E8%BF%9B%E9%98%B6/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
