@@ -87,7 +87,8 @@
   <entry>
     <title>Android学习篇（一）</title>
     <url>/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h3 id="apk"><a href="#apk" class="headerlink" title="apk"></a>apk</h3><p>APK 的全称是 Android Package，它扩展名为 .apk。APK 是 Android 应用程序的包文件格式。它是 Android 操作系统上安装应用程序的文件类型。APK 实际上是一个<strong>压缩包</strong>，其中包含了应用程序的所有文件，包括代码、资源、图像、音频和其他数据。APK 文件是将应用程序打包并分发到 Android 设备上的主要方式。在电脑上只要将.apk后缀改为7z就可以用压缩工具打开了。</p>
+    <content><![CDATA[<h3 id="Android简介"><a href="#Android简介" class="headerlink" title="Android简介"></a>Android简介</h3><p>Android是一种基于Linux的操作系统。</p>
+<h3 id="apk"><a href="#apk" class="headerlink" title="apk"></a>apk</h3><p>APK 的全称是 Android Package，它扩展名为 .apk。APK 是 Android 应用程序的包文件格式。它是 Android 操作系统上安装应用程序的文件类型。APK 实际上是一个<strong>压缩包</strong>，其中包含了应用程序的所有文件，包括代码、资源、图像、音频和其他数据。APK 文件是将应用程序打包并分发到 Android 设备上的主要方式。在电脑上只要将.apk后缀改为7z就可以用压缩工具打开了。</p>
 <span id="more"></span>
 
 <table>
@@ -126,6 +127,10 @@
 <td>这个文件是资源表文件，包含了应用程序使用的所有资源的索引和定义。</td>
 </tr>
 </tbody></table>
+<h3 id="Android四大组件"><a href="#Android四大组件" class="headerlink" title="Android四大组件"></a>Android四大组件</h3><h4 id="Activities"><a href="#Activities" class="headerlink" title="Activities"></a>Activities</h4><p>描述UI，并且处理用户与机器屏幕的交互。简单来说，一个界面就是一个activity。</p>
+<h4 id="Services"><a href="#Services" class="headerlink" title="Services"></a>Services</h4><p> 处理与应用程序关联的后台操作。服务试运行在后台，执行长时间操作的组件。例如后台播放音乐。</p>
+<h4 id="BroadcastReceivers-广播接收器"><a href="#BroadcastReceivers-广播接收器" class="headerlink" title="BroadcastReceivers(广播接收器)"></a>BroadcastReceivers(广播接收器)</h4><p>处理Android操作系统和应用程序之间的通信。广播接收器简单地响应从其他应用程序或者系统发来的广播消息。举个例子，应用程序可以发起广播来让其他应用程序知道一些数据已经被下载到设备，并且可以供给他们使用。广播接收器会拦截这些通信并采取适当的行动。</p>
+<h4 id="ContenProviders-内容提供者"><a href="#ContenProviders-内容提供者" class="headerlink" title="ContenProviders(内容提供者)"></a>ContenProviders(内容提供者)</h4><p> 处理数据和数据库管理方面的问题。</p>
 <h3 id="MT管理器"><a href="#MT管理器" class="headerlink" title="MT管理器"></a>MT管理器</h3><p>MT管理器（MT Manager）是一款功能强大的Android文件管理器和应用程序管理工具。它提供了许多高级功能和工具，可以帮助用户对安装在Android设备上的应用程序和文件进行管理、编辑、查看和修改。</p>
 <h3 id="双开即原理"><a href="#双开即原理" class="headerlink" title="双开即原理"></a>双开即原理</h3><p>双开即在手机上打开两个相同应用，比如打开两个微信或者QQ。一台设备通常不允许两个名字相同的应用同时运行，因此我们可以通过修改包名的方法进行双开。</p>
 <p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231014181313.png"></p>
@@ -136,7 +141,7 @@
 <p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015022605.png"></p>
 <p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231014192448.png"></p>
 <p>将程序的英文部分翻译成中文呢，直接进入课程挑战<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231014192831.png"></p>
-<p>进入mt管理器，选择安装包之后，右上角三道杠，选择查看，点击高级搜索，下面文本输入hello，然后就定位到了jf.xml，通过前面的学习，我们知道了<strong>res目录</strong>用于存放编译后的资源文件的地方，例如图像、布局文件、<strong>字符串</strong>等。</p>
+<p>进入mt管理器，选择安装包之后，右上角三道杠，选择查看，点击高级搜索（全局搜索），下面文本输入hello，然后就定位到了jf.xml，通过前面的学习，我们知道了<strong>res目录</strong>用于存放编译后的资源文件的地方，例如图像、布局文件、<strong>字符串</strong>等。</p>
 <p><img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015014947.png">点击选择反编译,然后找到hello字符串修改成中文的<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015012902.png"></p>
 <p>然后点击保存，并返回，勾选上自动签名，然后点击安装，发现安装失败，这是因为系统检测到了APK的签名发生了变化，我们可以通过卸载之前的应用避开这个问题，当然还有别的解决方案，只是现在为时尚早，就直接卸载再安装<img src="/2023/10/15/Android%E5%AD%A6%E4%B9%A0%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231015014300.png"></p>
 <p>你好 吾爱破解。</p>
@@ -727,7 +732,7 @@
 <p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610021138.png"></p>
 <p>功能呢就是弹出一个这样的错误窗口。这个程序的核心就是调用了一个messagebox函数弹出了一个窗口。由于我们是要对pe文件进行操作，所以肯定不是将代码写入，而是要将机器码插入。就是利于栈传第四个参数0，然后call。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610021641.png"></p>
 <ol>
-<li><p>构造要写入的代码 6A 00 6A 00 6A 00 6A 00 E8（call）xx xx，我们看到的FF是(near jump)要使用一个什么导入表（后面会学），而我们插入的时候E8利用相对便宜量调用函数。E8后面跟四个字节的相对偏移量offset，怎么计算？还好了解过汇编，offset&#x3D;要跳转的地方的地址-call指令下面一条指令的地址。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610022933.png"></p>
+<li><p>构造要写入的代码 6A 00 6A 00 6A 00 6A 00 E8（call）xx xx，我们看到的FF是(near jump)要使用一个什么导入表（后面会学），而我们插入的时候E8利用相对偏移量调用函数。E8后面跟四个字节的相对偏移量offset，怎么计算？还好了解过汇编，offset&#x3D;要跳转的地方的地址-call指令下面一条指令的地址。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610022933.png"></p>
 <p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610023052.png"></p>
 <p>将图一标记位置改为call 1c1023 得到图二，后面的0A&#x3D;1c1023-1c1019.我们的目标指示让他弹出窗口，不能破坏程序运行，所以弹出之后我们还要跳回到初始位置，让程序正常运行，我们使用JMP（E9）指令来实现该操作，E9后面也是跟偏移量，用法与E8相同。找到messagebox的地址75858A70。根据call指令的位置来计算。<img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610031033.png"></p>
 <p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610031802.png"></p>
@@ -738,7 +743,7 @@
 <p><img src="/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/QQ%E6%88%AA%E5%9B%BE20230610034457.png"></p>
 </li>
 </ol>
-<p>在108处占4个字节，我们插入的程序起始位置是000003A0.然后，然后就没然后了，程序运行不起，ida和od看到的东西都很奇怪，延误了两天，这里我直接说一下才的坑，我随意找了一个空白处填充机器码，但后来发现不是所有的位置都能发生跳转，然后就将指令插入在了text段的末尾，然后发现跳转的有些差异，不会跳转在我设置的地方，后知后觉的发现，视频里的老哥演示的的时候拿的是一个文件对齐和内存对齐相同大小的程序，我用的程序是一个不同的，所以就要计算一下 用我们前面学习到的知识。下面理一下步骤</p>
+<p>在108处占4个字节，我们插入的程序起始位置是000003A0.然后，然后就没然后了，程序运行不起，ida和od看到的东西都很奇怪，延误了两天，这里我直接说一下踩的坑，我随意找了一个空白处填充机器码，但后来发现不是所有的位置都能发生跳转，然后就将指令插入在了text段的末尾，然后发现跳转的有些差异，不会跳转在我设置的地方，后知后觉的发现，视频里的老哥演示的的时候拿的是一个文件对齐和内存对齐相同大小的程序，我用的程序是一个不同的，所以就要计算一下 用我们前面学习到的知识。下面理一下步骤</p>
 <ol>
 <li>首先在文件中确定一段空间，然后运行程序的时候查看 是否为空</li>
 <li>插入，根据内存中的位置计算</li>
@@ -2708,6 +2713,33 @@
 ]]></content>
       <tags>
         <tag>计算机网络</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>idapython用法</title>
+    <url>/2024/03/13/idapython%E7%94%A8%E6%B3%95/</url>
+    <content><![CDATA[<h3 id="去除简单的花指令"><a href="#去除简单的花指令" class="headerlink" title="去除简单的花指令"></a>去除简单的花指令</h3><p>在main函数存在多个这样的花指令<img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240301201158.png"></p>
+<p>永真跳转导致ida解析失败，只需要将jz、jnz那里nop掉即可</p>
+<span id="more"></span>![](idapython用法/QQ截图20240301202407.png)
+
+<p>也就是红框框住的部分，将这五个字节的内容全部填充为nop（0x90）。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> idc</span><br><span class="line"></span><br><span class="line">start=<span class="number">0x4005BF</span></span><br><span class="line">end=<span class="number">0x401DA2</span></span><br><span class="line"></span><br><span class="line">strlen=end-start</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(strlen):</span><br><span class="line">  curaddr=start+index</span><br><span class="line">  tmpValue0=idc.get_wide_dword(curaddr)</span><br><span class="line">  <span class="keyword">if</span>(tmpValue0==<span class="number">0x01750374</span>):    <span class="comment">#注意小端序</span></span><br><span class="line">     <span class="built_in">print</span>(curaddr)</span><br><span class="line">     ida_bytes.patch_dword(curaddr,<span class="number">0x90909090</span>)</span><br><span class="line">     ida_bytes.patch_byte(curaddr+<span class="number">4</span>,<span class="number">0x90</span>)</span><br><span class="line">     <span class="comment">#没有找到更简洁的方法，参考wp是直接用的replace 没有找到那个api</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;ok&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="idapthon与smc"><a href="#idapthon与smc" class="headerlink" title="idapthon与smc"></a>idapthon与smc</h3><p><img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240313010043.png"></p>
+<p>逻辑很简单，就是将一段长度为0x39的数据异或上一个固定的数值，动态调试的话也很容易，只是工作量有点大，使用idapython会很舒服。</p>
+<p>思路就是根据<strong>相对距离</strong>读取数据进行patch</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">start=<span class="number">0x140001000</span></span><br><span class="line">end=<span class="number">0x140001460</span></span><br><span class="line"></span><br><span class="line">strlen=end-start</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(strlen):</span><br><span class="line">  curaddr=start+index</span><br><span class="line">  tmpValue=idc.get_wide_dword(curaddr)</span><br><span class="line">  <span class="keyword">if</span>(tmpValue==<span class="number">0x39FA8348</span>):      <span class="comment">#小端序 cmp rdx,39h</span></span><br><span class="line">     <span class="built_in">print</span>(curaddr)</span><br><span class="line">     xorData=idc.get_wide_byte(curaddr-<span class="number">4</span>)           <span class="comment">#异或的数据</span></span><br><span class="line">     <span class="built_in">print</span>(xorData)</span><br><span class="line">     <span class="keyword">for</span> index1 <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0x39</span>):</span><br><span class="line">           data=idc.get_wide_byte(curaddr+<span class="number">6</span>+index1)</span><br><span class="line">           ida_bytes.patch_byte(curaddr+<span class="number">6</span>+index1,(xorData^data))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;ok&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>刚开始写反了几个小错误，这里着重记录一下.</p>
+<p>获取数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">idc.get_wide_byte(address)</span><br><span class="line"></span><br><span class="line">idc.get_wide_word(address)</span><br><span class="line"></span><br><span class="line">idc.get_wide_dword(address)</span><br></pre></td></tr></table></figure>
+
+<p>patch：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ida_bytes.patch_byte(address,data)</span><br><span class="line"></span><br><span class="line">ida_bytes.patch_word(address,data)</span><br><span class="line"></span><br><span class="line">……</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>idapython</tag>
       </tags>
   </entry>
 </search>
