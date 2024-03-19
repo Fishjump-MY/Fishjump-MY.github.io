@@ -414,6 +414,56 @@
       </tags>
   </entry>
   <entry>
+    <title>DUBHEctf_Destination</title>
+    <url>/2024/03/19/DUBHEctf-Destination/</url>
+    <content><![CDATA[<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319002958.png"></p>
+<span id="more"></span>
+
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003154.png"></p>
+<p>没有看到加密过程，能确定的就是input和cpdata，初步判断，猫腻应该在debugbreak那里。动调一下，直接退出，是有反调试。断点下在输入之前</p>
+<p>，还是直接闪退。查看一下main函数之前做了什么。<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003947.png"></p>
+<p>经过查看，可以定位到scrt_common_main函数有反调试，<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319004317.png"></p>
+<p>在这个函数中，可以看到36行调用了invoke_main函数，而invoke_main调用了main函数，所以任务很简单，让其执行到这里即可。经过单步调试发现，在执行完26行之后，程序就卡死了，尝试了一下将这条指令nop掉，成功。然后保存文件。</p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010513.png"></p>
+<p>在读取完四十五字节的输入之后，有一个int 3的系统调用，而在此之前，还自定义了int 3的处理函数，也就是sub_4140d7,<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010709.png"></p>
+<p>经动调分析，这里就是主加密部分了，这一段是不能反编译的，因为参杂着大量的花指令，一类是利用call的假跳转<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010910.png"></p>
+<p>另一类是jz、jnz的永真跳转</p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011213.png"></p>
+<p>动态跟了数条指令之后猜测可能是tea加密，因为有几条指令是按位移动</p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011350.png"></p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011438.png"></p>
+<p>可以发现规律，每一个基本块中只有一条是真正的指令，其余的要么是花指令，要么是跳转指令。可以利用trace将执行部分高亮处理，然后将其余部分nop掉。</p>
+<p>选择instruction trace，然后一直f8<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319012403.png"></p>
+<p>执行到很长时间不再提示将数据解析为代码时，就差不多了，此时就可以比较轻松的去除花指令和无效数据了，但是由于大量的跳转，我猜测有可能f5失败。另一种方法就是提取所有的有效指令，对于上图，有效指令就是xor eax，ecx，然后提取出来机器码，最终将所有的机器码提取出来，再patch进去。从最开始的<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319013551.png"></p>
+<p>提取一个push ebp机器码是0x55，然后忽略jmp指令的机器码，来到下一个块，同样只提取一条有用的指令……最后patch到push ebp的位置<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014005.png"></p>
+<p>然后按p解析成函数，<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014308.png"></p>
+<p>正如我们的猜测，是xxtea</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236&#125;;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1[<span class="number">12</span>]=&#123;<span class="number">0xc44ea811</span>,<span class="number">0xd98ae0d6</span>,<span class="number">0x984227d4</span>,<span class="number">0x1080a783</span>,<span class="number">0xf994d294</span>,<span class="number">0xc4ce08ce</span>,<span class="number">0x3d40ab34</span>,<span class="number">0x97960549</span>,<span class="number">0xfbae12d0</span>,<span class="number">0xb776de91</span>,<span class="number">0x4a3f6dd3</span>,<span class="number">0xb115b2e9</span>&#125;;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;&#125;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> key[]=&#123;<span class="number">0x6B0E7A6B</span>, <span class="number">0xD13011EE</span>, <span class="number">0xA7E12C6D</span>, <span class="number">0xC199ACA6</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> e = <span class="number">0</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> z;</span><br><span class="line"><span class="type">int</span> y;</span><br><span class="line"><span class="type">int</span> myrounds =<span class="number">50</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> sum=<span class="number">0x2B3AD324</span>;              </span><br><span class="line">y=v1[<span class="number">0</span>];          </span><br><span class="line"><span class="keyword">do</span>               <span class="comment">//decoding</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    e = (sum &gt;&gt; <span class="number">2</span>) &amp; <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0xb</span>;i&gt;<span class="number">0</span>;i--)         <span class="comment">//v11    v1</span></span><br><span class="line">    &#123;</span><br><span class="line">        z=v1[i<span class="number">-1</span>];</span><br><span class="line">        y=v1[i]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    &#125;</span><br><span class="line">    z=v1[<span class="number">11</span>];         <span class="comment">// v0        z v11   y v1</span></span><br><span class="line">    y=v1[<span class="number">0</span>]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    sum+=<span class="number">0x5B4B9F9E</span>;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">while</span> (--myrounds);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,v1[i]);  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>本来以为这就结束了，拿比较数据操作的一遍，果然没这么简单。在22mu师傅的不断摸索下，发现调用完这个xxtea之后，esp又落到了函数的开始，也就是xxtea被连续调用了两次。然后就是尝试两次解密，还是不对。</p>
+<p>这时候就开始考虑反调试修改数据之类的了，在以前的比赛因为反调试栽过不少跟头，基本上对xxtea的每一个变量都进行了交叉引用，没发现什么异常。然后返回一开始查看，发现input那里存在一处可疑的交叉引用。<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015134.png"></p>
+<p>代码量很少，但是很诡异<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015305.png"></p>
+<p>可以说没有人类逻辑。</p>
+<p>3cly师傅靠着题目刚开始的提示“ HEAVEN or HELL?”，在看雪发现了<a href="https://taardisaa.github.io/2021/09/25/Heaven'sGate/">天堂之门技术 | Taardis’s blog (taardisaa.github.io)</a></p>
+<p>这篇文章，就是在32位程序运行64位的代码，将这个函数dump下来，随便找一个64位的程序patch进去</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">558BEC81ECC00000005356578BFD33C9B8CCCCCCCCF3AB5756415641574831FF8B34BDA83442004D31F64989F749C1EF1F4983FF01750AD1E681F62F97A684EB02D1E649FFC64983FE2075DE8934BDA834420048FFC74883FF0C75C4415F415E5E5F6A2368F379410048CB</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015748.png"></p>
+<p>简单明了了，首先判断符号位，如果为1，先右移一位，在异或。如果不为1，则直接右移一位。这里的异或数据末尾为1，所以和右移一位后（最低位为0）的数据异或后末尾为1。直接右移的末尾为0。可以根据此将32位还原</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> cpdata[<span class="number">12</span>] = &#123;<span class="number">0xA790FAD6</span>, <span class="number">0xE8C8A277</span>, <span class="number">0xCF0384FA</span>, <span class="number">0x2E6C7FD7</span>, <span class="number">0x6D33968B</span>, <span class="number">0x5B57C227</span>, <span class="number">0x653CA65E</span>, <span class="number">0x85C6F1FC</span>, <span class="number">0xE1F32577</span>, <span class="number">0xD4D7AE76</span>, <span class="number">0x3FAF6DC4</span>, <span class="number">0x0D599D8C</span>&#125;;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">unsigned</span>  <span class="type">int</span> tmp=cpdata[i];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">32</span>;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(tmp&amp;<span class="number">0x1</span>==<span class="number">1</span>)  <span class="comment">//末位为1</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=((tmp^<span class="number">0x84A6972F</span>)&gt;&gt;<span class="number">1</span>)|<span class="number">0x80000000</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=tmp&gt;&gt;<span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        cpdata[i]=tmp;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,cpdata[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236</span></span><br></pre></td></tr></table></figure>
+
+<p>加密逻辑：xxtea –&gt;xxtea—&gt;位操作</p>
+<p>解密逻辑：位操作–&gt;xxtea–&gt;xxtea</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//第一次填充从上面的位操作得出来的数据，第二次操作填充上一次xxtea的解密结果</span></span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236&#125;;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1[<span class="number">12</span>]=&#123;<span class="number">0xc44ea811</span>,<span class="number">0xd98ae0d6</span>,<span class="number">0x984227d4</span>,<span class="number">0x1080a783</span>,<span class="number">0xf994d294</span>,<span class="number">0xc4ce08ce</span>,<span class="number">0x3d40ab34</span>,<span class="number">0x97960549</span>,<span class="number">0xfbae12d0</span>,<span class="number">0xb776de91</span>,<span class="number">0x4a3f6dd3</span>,<span class="number">0xb115b2e9</span>&#125;;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;&#125;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> key[]=&#123;<span class="number">0x6B0E7A6B</span>, <span class="number">0xD13011EE</span>, <span class="number">0xA7E12C6D</span>, <span class="number">0xC199ACA6</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> e = <span class="number">0</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> z;</span><br><span class="line"><span class="type">int</span> y;</span><br><span class="line"><span class="type">int</span> myrounds =<span class="number">50</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> sum=<span class="number">0x2B3AD324</span>;              </span><br><span class="line">y=v1[<span class="number">0</span>];          </span><br><span class="line"><span class="keyword">do</span>               <span class="comment">//decoding</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    e = (sum &gt;&gt; <span class="number">2</span>) &amp; <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0xb</span>;i&gt;<span class="number">0</span>;i--)         <span class="comment">//v11    v1</span></span><br><span class="line">    &#123;</span><br><span class="line">        z=v1[i<span class="number">-1</span>];</span><br><span class="line">        y=v1[i]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    &#125;</span><br><span class="line">    z=v1[<span class="number">11</span>];         <span class="comment">// v0        z v11   y v1</span></span><br><span class="line">    y=v1[<span class="number">0</span>]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    sum+=<span class="number">0x5B4B9F9E</span>;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">while</span> (--myrounds);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,v1[i]);  </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//0x68627544,0x46544365,0x6532387b,0x66336531,0x35382d38,0x36346566,0x382d6639,0x64393934,0x2d383464,0x61363634,0x30366439,0x7d</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//转换大小端</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> v[<span class="number">12</span>] = &#123;<span class="number">0x68627544</span>,<span class="number">0x46544365</span>,<span class="number">0x6532387b</span>,<span class="number">0x66336531</span>,<span class="number">0x35382d38</span>,<span class="number">0x36346566</span>,<span class="number">0x382d6639</span>,<span class="number">0x64393934</span>,<span class="number">0x2d383464</span>,<span class="number">0x61363634</span>,<span class="number">0x30366439</span>,<span class="number">0x7d</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">12</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">sizeof</span>(<span class="type">unsigned</span> <span class="type">int</span>); j++) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>, (v[i] &gt;&gt; (j * <span class="number">8</span>)) &amp; <span class="number">0xFF</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//DubheCTF&#123;82e1e3f8-85fe469f-8499dd48-466a9d60&#125;</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>wp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>GitHub高效搜索开源项目指南</title>
     <url>/2023/10/10/GitHub%E9%AB%98%E6%95%88%E6%90%9C%E7%B4%A2%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E6%8C%87%E5%8D%97/</url>
     <content><![CDATA[<p>互联网这么多年，我花了这么多钱，养肥了这么多人，不就留着今天用的吗！</p>
@@ -550,6 +600,36 @@
       <tags>
         <tag>java</tag>
         <tag>language</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>OLLVM对抗</title>
+    <url>/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/</url>
+    <content><![CDATA[<p>题目：[RoarCTF2019]polyre</p>
+<h3 id="去除控制流平坦化"><a href="#去除控制流平坦化" class="headerlink" title="去除控制流平坦化"></a>去除控制流平坦化</h3><p><img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319205955.png"></p>
+<span id="more"></span>
+
+<p>一眼看出是控制流平坦化后的程序，可以使用deflat.py去除常规的混淆。</p>
+<p>在配置了angr的环境运行</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">python deflat.py attachment</span><br></pre></td></tr></table></figure>
+
+<p>可以得到attachment_recovered文件。</p>
+<h3 id="去除虚假控制流"><a href="#去除虚假控制流" class="headerlink" title="去除虚假控制流"></a>去除虚假控制流</h3><p>这是去除平坦化之后的程序</p>
+<p><img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319210458.png"></p>
+<p>看流程图更明显一些<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319210617.png"></p>
+<p>可以确定这是进行了虚假控制流的混淆，因为它的调转逻辑不受输入的影响，是既定的跳转，所以我们可以将那些根本没执行过的指令nop掉。借助ida trace可以清晰明了的知道哪些执行过，哪些是假的。<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319211142.png"></p>
+<p>执行过的代码块都进行了高亮处理，只需将为执行的部分nop掉然后重新解析即可。<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319211349.png"></p>
+<p>反编译后逻辑很简单<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319211857.png"></p>
+<p>验证输入，首先判断大于零还是小于零，也就是检测最高位是否为1，如果小于零，也就是最高位为1，那么乘2也就是左移一位，再异或上一个数。如果最高位为0，那么仅左移一位。</p>
+<p>逆向过程就是判断最低位，直接左移的最低位为0。由于异或的数据最低位为1，所以经异或处理，最低位为1。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="type">int</span> cpdata[<span class="number">7</span>] = &#123;<span class="number">0xBC8FF26D43536296</span>, <span class="number">0x520100780530EE16</span>, <span class="number">0x4DC0B5EA935F08EC</span>, <span class="number">0x342B90AFD853F450</span>, <span class="number">0x8B250EBCAA2C3681</span>, <span class="number">0x55759F81A2C68AE4</span>, <span class="number">0xB0004B7679FA26B3</span>&#125;;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">7</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="type">int</span> tmp=cpdata[i];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">64</span>;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(tmp&amp;<span class="number">0x1</span>==<span class="number">1</span>)  <span class="comment">//末位为1</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=((tmp^<span class="number">0xB0004B7679FA26B3</span>)&gt;&gt;<span class="number">1</span>)|<span class="number">0x8000000000000000</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=tmp&gt;&gt;<span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        cpdata[i]=tmp;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">7</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;0x%llx,&quot;</span>,cpdata[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//0x6666367b67616c66,0x63362d3039333932,0x2d363563342d3032,0x3539612d30376162,0x6631643365383537,0x7d38,0x1,</span></span><br></pre></td></tr></table></figure>
+
+<p>最后大小端反转一下</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="type">int</span> v[<span class="number">7</span>] = &#123;<span class="number">0x6666367b67616c66</span>,<span class="number">0x63362d3039333932</span>,<span class="number">0x2d363563342d3032</span>,<span class="number">0x3539612d30376162</span>,<span class="number">0x6631643365383537</span>,<span class="number">0x7d38</span>,<span class="number">0x1</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">7</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;0x&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">sizeof</span>(<span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span>); j++) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%x&quot;</span>, (v[i] &gt;&gt; (j * <span class="number">8</span>)) &amp; <span class="number">0xFF</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;,&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//0x666c61677b366666,0x32393339302d3663,0x32302d346335362d,0x626137302d613935,0x3735386533643166,0x387d000000,0x10000000,</span></span><br><span class="line"><span class="comment">//flag&#123;6ff29390-6c20-4c56-ba70-a95758e3d1f8&#125;</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>OLLVM</tag>
       </tags>
   </entry>
   <entry>
@@ -1183,129 +1263,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>csapp.lab</title>
-    <url>/2023/03/24/csapp-lab/</url>
-    <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
-
-<span id="more"></span>
-
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
-<li><a href="https://blog.csdn.net/FlamelNW/article/details/123039299">https://blog.csdn.net/FlamelNW/article/details/123039299</a></li>
-<li></li>
-</ul>
-<h2 id="int"><a href="#int" class="headerlink" title="int"></a>int</h2><h3 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h3><p>x^y using only ~ and &amp;,用按位运算~和&amp;实现异或。</p>
-<p>&amp;是1、1的时候返回1，^是0、1的时候返回1,就拿4和5举例子吧</p>
-<p>4：0100  0100 1011 1010 0101 1011</p>
-<p>5：0101  0100 1010 1010 0101 1011</p>
-<p>x、y是未知的，所以进行~运算的时候一定是对他两个同时。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> z=<span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> w=<span class="number">0</span>;</span><br><span class="line">  z=x&amp;y;<span class="comment">//0100</span></span><br><span class="line">  x=~x;<span class="comment">//1011</span></span><br><span class="line">  y=~y;<span class="comment">//1010</span></span><br><span class="line">  w=x&amp;y;<span class="comment">//1010</span></span><br><span class="line">  w=~w;<span class="comment">//0101</span></span><br><span class="line">  z=~z;<span class="comment">//1011</span></span><br><span class="line">  z=z&amp;w;<span class="comment">//0001</span></span><br><span class="line">  <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png"></p>
-<p>成功，其实很大程度是连蒙带猜的，毕竟就这两种运算。看看大佬是怎么分析的<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png"></p>
-<p>思路：用(x&amp;y)定位出共同的1所在，用(<del>x&amp;</del>y)定位出共同的0所在，其余部位就是既有1又有0啦，然后非全0部位和非全1部位进行&amp;运算<del>(x&amp;y)&amp;</del>(<del>x&amp;</del>y)</p>
-<h3 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h3><p>return minimum two’s complement integer，返回补码最小值。</p>
-<p>对于一个正数，它的二进制形式就是它的原码，正数的原码补码反码相同。</p>
-<p>对于一个负数，反码是将除符号位以外的位全部取反，补码就是将反码加上1。</p>
-<p>对于-1</p>
-<p>原码：1000 0001</p>
-<p>反码：1111 1110</p>
-<p>补码：1111 1111</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png"></p>
-<p>补码最小值，及第32位为1，其余位为0</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">   <span class="type">int</span> min =<span class="number">1</span>;</span><br><span class="line">   min=min&lt;&lt;<span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h3><p>returns 1 if x is the maximum, two’s complement number,and 0 otherwise，传来的参数是补码的最大值则返回1，其余情况返回0。</p>
-<p>从上图我们可以看到，补码的最大值紧挨着补码的最小值，所以我们只要将最小值减1即可，可是题目不允许使用移位操作符。</p>
-<p>经过很长时间的思考，发现根本表示不出最大值，参考了一下，豁然开朗，可以假设传入的参数就是就是最大值。我们可以看出最大值有一个特性，那就是max+1&#x3D;<del>(max+1),也不能完全说是特性吧，因为-1也拥有这个属性，仅此两个。首先我们可以通过max^(</del>(max+1)),如果其值返回0那我们可以锁定-1和max这两种情况,接下来我们在排除其是-1这种情况。我们只要找出-1的特性即可，(-1+1)&amp;-1&#x3D;0,其他的任何数都满足不了这一点。这种做法可以实现函数功能，却没有满足操作符的数量，使用了11个操作符，题目规定不能大于10。参考过后修改一下操作数变成9啦。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">isMax</span><span class="params">(<span class="type">int</span> x)</span><span class="comment">//如果是max则返回1，其余返回0</span></span><br><span class="line">&#123; <span class="comment">//int a=((x+1)&amp;~0);//如果x等于-1则返回0，其余的所有数都是非零</span></span><br><span class="line">  <span class="type">int</span> a=x+<span class="number">1</span>;<span class="comment">//这样也能判断是否为-1</span></span><br><span class="line">  <span class="type">int</span> b=(x^(~(x+<span class="number">1</span>)));<span class="comment">//如果是max或—1则返回0，其余的会返回非0</span></span><br><span class="line">  <span class="type">int</span> c=!!(!a)^(!b);！！可以使非零值返回<span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>参考一下<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png"></p>
-<h3 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h3><p>return 1 if all odd-numbered bits in word set to 1，如果所有的奇数位都为1则返回1，最左侧为第31位，最右侧为第0位。</p>
-<p>我们可以看看奇数位为1的数有什么共同点。<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png"></p>
-<p>额，这我只能说是毫无头绪好吧。奇数位必须为1，偶数位不做要求。灵光一现：左移偶数位，得到的数一定是负数。然而并没有什么卵用。直接选择参考。data&#x3D;1010 1010(32位)，参数x^data,如果x满足要求，则返回data。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//题目要求可以使用的最大的数为0xff即1010 1010 我们要通过移位操作构造出32位奇数位全为1的data</span></span><br><span class="line"><span class="type">int</span> a=<span class="number">0xAA</span>;<span class="comment">//1010 1010</span></span><br><span class="line"><span class="type">int</span> a2=a&lt;&lt;<span class="number">8</span>|a;<span class="comment">//1010 1010 x 2</span></span><br><span class="line"><span class="type">int</span> data=((a2&lt;&lt;<span class="number">16</span>)|a2);<span class="comment">//1010 1010 x 4 32位</span></span><br><span class="line"><span class="type">int</span> mid=x&amp;data;<span class="comment">//x的偶数位全部变成0，奇数位是1则1，是0则0,即如果x奇数位全部为1则返回data</span></span><br><span class="line"><span class="type">int</span> final=mid^data；<span class="comment">//如果x为符合，则mid==data，则异或结果为0</span></span><br><span class="line"><span class="keyword">return</span> !final;<span class="comment">//final为0则符合，题目让返回1    </span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>可以这么说，这题要是不看点提示，想一天也想不来。还是按位操作这里有所欠缺。</p>
-<h3 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h3><p>return -x ，返回-x。即返回一个数的相反数</p>
-<p>这题比较简单，我们直接看一个数和他的相反数在二进制形式上有什么异同点。可以看出，只要按位取反再加上1即可</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//0000 0001   1</span></span><br><span class="line"><span class="comment">//1111 1111  -1</span></span><br><span class="line"><span class="comment">//0000 0010   2</span></span><br><span class="line"><span class="comment">//1111 1110  -2</span></span><br><span class="line"><span class="comment">//0111 1111   127</span></span><br><span class="line"><span class="comment">//1000 0001  -127</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x)+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h3><p>return 1 if 0x30 &lt;&#x3D; x &lt;&#x3D; 0x39 (ASCII codes for characters ‘0’ to ‘9’)，如果传来的参数是数字则反回1</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment">//0x30  0011 0000</span></span><br><span class="line"><span class="comment">//0x31  0011 0001</span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="comment">//0x39  0011 1001</span></span><br><span class="line"><span class="type">int</span> a=(x&gt;&gt;<span class="number">4</span>)^<span class="number">3</span>(<span class="number">0011b</span>);<span class="comment">//若a为0，则说明前28位相同，我们只用再判断后四位即可,若不同则返回值非零</span></span><br><span class="line"><span class="type">int</span> b=(x&gt;&gt;<span class="number">4</span>)^(x+((~<span class="number">10</span>)+<span class="number">1</span>)&gt;&gt;<span class="number">4</span>);<span class="comment">//后四位如果是0~9则返回非零，如果不是则返回0</span></span><br><span class="line"><span class="keyword">return</span> !(a|(!b));<span class="comment">//如果前28位相同，且后四位小于10则返回1</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>解释一下最后一行，假设x是数字，则a&#x3D;0，b≠0，c&#x3D;!b&#x3D;0，所以a|(!b)&#x3D;0，反之a|(!b)≠0，所以在前面加上一个！。</p>
-<h3 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h3><p>same as x ? y : z   如果x非零则返回y如果x为零则返回z。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=!!x;<span class="comment">//如果x为零则返回0，如果x非零则返回1</span></span><br><span class="line"><span class="type">int</span> b=(~a)+<span class="number">1</span>;<span class="comment">//如果a=0则返回0(全0)，如果a＝1则返回—1(全1)</span></span><br><span class="line"><span class="keyword">return</span> ((b&amp;y)+((~b)&amp;z));<span class="comment">//如果x为零则b为零，则返回z，反之返回y</span></span><br><span class="line"><span class="comment">//最后的return 也可以写成这样：return (b&amp;y)|((~b)&amp;z)</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h3><p>if x &lt;&#x3D; y  then return 1, else return 0  如果x&lt;&#x3D;y,返回1，反之返回0</p>
-<p>Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=x+((~y)+<span class="number">1</span>);<span class="comment">//a=x-y,如果a&lt;0，则a的最高位为1，如果a&gt;=0,最高位时0，这样有点不好实现，因为小于和等于没在一起</span></span><br><span class="line"><span class="type">int</span> b=y+((~x)+<span class="number">1</span>);<span class="comment">//b=y-x,如果y&gt;=x,则b的最高位为0，反之b的最高位为1</span></span><br><span class="line"><span class="type">int</span> c=b&gt;&gt;<span class="number">31</span>;<span class="comment">//如果成立则返回全0，如果不成立则返回全1</span></span><br><span class="line"><span class="keyword">return</span> c+<span class="number">1</span>；</span><br></pre></td></tr></table></figure>
-
-<p>本来以为简简单单大功告成，进行测试发现没分，cao,上面的方法只适合同符号比较。   y&gt;&#x3D;x等价于y-x&gt;&#x3D;0在数学是行得通的，可是在计算机中要考虑 溢出问题。也就是可能会出现一些比较诡异的情况：</p>
-<p>当y&lt;0,x&gt;0时，可能出现y-x&gt;0的情况，比如1000 0000-0000 0001<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png"></p>
-<p>可以看到，由于第一位的1变成了0，所以就变成了正数。</p>
-<p>当y&gt;0,x&lt;0时，可能出现y-x&lt;0的情况，比如0000 0001-1000 0000<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png"></p>
-<p>有什么是可以肯定的呢，符号不同时，正数肯定比负数大，符号相同时看差值。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//我测真的烦</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> singX=(x&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//如果不&amp;1，负数情况下就会返回-1</span></span><br><span class="line">    <span class="type">int</span> signY=(y&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="type">int</span> signY_X=((y+(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//y-x如果大于等于则返回0，小于则返回1</span></span><br><span class="line">    <span class="type">int</span> checknSign=signX^signY;<span class="comment">//相同为0，不同为1</span></span><br><span class="line">    <span class="keyword">return</span> (!checkSign&amp;!signY_X)|(checkSign&amp;signX)</span><br><span class="line">&#125;          符号相同，看差的符号         符号不同时，x&lt;<span class="number">0</span>则返回<span class="number">1</span></span><br></pre></td></tr></table></figure>
-
-<p>这个return比较长，我们分开来看一下其实很简单，</p>
-<p>左半部分：!checkSign&amp;!signY_X，符号相等的情况，符号相等不用考虑溢出的问题，我们可以直接根据差值的符号进行大小的判断，符号相等则check为0，signY_X如果满足则为0，否则为1，这里我们倒换一下，也就是满足时返回1，不满足时返回0，如果出现符号不相等，则左半部分返回0</p>
-<p>右半部分：如果符号相同则右半部分返回0，如果符号不同，那么我们只需要看x的符号即可，如果x是负数，一定满足条件则返回他的符号1</p>
-<p>反思：卡在这里很久很久，因为什么？？？一个很重要的原因对按位运算|掌握得不够熟悉，看到很多师傅的解前面有很多都使用了|，从这一题往后很难不用到|，不能再简单的使用加减。</p>
-<h3 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h3><p>implement the ! operator, using all of   the legal operators except !</p>
-<p> Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
-<p>使用其他合规操作符实现！，也就是传入的参数为0则返回1，非零则返回0</p>
-<p>思路零：未完成</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//0   0000 0000     0的相反数是0 相反数和自身异或取其符号位，为零则为零，非零则为1</span></span><br><span class="line"><span class="comment">//正数 0000 1110</span></span><br><span class="line"><span class="comment">//负数 1000 0100</span></span><br><span class="line"><span class="comment">//0 异或0为0</span></span><br><span class="line">   <span class="type">int</span> signX=(X&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取x的符号，负数则为1</span></span><br><span class="line">   <span class="type">int</span> _signX=((~x+<span class="number">1</span>)&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取-x的符号</span></span><br><span class="line">   <span class="keyword">return</span> signX^_signX^<span class="number">1</span>;</span><br><span class="line">   <span class="comment">//零异或上自己的相反数为0，其他数为1，在异或上1，改变符号</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="type">int</span> xor0=(<span class="number">0</span>^x)&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;x为零和正数则为<span class="number">0</span>，负数返回<span class="number">1</span></span><br><span class="line">    <span class="comment">//我们需要这样一个数，等于零时返回1，其余时候返回0 死循环</span></span><br></pre></td></tr></table></figure>
-
-<p>运行失败，看以下错误原因</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png"></p>
-<p>0x80000也就是最小数10000000这里出现了错误，我们知道对于有符号整型，负数范围比正数大一，所以表示不出来最小数的相反数，这个数和零一样，相反数等于自身。收到一位师傅的启发，我们可以给符号位取反，这样0x80000的符号位就变成0，不造成影响</p>
-<p>思路一：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> _x=~x+<span class="number">1</span>;</span><br><span class="line">   <span class="type">int</span> sign=(((~x&amp;~_x))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign;</span><br><span class="line">   取反后非零数相反数进行&amp;运算符号位为<span class="number">0</span>，如果不进行取反操作则不能绕过<span class="number">0x8000</span>这个存在，它的相反数和自身符号相同都为<span class="number">1</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
-
-<p>思路二：</p>
-<p>一个非零数或上自己的相反数其符号位总是1，最小值0x8000也不例外，虽然它的相反数无法表示，但其最高位都是1</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> sign=(x|(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>;如果是零则返回<span class="number">0000</span>，非零则返回<span class="number">1111</span></span><br><span class="line">    <span class="keyword">return</span> sign+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>都是用到相反数，只是如果使用异或的话不可行，因为0和min的相反数最高位相同，所以只能考虑使用|或&amp;。</p>
-<h3 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h3><p>return the minimum number of bits required to represent x in   two’s complement    返回用二进制补码表示x的最小位数，比如1、0只用一位即可表示</p>
-<p>-1也是1，因为-1的补码是1111 1111其实等价于1，补码101和1101代表的都是-3，所以-3最少需要三位，补码的最高位是符号位，就像非负数01和001、0001代表的都是1，前面有多少0都无关紧要，对于负数的补码，前面有多少个1都无关紧要，用数学来解释的话就是最高的两位之和是个定值，对于101最高两位是-2&#x3D;-2，对于1101最高两位是-4+2&#x3D;-2。</p>
-<p>负数以补码的形式储存，正数的原码补码反码相同。思路：如果是整数那就检索其最高位的1的位置，如果1首先出现在了第三位，比如0101，最高位的1所在的位置就是3，那么这个数最少就可以用3+1位来表示,加的那个1是符号位。对于负数，我们检索其最高位0出现的位置，11101，0出现在第2位，那么最少可以用2+1（符号位）来表示此数，对于-1也就是全1，可以用1表示，仍然符合，也就是它的第0位是0然后我们加上1。</p>
-<p>那么怎么检索呢？一个一个来肯定是不能满足操作符数量上的要求的。可以用二分法，我们处理的int是32位的，我们可以先检测它的前十六位，比如说如果全部位0，那么肯定可以用16及更少的位来表示它，再检测其余十六位的前八位，如果不全为零，那么我们继续缩小范围，检测前八位的前四位……</p>
-<p>具体怎么实现还是参考的网上的，两个主要操作：计数和缩小范围</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> a0,a1,a2,a4,a8,a16;</span><br><span class="line">   <span class="type">int</span> w;<span class="comment">//位数</span></span><br><span class="line">   <span class="type">int</span> sign=x&gt;&gt;<span class="number">31</span>;<span class="comment">//如果是正数返回全0，如果是负数返回全1</span></span><br><span class="line">   x=(~sign&amp;x)|(sign&amp;~x);<span class="comment">//如果是非负数则返回x，如果是负数则按位取反</span></span><br><span class="line">   a16=(!!(x&gt;&gt;<span class="number">16</span>))&lt;&lt;<span class="number">4</span>;<span class="comment">//右移16位，两次取非，左移4；如果如果没出现1则高16位为0则返回0，如果出现1则非零则返回16</span></span><br><span class="line">   x=x&gt;&gt;a16;<span class="comment">//如果高十六位非零，右移16位；</span></span><br><span class="line">   a8=(!!(x&gt;&gt;<span class="number">8</span>))&lt;&lt;<span class="number">3</span>;<span class="comment">//如果前十六位为0，则检测其前24位，如果无1，则返回0，如果出现1，则返回8；如果前十六位不为0，则检测32~25位，如果为0则返回0，否则返回8</span></span><br><span class="line">   x=x&gt;&gt;a8;<span class="comment">//如果a8非零则右移8位；</span></span><br><span class="line">   a4=(!!(x&gt;&gt;<span class="number">4</span>)&lt;&lt;<span class="number">2</span>);<span class="comment">//如果前8位为零的话，检测其前28位；如果前8位不为为零的话，这一步检测其前四位（32~29位），如果非零则返回4，为零返回0；</span></span><br><span class="line">   x=x&gt;&gt;a4;</span><br><span class="line">   a2=!!(x&gt;&gt;<span class="number">2</span>)&lt;&lt;<span class="number">1</span>;<span class="comment">//如果24位为零的话，则只检测其前30位，为零则返回0，出现1则返回2；</span></span><br><span class="line">   x=x&gt;&gt;a2;<span class="comment">//如果a2非零则右移四位</span></span><br><span class="line">   a1=!!(x&gt;&gt;<span class="number">1</span>);<span class="comment">//如果前30位为零的话，则检测其前31位。</span></span><br><span class="line">   x=x&gt;&gt;a1;<span class="comment">//如果a1非零则右移两位</span></span><br><span class="line">   a0=x;<span class="comment">//如果前31位为零，那么x要么是1，要么是0</span></span><br><span class="line">   w=a0+a1+a2+a4+a8+a16+<span class="number">1</span>;</span><br><span class="line">   <span class="keyword">return</span> w;<span class="comment">//1是符号位</span></span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="float"><a href="#float" class="headerlink" title="float"></a>float</h2><p>float型 符号 阶码 尾数位分别为 1、8、23，</p>
-<p>规格化的，尾数以隐含的1开头，E&#x3D;e-bias</p>
-<p>非规格化的，尾数无隐含的1，E&#x3D;1-bias</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328115316.png"></p>
-<h3 id="floatScale2"><a href="#floatScale2" class="headerlink" title="floatScale2"></a>floatScale2</h3><p>Return bit-level equivalent of expression 2*f for floating point argument f.将传来的参数当成float的位级表示，返回浮点数乘2的位级表示，如果是NAN和极大值(阶码全部为1)则返回0x800000(1000 0000)</p>
-<p>思路：对于规格话数，乘2只需要将阶码+1，其它位保持不变</p>
-<p> 非规格化的数左移一位即可得到2倍，原因见下图。参考：<a href="https://blog.csdn.net/qq_43855740/article/details/106843924">https://blog.csdn.net/qq_43855740/article/details/106843924</a></p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328140534.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;   <span class="comment">//拿1来举例子0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> s=((uf&gt;&gt;<span class="number">31</span>)&lt;&lt;<span class="number">31</span>);<span class="comment">//符号            0    0000 0000    0000 0000 0000 0000 0000 000 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> e=((uf&gt;&gt;<span class="number">23</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码     0    0000 0000    0000 0000 0000 0000 0000 000</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> m=((uf&lt;&lt;<span class="number">9</span>)&gt;&gt;<span class="number">9</span>);<span class="comment">//获得尾数           0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0</span>)</span><br><span class="line">   <span class="keyword">return</span> (uf&lt;&lt;<span class="number">1</span>)|s;<span class="comment">//非规格化数左移1位变为两倍，再恢复其符号位</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0x7f800000</span>)<span class="comment">//无穷大和非规格化数 无穷大的二倍还是无穷大</span></span><br><span class="line">   <span class="keyword">return</span> uf;</span><br><span class="line">  e=(((uf&gt;&gt;<span class="number">23</span>)+<span class="number">1</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码+1 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> r=s+e+m;</span><br><span class="line">  <span class="keyword">return</span> r;                     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="floatFloat2Int"><a href="#floatFloat2Int" class="headerlink" title="floatFloat2Int"></a>floatFloat2Int</h3><p>Return bit-level equivalent of expression (int) f  for floating point argument f.将浮点型转换为位级等价整数 Anything out of range (including NaN and infinity) should return 0x80000000u.</p>
-<p>取出他的符号 指数和尾数。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">    <span class="type">int</span> s=uf&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;<span class="comment">//取符号</span></span><br><span class="line">     <span class="type">int</span> e=(uf&lt;&lt;<span class="number">1</span>&gt;&gt;<span class="number">24</span>)<span class="number">-127</span>;<span class="comment">//e属于(-127~126)</span></span><br><span class="line">     <span class="type">int</span> m=uf&lt;&lt;<span class="number">9</span>&gt;&gt;<span class="number">9</span>;<span class="comment">//尾数</span></span><br><span class="line">     m=m+<span class="number">0x800000</span>;</span><br><span class="line">     <span class="type">int</span> r=<span class="number">0x80000000</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)<span class="comment">//小数点左移，实际的数就是0.xxx</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">31</span>)<span class="comment">//溢出，包括NaN</span></span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">23</span>)</span><br><span class="line">        m=(m&lt;&lt;(e<span class="number">-23</span>));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        m=(m&gt;&gt;(<span class="number">23</span>-e));</span><br><span class="line">    <span class="type">int</span> mSign=m&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(s)<span class="comment">//如果传来的参数是负数，那么我们直接将得到的数取反</span></span><br><span class="line">      <span class="keyword">return</span> -m;</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//传参为正数</span></span><br><span class="line">      <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="floatPower2"><a href="#floatPower2" class="headerlink" title="floatPower2"></a>floatPower2</h3><p>Return bit-level equivalent of the expression 2.0^x  (2.0 raised to the power x) for any 32-bit integer x.以浮点数形式返回2^x&#x3D;r</p>
-<p>2的多少次方，其尾数全零，隐含1，我们只需要将e改为127+x即可</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="type">int</span> e=x+<span class="number">127</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;=<span class="number">255</span>) </span><br><span class="line">        <span class="keyword">return</span> <span class="number">0x7F000000</span>u;<span class="comment">//返回+INF（正无穷大）</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> (e&lt;&lt;<span class="number">23</span>)|<span class="number">0</span>;</span><br><span class="line">       </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328212413.png"></p>
-<p>完结撒花</p>
-]]></content>
-      <tags>
-        <tag>lab</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>csapp-shlab</title>
     <url>/2023/09/19/csapp-shlab/</url>
     <content><![CDATA[<p>实现一个简单的shell，光是看官方的pdf就看了半天。</p>
@@ -1441,6 +1398,129 @@
 ]]></content>
       <tags>
         <tag>csapp</tag>
+        <tag>lab</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>csapp.lab</title>
+    <url>/2023/03/24/csapp-lab/</url>
+    <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
+<li><a href="https://blog.csdn.net/FlamelNW/article/details/123039299">https://blog.csdn.net/FlamelNW/article/details/123039299</a></li>
+<li></li>
+</ul>
+<h2 id="int"><a href="#int" class="headerlink" title="int"></a>int</h2><h3 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h3><p>x^y using only ~ and &amp;,用按位运算~和&amp;实现异或。</p>
+<p>&amp;是1、1的时候返回1，^是0、1的时候返回1,就拿4和5举例子吧</p>
+<p>4：0100  0100 1011 1010 0101 1011</p>
+<p>5：0101  0100 1010 1010 0101 1011</p>
+<p>x、y是未知的，所以进行~运算的时候一定是对他两个同时。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> z=<span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> w=<span class="number">0</span>;</span><br><span class="line">  z=x&amp;y;<span class="comment">//0100</span></span><br><span class="line">  x=~x;<span class="comment">//1011</span></span><br><span class="line">  y=~y;<span class="comment">//1010</span></span><br><span class="line">  w=x&amp;y;<span class="comment">//1010</span></span><br><span class="line">  w=~w;<span class="comment">//0101</span></span><br><span class="line">  z=~z;<span class="comment">//1011</span></span><br><span class="line">  z=z&amp;w;<span class="comment">//0001</span></span><br><span class="line">  <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png"></p>
+<p>成功，其实很大程度是连蒙带猜的，毕竟就这两种运算。看看大佬是怎么分析的<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png"></p>
+<p>思路：用(x&amp;y)定位出共同的1所在，用(<del>x&amp;</del>y)定位出共同的0所在，其余部位就是既有1又有0啦，然后非全0部位和非全1部位进行&amp;运算<del>(x&amp;y)&amp;</del>(<del>x&amp;</del>y)</p>
+<h3 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h3><p>return minimum two’s complement integer，返回补码最小值。</p>
+<p>对于一个正数，它的二进制形式就是它的原码，正数的原码补码反码相同。</p>
+<p>对于一个负数，反码是将除符号位以外的位全部取反，补码就是将反码加上1。</p>
+<p>对于-1</p>
+<p>原码：1000 0001</p>
+<p>反码：1111 1110</p>
+<p>补码：1111 1111</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png"></p>
+<p>补码最小值，及第32位为1，其余位为0</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">   <span class="type">int</span> min =<span class="number">1</span>;</span><br><span class="line">   min=min&lt;&lt;<span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h3><p>returns 1 if x is the maximum, two’s complement number,and 0 otherwise，传来的参数是补码的最大值则返回1，其余情况返回0。</p>
+<p>从上图我们可以看到，补码的最大值紧挨着补码的最小值，所以我们只要将最小值减1即可，可是题目不允许使用移位操作符。</p>
+<p>经过很长时间的思考，发现根本表示不出最大值，参考了一下，豁然开朗，可以假设传入的参数就是就是最大值。我们可以看出最大值有一个特性，那就是max+1&#x3D;<del>(max+1),也不能完全说是特性吧，因为-1也拥有这个属性，仅此两个。首先我们可以通过max^(</del>(max+1)),如果其值返回0那我们可以锁定-1和max这两种情况,接下来我们在排除其是-1这种情况。我们只要找出-1的特性即可，(-1+1)&amp;-1&#x3D;0,其他的任何数都满足不了这一点。这种做法可以实现函数功能，却没有满足操作符的数量，使用了11个操作符，题目规定不能大于10。参考过后修改一下操作数变成9啦。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">isMax</span><span class="params">(<span class="type">int</span> x)</span><span class="comment">//如果是max则返回1，其余返回0</span></span><br><span class="line">&#123; <span class="comment">//int a=((x+1)&amp;~0);//如果x等于-1则返回0，其余的所有数都是非零</span></span><br><span class="line">  <span class="type">int</span> a=x+<span class="number">1</span>;<span class="comment">//这样也能判断是否为-1</span></span><br><span class="line">  <span class="type">int</span> b=(x^(~(x+<span class="number">1</span>)));<span class="comment">//如果是max或—1则返回0，其余的会返回非0</span></span><br><span class="line">  <span class="type">int</span> c=!!(!a)^(!b);！！可以使非零值返回<span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参考一下<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png"></p>
+<h3 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h3><p>return 1 if all odd-numbered bits in word set to 1，如果所有的奇数位都为1则返回1，最左侧为第31位，最右侧为第0位。</p>
+<p>我们可以看看奇数位为1的数有什么共同点。<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png"></p>
+<p>额，这我只能说是毫无头绪好吧。奇数位必须为1，偶数位不做要求。灵光一现：左移偶数位，得到的数一定是负数。然而并没有什么卵用。直接选择参考。data&#x3D;1010 1010(32位)，参数x^data,如果x满足要求，则返回data。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//题目要求可以使用的最大的数为0xff即1010 1010 我们要通过移位操作构造出32位奇数位全为1的data</span></span><br><span class="line"><span class="type">int</span> a=<span class="number">0xAA</span>;<span class="comment">//1010 1010</span></span><br><span class="line"><span class="type">int</span> a2=a&lt;&lt;<span class="number">8</span>|a;<span class="comment">//1010 1010 x 2</span></span><br><span class="line"><span class="type">int</span> data=((a2&lt;&lt;<span class="number">16</span>)|a2);<span class="comment">//1010 1010 x 4 32位</span></span><br><span class="line"><span class="type">int</span> mid=x&amp;data;<span class="comment">//x的偶数位全部变成0，奇数位是1则1，是0则0,即如果x奇数位全部为1则返回data</span></span><br><span class="line"><span class="type">int</span> final=mid^data；<span class="comment">//如果x为符合，则mid==data，则异或结果为0</span></span><br><span class="line"><span class="keyword">return</span> !final;<span class="comment">//final为0则符合，题目让返回1    </span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>可以这么说，这题要是不看点提示，想一天也想不来。还是按位操作这里有所欠缺。</p>
+<h3 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h3><p>return -x ，返回-x。即返回一个数的相反数</p>
+<p>这题比较简单，我们直接看一个数和他的相反数在二进制形式上有什么异同点。可以看出，只要按位取反再加上1即可</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//0000 0001   1</span></span><br><span class="line"><span class="comment">//1111 1111  -1</span></span><br><span class="line"><span class="comment">//0000 0010   2</span></span><br><span class="line"><span class="comment">//1111 1110  -2</span></span><br><span class="line"><span class="comment">//0111 1111   127</span></span><br><span class="line"><span class="comment">//1000 0001  -127</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x)+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h3><p>return 1 if 0x30 &lt;&#x3D; x &lt;&#x3D; 0x39 (ASCII codes for characters ‘0’ to ‘9’)，如果传来的参数是数字则反回1</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment">//0x30  0011 0000</span></span><br><span class="line"><span class="comment">//0x31  0011 0001</span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="comment">//0x39  0011 1001</span></span><br><span class="line"><span class="type">int</span> a=(x&gt;&gt;<span class="number">4</span>)^<span class="number">3</span>(<span class="number">0011b</span>);<span class="comment">//若a为0，则说明前28位相同，我们只用再判断后四位即可,若不同则返回值非零</span></span><br><span class="line"><span class="type">int</span> b=(x&gt;&gt;<span class="number">4</span>)^(x+((~<span class="number">10</span>)+<span class="number">1</span>)&gt;&gt;<span class="number">4</span>);<span class="comment">//后四位如果是0~9则返回非零，如果不是则返回0</span></span><br><span class="line"><span class="keyword">return</span> !(a|(!b));<span class="comment">//如果前28位相同，且后四位小于10则返回1</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>解释一下最后一行，假设x是数字，则a&#x3D;0，b≠0，c&#x3D;!b&#x3D;0，所以a|(!b)&#x3D;0，反之a|(!b)≠0，所以在前面加上一个！。</p>
+<h3 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h3><p>same as x ? y : z   如果x非零则返回y如果x为零则返回z。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=!!x;<span class="comment">//如果x为零则返回0，如果x非零则返回1</span></span><br><span class="line"><span class="type">int</span> b=(~a)+<span class="number">1</span>;<span class="comment">//如果a=0则返回0(全0)，如果a＝1则返回—1(全1)</span></span><br><span class="line"><span class="keyword">return</span> ((b&amp;y)+((~b)&amp;z));<span class="comment">//如果x为零则b为零，则返回z，反之返回y</span></span><br><span class="line"><span class="comment">//最后的return 也可以写成这样：return (b&amp;y)|((~b)&amp;z)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h3><p>if x &lt;&#x3D; y  then return 1, else return 0  如果x&lt;&#x3D;y,返回1，反之返回0</p>
+<p>Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=x+((~y)+<span class="number">1</span>);<span class="comment">//a=x-y,如果a&lt;0，则a的最高位为1，如果a&gt;=0,最高位时0，这样有点不好实现，因为小于和等于没在一起</span></span><br><span class="line"><span class="type">int</span> b=y+((~x)+<span class="number">1</span>);<span class="comment">//b=y-x,如果y&gt;=x,则b的最高位为0，反之b的最高位为1</span></span><br><span class="line"><span class="type">int</span> c=b&gt;&gt;<span class="number">31</span>;<span class="comment">//如果成立则返回全0，如果不成立则返回全1</span></span><br><span class="line"><span class="keyword">return</span> c+<span class="number">1</span>；</span><br></pre></td></tr></table></figure>
+
+<p>本来以为简简单单大功告成，进行测试发现没分，cao,上面的方法只适合同符号比较。   y&gt;&#x3D;x等价于y-x&gt;&#x3D;0在数学是行得通的，可是在计算机中要考虑 溢出问题。也就是可能会出现一些比较诡异的情况：</p>
+<p>当y&lt;0,x&gt;0时，可能出现y-x&gt;0的情况，比如1000 0000-0000 0001<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png"></p>
+<p>可以看到，由于第一位的1变成了0，所以就变成了正数。</p>
+<p>当y&gt;0,x&lt;0时，可能出现y-x&lt;0的情况，比如0000 0001-1000 0000<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png"></p>
+<p>有什么是可以肯定的呢，符号不同时，正数肯定比负数大，符号相同时看差值。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//我测真的烦</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> singX=(x&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//如果不&amp;1，负数情况下就会返回-1</span></span><br><span class="line">    <span class="type">int</span> signY=(y&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="type">int</span> signY_X=((y+(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//y-x如果大于等于则返回0，小于则返回1</span></span><br><span class="line">    <span class="type">int</span> checknSign=signX^signY;<span class="comment">//相同为0，不同为1</span></span><br><span class="line">    <span class="keyword">return</span> (!checkSign&amp;!signY_X)|(checkSign&amp;signX)</span><br><span class="line">&#125;          符号相同，看差的符号         符号不同时，x&lt;<span class="number">0</span>则返回<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这个return比较长，我们分开来看一下其实很简单，</p>
+<p>左半部分：!checkSign&amp;!signY_X，符号相等的情况，符号相等不用考虑溢出的问题，我们可以直接根据差值的符号进行大小的判断，符号相等则check为0，signY_X如果满足则为0，否则为1，这里我们倒换一下，也就是满足时返回1，不满足时返回0，如果出现符号不相等，则左半部分返回0</p>
+<p>右半部分：如果符号相同则右半部分返回0，如果符号不同，那么我们只需要看x的符号即可，如果x是负数，一定满足条件则返回他的符号1</p>
+<p>反思：卡在这里很久很久，因为什么？？？一个很重要的原因对按位运算|掌握得不够熟悉，看到很多师傅的解前面有很多都使用了|，从这一题往后很难不用到|，不能再简单的使用加减。</p>
+<h3 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h3><p>implement the ! operator, using all of   the legal operators except !</p>
+<p> Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<p>使用其他合规操作符实现！，也就是传入的参数为0则返回1，非零则返回0</p>
+<p>思路零：未完成</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//0   0000 0000     0的相反数是0 相反数和自身异或取其符号位，为零则为零，非零则为1</span></span><br><span class="line"><span class="comment">//正数 0000 1110</span></span><br><span class="line"><span class="comment">//负数 1000 0100</span></span><br><span class="line"><span class="comment">//0 异或0为0</span></span><br><span class="line">   <span class="type">int</span> signX=(X&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取x的符号，负数则为1</span></span><br><span class="line">   <span class="type">int</span> _signX=((~x+<span class="number">1</span>)&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取-x的符号</span></span><br><span class="line">   <span class="keyword">return</span> signX^_signX^<span class="number">1</span>;</span><br><span class="line">   <span class="comment">//零异或上自己的相反数为0，其他数为1，在异或上1，改变符号</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="type">int</span> xor0=(<span class="number">0</span>^x)&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;x为零和正数则为<span class="number">0</span>，负数返回<span class="number">1</span></span><br><span class="line">    <span class="comment">//我们需要这样一个数，等于零时返回1，其余时候返回0 死循环</span></span><br></pre></td></tr></table></figure>
+
+<p>运行失败，看以下错误原因</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png"></p>
+<p>0x80000也就是最小数10000000这里出现了错误，我们知道对于有符号整型，负数范围比正数大一，所以表示不出来最小数的相反数，这个数和零一样，相反数等于自身。收到一位师傅的启发，我们可以给符号位取反，这样0x80000的符号位就变成0，不造成影响</p>
+<p>思路一：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> _x=~x+<span class="number">1</span>;</span><br><span class="line">   <span class="type">int</span> sign=(((~x&amp;~_x))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign;</span><br><span class="line">   取反后非零数相反数进行&amp;运算符号位为<span class="number">0</span>，如果不进行取反操作则不能绕过<span class="number">0x8000</span>这个存在，它的相反数和自身符号相同都为<span class="number">1</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p>思路二：</p>
+<p>一个非零数或上自己的相反数其符号位总是1，最小值0x8000也不例外，虽然它的相反数无法表示，但其最高位都是1</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> sign=(x|(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>;如果是零则返回<span class="number">0000</span>，非零则返回<span class="number">1111</span></span><br><span class="line">    <span class="keyword">return</span> sign+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>都是用到相反数，只是如果使用异或的话不可行，因为0和min的相反数最高位相同，所以只能考虑使用|或&amp;。</p>
+<h3 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h3><p>return the minimum number of bits required to represent x in   two’s complement    返回用二进制补码表示x的最小位数，比如1、0只用一位即可表示</p>
+<p>-1也是1，因为-1的补码是1111 1111其实等价于1，补码101和1101代表的都是-3，所以-3最少需要三位，补码的最高位是符号位，就像非负数01和001、0001代表的都是1，前面有多少0都无关紧要，对于负数的补码，前面有多少个1都无关紧要，用数学来解释的话就是最高的两位之和是个定值，对于101最高两位是-2&#x3D;-2，对于1101最高两位是-4+2&#x3D;-2。</p>
+<p>负数以补码的形式储存，正数的原码补码反码相同。思路：如果是整数那就检索其最高位的1的位置，如果1首先出现在了第三位，比如0101，最高位的1所在的位置就是3，那么这个数最少就可以用3+1位来表示,加的那个1是符号位。对于负数，我们检索其最高位0出现的位置，11101，0出现在第2位，那么最少可以用2+1（符号位）来表示此数，对于-1也就是全1，可以用1表示，仍然符合，也就是它的第0位是0然后我们加上1。</p>
+<p>那么怎么检索呢？一个一个来肯定是不能满足操作符数量上的要求的。可以用二分法，我们处理的int是32位的，我们可以先检测它的前十六位，比如说如果全部位0，那么肯定可以用16及更少的位来表示它，再检测其余十六位的前八位，如果不全为零，那么我们继续缩小范围，检测前八位的前四位……</p>
+<p>具体怎么实现还是参考的网上的，两个主要操作：计数和缩小范围</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> a0,a1,a2,a4,a8,a16;</span><br><span class="line">   <span class="type">int</span> w;<span class="comment">//位数</span></span><br><span class="line">   <span class="type">int</span> sign=x&gt;&gt;<span class="number">31</span>;<span class="comment">//如果是正数返回全0，如果是负数返回全1</span></span><br><span class="line">   x=(~sign&amp;x)|(sign&amp;~x);<span class="comment">//如果是非负数则返回x，如果是负数则按位取反</span></span><br><span class="line">   a16=(!!(x&gt;&gt;<span class="number">16</span>))&lt;&lt;<span class="number">4</span>;<span class="comment">//右移16位，两次取非，左移4；如果如果没出现1则高16位为0则返回0，如果出现1则非零则返回16</span></span><br><span class="line">   x=x&gt;&gt;a16;<span class="comment">//如果高十六位非零，右移16位；</span></span><br><span class="line">   a8=(!!(x&gt;&gt;<span class="number">8</span>))&lt;&lt;<span class="number">3</span>;<span class="comment">//如果前十六位为0，则检测其前24位，如果无1，则返回0，如果出现1，则返回8；如果前十六位不为0，则检测32~25位，如果为0则返回0，否则返回8</span></span><br><span class="line">   x=x&gt;&gt;a8;<span class="comment">//如果a8非零则右移8位；</span></span><br><span class="line">   a4=(!!(x&gt;&gt;<span class="number">4</span>)&lt;&lt;<span class="number">2</span>);<span class="comment">//如果前8位为零的话，检测其前28位；如果前8位不为为零的话，这一步检测其前四位（32~29位），如果非零则返回4，为零返回0；</span></span><br><span class="line">   x=x&gt;&gt;a4;</span><br><span class="line">   a2=!!(x&gt;&gt;<span class="number">2</span>)&lt;&lt;<span class="number">1</span>;<span class="comment">//如果24位为零的话，则只检测其前30位，为零则返回0，出现1则返回2；</span></span><br><span class="line">   x=x&gt;&gt;a2;<span class="comment">//如果a2非零则右移四位</span></span><br><span class="line">   a1=!!(x&gt;&gt;<span class="number">1</span>);<span class="comment">//如果前30位为零的话，则检测其前31位。</span></span><br><span class="line">   x=x&gt;&gt;a1;<span class="comment">//如果a1非零则右移两位</span></span><br><span class="line">   a0=x;<span class="comment">//如果前31位为零，那么x要么是1，要么是0</span></span><br><span class="line">   w=a0+a1+a2+a4+a8+a16+<span class="number">1</span>;</span><br><span class="line">   <span class="keyword">return</span> w;<span class="comment">//1是符号位</span></span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="float"><a href="#float" class="headerlink" title="float"></a>float</h2><p>float型 符号 阶码 尾数位分别为 1、8、23，</p>
+<p>规格化的，尾数以隐含的1开头，E&#x3D;e-bias</p>
+<p>非规格化的，尾数无隐含的1，E&#x3D;1-bias</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328115316.png"></p>
+<h3 id="floatScale2"><a href="#floatScale2" class="headerlink" title="floatScale2"></a>floatScale2</h3><p>Return bit-level equivalent of expression 2*f for floating point argument f.将传来的参数当成float的位级表示，返回浮点数乘2的位级表示，如果是NAN和极大值(阶码全部为1)则返回0x800000(1000 0000)</p>
+<p>思路：对于规格话数，乘2只需要将阶码+1，其它位保持不变</p>
+<p> 非规格化的数左移一位即可得到2倍，原因见下图。参考：<a href="https://blog.csdn.net/qq_43855740/article/details/106843924">https://blog.csdn.net/qq_43855740/article/details/106843924</a></p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328140534.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;   <span class="comment">//拿1来举例子0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> s=((uf&gt;&gt;<span class="number">31</span>)&lt;&lt;<span class="number">31</span>);<span class="comment">//符号            0    0000 0000    0000 0000 0000 0000 0000 000 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> e=((uf&gt;&gt;<span class="number">23</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码     0    0000 0000    0000 0000 0000 0000 0000 000</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> m=((uf&lt;&lt;<span class="number">9</span>)&gt;&gt;<span class="number">9</span>);<span class="comment">//获得尾数           0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0</span>)</span><br><span class="line">   <span class="keyword">return</span> (uf&lt;&lt;<span class="number">1</span>)|s;<span class="comment">//非规格化数左移1位变为两倍，再恢复其符号位</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0x7f800000</span>)<span class="comment">//无穷大和非规格化数 无穷大的二倍还是无穷大</span></span><br><span class="line">   <span class="keyword">return</span> uf;</span><br><span class="line">  e=(((uf&gt;&gt;<span class="number">23</span>)+<span class="number">1</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码+1 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> r=s+e+m;</span><br><span class="line">  <span class="keyword">return</span> r;                     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="floatFloat2Int"><a href="#floatFloat2Int" class="headerlink" title="floatFloat2Int"></a>floatFloat2Int</h3><p>Return bit-level equivalent of expression (int) f  for floating point argument f.将浮点型转换为位级等价整数 Anything out of range (including NaN and infinity) should return 0x80000000u.</p>
+<p>取出他的符号 指数和尾数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">    <span class="type">int</span> s=uf&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;<span class="comment">//取符号</span></span><br><span class="line">     <span class="type">int</span> e=(uf&lt;&lt;<span class="number">1</span>&gt;&gt;<span class="number">24</span>)<span class="number">-127</span>;<span class="comment">//e属于(-127~126)</span></span><br><span class="line">     <span class="type">int</span> m=uf&lt;&lt;<span class="number">9</span>&gt;&gt;<span class="number">9</span>;<span class="comment">//尾数</span></span><br><span class="line">     m=m+<span class="number">0x800000</span>;</span><br><span class="line">     <span class="type">int</span> r=<span class="number">0x80000000</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)<span class="comment">//小数点左移，实际的数就是0.xxx</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">31</span>)<span class="comment">//溢出，包括NaN</span></span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">23</span>)</span><br><span class="line">        m=(m&lt;&lt;(e<span class="number">-23</span>));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        m=(m&gt;&gt;(<span class="number">23</span>-e));</span><br><span class="line">    <span class="type">int</span> mSign=m&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(s)<span class="comment">//如果传来的参数是负数，那么我们直接将得到的数取反</span></span><br><span class="line">      <span class="keyword">return</span> -m;</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//传参为正数</span></span><br><span class="line">      <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="floatPower2"><a href="#floatPower2" class="headerlink" title="floatPower2"></a>floatPower2</h3><p>Return bit-level equivalent of the expression 2.0^x  (2.0 raised to the power x) for any 32-bit integer x.以浮点数形式返回2^x&#x3D;r</p>
+<p>2的多少次方，其尾数全零，隐含1，我们只需要将e改为127+x即可</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="type">int</span> e=x+<span class="number">127</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;=<span class="number">255</span>) </span><br><span class="line">        <span class="keyword">return</span> <span class="number">0x7F000000</span>u;<span class="comment">//返回+INF（正无穷大）</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> (e&lt;&lt;<span class="number">23</span>)|<span class="number">0</span>;</span><br><span class="line">       </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328212413.png"></p>
+<p>完结撒花</p>
+]]></content>
+      <tags>
         <tag>lab</tag>
       </tags>
   </entry>
@@ -1695,6 +1775,33 @@
 
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
+  </entry>
+  <entry>
+    <title>idapython用法</title>
+    <url>/2024/03/13/idapython%E7%94%A8%E6%B3%95/</url>
+    <content><![CDATA[<h3 id="去除简单的花指令"><a href="#去除简单的花指令" class="headerlink" title="去除简单的花指令"></a>去除简单的花指令</h3><p>在main函数存在多个这样的花指令<img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240301201158.png"></p>
+<p>永真跳转导致ida解析失败，只需要将jz、jnz那里nop掉即可</p>
+<span id="more"></span>![](idapython用法/QQ截图20240301202407.png)
+
+<p>也就是红框框住的部分，将这五个字节的内容全部填充为nop（0x90）。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> idc</span><br><span class="line"></span><br><span class="line">start=<span class="number">0x4005BF</span></span><br><span class="line">end=<span class="number">0x401DA2</span></span><br><span class="line"></span><br><span class="line">strlen=end-start</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(strlen):</span><br><span class="line">  curaddr=start+index</span><br><span class="line">  tmpValue0=idc.get_wide_dword(curaddr)</span><br><span class="line">  <span class="keyword">if</span>(tmpValue0==<span class="number">0x01750374</span>):    <span class="comment">#注意小端序</span></span><br><span class="line">     <span class="built_in">print</span>(curaddr)</span><br><span class="line">     ida_bytes.patch_dword(curaddr,<span class="number">0x90909090</span>)</span><br><span class="line">     ida_bytes.patch_byte(curaddr+<span class="number">4</span>,<span class="number">0x90</span>)</span><br><span class="line">     <span class="comment">#没有找到更简洁的方法，参考wp是直接用的replace 没有找到那个api</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;ok&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="idapthon与smc"><a href="#idapthon与smc" class="headerlink" title="idapthon与smc"></a>idapthon与smc</h3><p><img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240313010043.png"></p>
+<p>逻辑很简单，就是将一段长度为0x39的数据异或上一个固定的数值，动态调试的话也很容易，只是工作量有点大，使用idapython会很舒服。</p>
+<p>思路就是根据<strong>相对距离</strong>读取数据进行patch</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">start=<span class="number">0x140001000</span></span><br><span class="line">end=<span class="number">0x140001460</span></span><br><span class="line"></span><br><span class="line">strlen=end-start</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(strlen):</span><br><span class="line">  curaddr=start+index</span><br><span class="line">  tmpValue=idc.get_wide_dword(curaddr)</span><br><span class="line">  <span class="keyword">if</span>(tmpValue==<span class="number">0x39FA8348</span>):      <span class="comment">#小端序 cmp rdx,39h</span></span><br><span class="line">     <span class="built_in">print</span>(curaddr)</span><br><span class="line">     xorData=idc.get_wide_byte(curaddr-<span class="number">4</span>)           <span class="comment">#异或的数据</span></span><br><span class="line">     <span class="built_in">print</span>(xorData)</span><br><span class="line">     <span class="keyword">for</span> index1 <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0x39</span>):</span><br><span class="line">           data=idc.get_wide_byte(curaddr+<span class="number">6</span>+index1)</span><br><span class="line">           ida_bytes.patch_byte(curaddr+<span class="number">6</span>+index1,(xorData^data))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;ok&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>刚开始写反了几个小错误，这里着重记录一下.</p>
+<p>获取数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">idc.get_wide_byte(address)</span><br><span class="line"></span><br><span class="line">idc.get_wide_word(address)</span><br><span class="line"></span><br><span class="line">idc.get_wide_dword(address)</span><br></pre></td></tr></table></figure>
+
+<p>patch：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ida_bytes.patch_byte(address,data)</span><br><span class="line"></span><br><span class="line">ida_bytes.patch_word(address,data)</span><br><span class="line"></span><br><span class="line">……</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>idapython</tag>
+      </tags>
   </entry>
   <entry>
     <title>rust入门（一）</title>
@@ -2039,6 +2146,49 @@
       </tags>
   </entry>
   <entry>
+    <title>破解010Editor</title>
+    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
+    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
+
+<p>我是win64</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
+<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
+<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
+<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
+<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
+<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
+<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
+<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
+<p>查看流程图更加明了一点</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
+<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
+<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
+<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
+<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
+<p>然后我们将这个275修改成219</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
+<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
+<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
+<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
+<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
+<p>这个就算大功告成啦</p>
+<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
+<p>点击help –&gt; about 随意输入即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
+<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
+<p>参考：</p>
+<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>汇编语言</title>
     <url>/2023/04/12/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80/</url>
     <content><![CDATA[<p>​       </p>
@@ -2303,49 +2453,6 @@
       <tags>
         <tag>汇编</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>破解010Editor</title>
-    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
-    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载</p>
-<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
-
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-]]></content>
   </entry>
   <entry>
     <title>第八章-异常控制流</title>
@@ -2682,147 +2789,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>计算机网络（一）</title>
-    <url>/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h3 id="协议栈"><a href="#协议栈" class="headerlink" title="协议栈"></a>协议栈</h3><p>指的是操作系统中的<strong>网络控制软件</strong>。</p>
-<h3 id="套接字"><a href="#套接字" class="headerlink" title="套接字"></a>套接字</h3><p>套接字的实体就是<strong>通信控制信息</strong>，在协议栈的内部有一块专门用于存储控制信息的内存空间，具体是什么呢？通信对象的IP、端口号、通信状态等。协议栈是根据套接字中记录的控制信息来工作的。在终端使用netstat命令显示套接字内容<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115020243.png"></p>
-<span id="more"></span>
-
-<p>上图的每一行实际上就相当于一个套接字，拿一个具体的来说</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">TCP</span>    <span class="number">192.168.101.101:53369</span>  <span class="number">39.137.107.210</span>:https   ESTABLISHED     <span class="number">11844</span></span><br></pre></td></tr></table></figure>
-
-<p>PID为11844的程序正在使用IP地址为192.168.101.101的网卡与IP地址为39.137.107.210的对象进行通信，http指代特定端口，53369是本机使用的端口。</p>
-<p>通信操作中使用的<strong>控制信息</strong>分为两类。 </p>
-<p>（1）头部中记录的信息 </p>
-<p>（2）套接字（协议栈中的内存空间）中记录的信息</p>
-<h2 id="通信过程"><a href="#通信过程" class="headerlink" title="通信过程"></a>通信过程</h2><h3 id="创建套接字"><a href="#创建套接字" class="headerlink" title="创建套接字"></a>创建套接字</h3><p>创建套接字时，首先分配一个套接字所需的内存空间，然后向其 中写入初始状态。</p>
-<h3 id="连接服务器"><a href="#连接服务器" class="headerlink" title="连接服务器"></a>连接服务器</h3><p>创建套接字后，应用程序调用connect，随后协议栈将本地的套接字与服务器的套接字进行<strong>连接</strong>。这里的连接指的是通信双方交换控制信息。客户端会将IP地址和端口号等信息告知服务器。</p>
-<h4 id="连接的具体操作"><a href="#连接的具体操作" class="headerlink" title="连接的具体操作"></a>连接的具体操作</h4><figure class="highlight bnf"><table><tr><td class="code"><pre><span class="line">connect（<span class="attribute">&lt; 描述符 &gt;</span>, <span class="attribute">&lt; 服务器 IP 地址和端口号 &gt;</span>, …）</span><br></pre></td></tr></table></figure>
-
-<p>客户端会创建一个包含表示开始数据收发操作的控制信息<strong>头部</strong>，其中最重点的部分是接收方和发送方的端口号。<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115022815.png"></p>
-<p>随后头部的SYN会被设置为1表示连接。到此TCP头部创建好了，接下来TCP模块会将信息传递给IP模块。IP模块负责执行网络包的收发操作，网络包经IP模块通过网络到达服务器，服务器的IP模块将接收到的数据传递给TCP模块，服务器的TCP模块根据TCP头部信息找到端口号对应的套接字。接下来服务器的TCP模块工作流程和上述客户端工作流程相同。网络包到达客户端后会通过IP模块到达TCP模块，并通过头部信息确认连接是否成功，如果SYN为1则代表成功，这时会向套接字中写入服务器的IP地址和端口号等信息。</p>
-<p>我们可以认为连接完毕后有一个管子将客户端和服务器的两个套接字连接起来了，往后通过这根管子收发数据。连接操作完成后控制流被交回到应用程序。</p>
-<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><p>连接完成后进入收发阶段。应用程序首先会调用write将要发送的数据交给协议栈，协议栈收到数据后执行发送操作。</p>
-<p>协议栈并不是已收到数据就进行发送操作的，这样会产生大量的小网络包，导致网络效率下降。通常会累计一定的数据长度才会发送。说到长度，有两个比较重要的参数：</p>
-<p><strong>MTU</strong>：一个网络包的最大长度，以太网中一般为 1500 字节。 </p>
-<p><strong>MSS</strong>：除去头部之后，一个网络包所能容纳的 TCP 数据的最大 长度。</p>
-<p>如果数据长度很大，则会被拆分会若干个块<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115030254.png"></p>
-<h4 id="确认信息是否到达"><a href="#确认信息是否到达" class="headerlink" title="确认信息是否到达"></a>确认信息是否到达</h4><p>通过“序号”和“ACK 号”可以确认接收方是否收到了网络包。</p>
-<p><strong>ACK号：</strong>与头部相对距离。</p>
-<h3 id="断开并删除套接字"><a href="#断开并删除套接字" class="headerlink" title="断开并删除套接字"></a>断开并删除套接字</h3><p>客户端应用程序调用close断开到戒子，结束数据收发操作。</p>
-]]></content>
-      <tags>
-        <tag>计算机网络</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>idapython用法</title>
-    <url>/2024/03/13/idapython%E7%94%A8%E6%B3%95/</url>
-    <content><![CDATA[<h3 id="去除简单的花指令"><a href="#去除简单的花指令" class="headerlink" title="去除简单的花指令"></a>去除简单的花指令</h3><p>在main函数存在多个这样的花指令<img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240301201158.png"></p>
-<p>永真跳转导致ida解析失败，只需要将jz、jnz那里nop掉即可</p>
-<span id="more"></span>![](idapython用法/QQ截图20240301202407.png)
-
-<p>也就是红框框住的部分，将这五个字节的内容全部填充为nop（0x90）。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> idc</span><br><span class="line"></span><br><span class="line">start=<span class="number">0x4005BF</span></span><br><span class="line">end=<span class="number">0x401DA2</span></span><br><span class="line"></span><br><span class="line">strlen=end-start</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(strlen):</span><br><span class="line">  curaddr=start+index</span><br><span class="line">  tmpValue0=idc.get_wide_dword(curaddr)</span><br><span class="line">  <span class="keyword">if</span>(tmpValue0==<span class="number">0x01750374</span>):    <span class="comment">#注意小端序</span></span><br><span class="line">     <span class="built_in">print</span>(curaddr)</span><br><span class="line">     ida_bytes.patch_dword(curaddr,<span class="number">0x90909090</span>)</span><br><span class="line">     ida_bytes.patch_byte(curaddr+<span class="number">4</span>,<span class="number">0x90</span>)</span><br><span class="line">     <span class="comment">#没有找到更简洁的方法，参考wp是直接用的replace 没有找到那个api</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;ok&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<h3 id="idapthon与smc"><a href="#idapthon与smc" class="headerlink" title="idapthon与smc"></a>idapthon与smc</h3><p><img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240313010043.png"></p>
-<p>逻辑很简单，就是将一段长度为0x39的数据异或上一个固定的数值，动态调试的话也很容易，只是工作量有点大，使用idapython会很舒服。</p>
-<p>思路就是根据<strong>相对距离</strong>读取数据进行patch</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">start=<span class="number">0x140001000</span></span><br><span class="line">end=<span class="number">0x140001460</span></span><br><span class="line"></span><br><span class="line">strlen=end-start</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(strlen):</span><br><span class="line">  curaddr=start+index</span><br><span class="line">  tmpValue=idc.get_wide_dword(curaddr)</span><br><span class="line">  <span class="keyword">if</span>(tmpValue==<span class="number">0x39FA8348</span>):      <span class="comment">#小端序 cmp rdx,39h</span></span><br><span class="line">     <span class="built_in">print</span>(curaddr)</span><br><span class="line">     xorData=idc.get_wide_byte(curaddr-<span class="number">4</span>)           <span class="comment">#异或的数据</span></span><br><span class="line">     <span class="built_in">print</span>(xorData)</span><br><span class="line">     <span class="keyword">for</span> index1 <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0x39</span>):</span><br><span class="line">           data=idc.get_wide_byte(curaddr+<span class="number">6</span>+index1)</span><br><span class="line">           ida_bytes.patch_byte(curaddr+<span class="number">6</span>+index1,(xorData^data))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;ok&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>刚开始写反了几个小错误，这里着重记录一下.</p>
-<p>获取数据：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">idc.get_wide_byte(address)</span><br><span class="line"></span><br><span class="line">idc.get_wide_word(address)</span><br><span class="line"></span><br><span class="line">idc.get_wide_dword(address)</span><br></pre></td></tr></table></figure>
-
-<p>patch：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ida_bytes.patch_byte(address,data)</span><br><span class="line"></span><br><span class="line">ida_bytes.patch_word(address,data)</span><br><span class="line"></span><br><span class="line">……</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <tags>
-        <tag>idapython</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DUBHEctf_Destination</title>
-    <url>/2024/03/19/DUBHEctf-Destination/</url>
-    <content><![CDATA[<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319002958.png"></p>
-<span id="more"></span>
-
-<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003154.png"></p>
-<p>没有看到加密过程，能确定的就是input和cpdata，初步判断，猫腻应该在debugbreak那里。动调一下，直接退出，是有反调试。断点下在输入之前</p>
-<p>，还是直接闪退。查看一下main函数之前做了什么。<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003947.png"></p>
-<p>经过查看，可以定位到scrt_common_main函数有反调试，<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319004317.png"></p>
-<p>在这个函数中，可以看到36行调用了invoke_main函数，而invoke_main调用了main函数，所以任务很简单，让其执行到这里即可。经过单步调试发现，在执行完26行之后，程序就卡死了，尝试了一下将这条指令nop掉，成功。然后保存文件。</p>
-<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010513.png"></p>
-<p>在读取完四十五字节的输入之后，有一个int 3的系统调用，而在此之前，还自定义了int 3的处理函数，也就是sub_4140d7,<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010709.png"></p>
-<p>经动调分析，这里就是主加密部分了，这一段是不能反编译的，因为参杂着大量的花指令，一类是利用call的假跳转<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010910.png"></p>
-<p>另一类是jz、jnz的永真跳转</p>
-<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011213.png"></p>
-<p>动态跟了数条指令之后猜测可能是tea加密，因为有几条指令是按位移动</p>
-<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011350.png"></p>
-<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011438.png"></p>
-<p>可以发现规律，每一个基本块中只有一条是真正的指令，其余的要么是花指令，要么是跳转指令。可以利用trace将执行部分高亮处理，然后将其余部分nop掉。</p>
-<p>选择instruction trace，然后一直f8<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319012403.png"></p>
-<p>执行到很长时间不再提示将数据解析为代码时，就差不多了，此时就可以比较轻松的去除花指令和无效数据了，但是由于大量的跳转，我猜测有可能f5失败。另一种方法就是提取所有的有效指令，对于上图，有效指令就是xor eax，ecx，然后提取出来机器码，最终将所有的机器码提取出来，再patch进去。从最开始的<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319013551.png"></p>
-<p>提取一个push ebp机器码是0x55，然后忽略jmp指令的机器码，来到下一个块，同样只提取一条有用的指令……最后patch到push ebp的位置<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014005.png"></p>
-<p>然后按p解析成函数，<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014308.png"></p>
-<p>正如我们的猜测，是xxtea</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236&#125;;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1[<span class="number">12</span>]=&#123;<span class="number">0xc44ea811</span>,<span class="number">0xd98ae0d6</span>,<span class="number">0x984227d4</span>,<span class="number">0x1080a783</span>,<span class="number">0xf994d294</span>,<span class="number">0xc4ce08ce</span>,<span class="number">0x3d40ab34</span>,<span class="number">0x97960549</span>,<span class="number">0xfbae12d0</span>,<span class="number">0xb776de91</span>,<span class="number">0x4a3f6dd3</span>,<span class="number">0xb115b2e9</span>&#125;;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;&#125;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> key[]=&#123;<span class="number">0x6B0E7A6B</span>, <span class="number">0xD13011EE</span>, <span class="number">0xA7E12C6D</span>, <span class="number">0xC199ACA6</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> e = <span class="number">0</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> z;</span><br><span class="line"><span class="type">int</span> y;</span><br><span class="line"><span class="type">int</span> myrounds =<span class="number">50</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> sum=<span class="number">0x2B3AD324</span>;              </span><br><span class="line">y=v1[<span class="number">0</span>];          </span><br><span class="line"><span class="keyword">do</span>               <span class="comment">//decoding</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    e = (sum &gt;&gt; <span class="number">2</span>) &amp; <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0xb</span>;i&gt;<span class="number">0</span>;i--)         <span class="comment">//v11    v1</span></span><br><span class="line">    &#123;</span><br><span class="line">        z=v1[i<span class="number">-1</span>];</span><br><span class="line">        y=v1[i]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    &#125;</span><br><span class="line">    z=v1[<span class="number">11</span>];         <span class="comment">// v0        z v11   y v1</span></span><br><span class="line">    y=v1[<span class="number">0</span>]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    sum+=<span class="number">0x5B4B9F9E</span>;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">while</span> (--myrounds);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,v1[i]);  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>本来以为这就结束了，拿比较数据操作的一遍，果然没这么简单。在22mu师傅的不断摸索下，发现调用完这个xxtea之后，esp又落到了函数的开始，也就是xxtea被连续调用了两次。然后就是尝试两次解密，还是不对。</p>
-<p>这时候就开始考虑反调试修改数据之类的了，在以前的比赛因为反调试栽过不少跟头，基本上对xxtea的每一个变量都进行了交叉引用，没发现什么异常。然后返回一开始查看，发现input那里存在一处可疑的交叉引用。<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015134.png"></p>
-<p>代码量很少，但是很诡异<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015305.png"></p>
-<p>可以说没有人类逻辑。</p>
-<p>3cly师傅靠着题目刚开始的提示“ HEAVEN or HELL?”，在看雪发现了<a href="https://taardisaa.github.io/2021/09/25/Heaven'sGate/">天堂之门技术 | Taardis’s blog (taardisaa.github.io)</a></p>
-<p>这篇文章，就是在32位程序运行64位的代码，将这个函数dump下来，随便找一个64位的程序patch进去</p>
-<figure class="highlight"><table><tr><td class="code"><pre><span class="line">558BEC81ECC00000005356578BFD33C9B8CCCCCCCCF3AB5756415641574831FF8B34BDA83442004D31F64989F749C1EF1F4983FF01750AD1E681F62F97A684EB02D1E649FFC64983FE2075DE8934BDA834420048FFC74883FF0C75C4415F415E5E5F6A2368F379410048CB</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015748.png"></p>
-<p>简单明了了，首先判断符号位，如果为1，先右移一位，在异或。如果不为1，则直接右移一位。这里的异或数据末尾为1，所以和右移一位后（最低位为0）的数据异或后末尾为1。直接右移的末尾为0。可以根据此将32位还原</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> cpdata[<span class="number">12</span>] = &#123;<span class="number">0xA790FAD6</span>, <span class="number">0xE8C8A277</span>, <span class="number">0xCF0384FA</span>, <span class="number">0x2E6C7FD7</span>, <span class="number">0x6D33968B</span>, <span class="number">0x5B57C227</span>, <span class="number">0x653CA65E</span>, <span class="number">0x85C6F1FC</span>, <span class="number">0xE1F32577</span>, <span class="number">0xD4D7AE76</span>, <span class="number">0x3FAF6DC4</span>, <span class="number">0x0D599D8C</span>&#125;;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">unsigned</span>  <span class="type">int</span> tmp=cpdata[i];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">32</span>;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(tmp&amp;<span class="number">0x1</span>==<span class="number">1</span>)  <span class="comment">//末位为1</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=((tmp^<span class="number">0x84A6972F</span>)&gt;&gt;<span class="number">1</span>)|<span class="number">0x80000000</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=tmp&gt;&gt;<span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        cpdata[i]=tmp;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,cpdata[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236</span></span><br></pre></td></tr></table></figure>
-
-<p>加密逻辑：xxtea –&gt;xxtea—&gt;位操作</p>
-<p>解密逻辑：位操作–&gt;xxtea–&gt;xxtea</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//第一次填充从上面的位操作得出来的数据，第二次操作填充上一次xxtea的解密结果</span></span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236&#125;;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1[<span class="number">12</span>]=&#123;<span class="number">0xc44ea811</span>,<span class="number">0xd98ae0d6</span>,<span class="number">0x984227d4</span>,<span class="number">0x1080a783</span>,<span class="number">0xf994d294</span>,<span class="number">0xc4ce08ce</span>,<span class="number">0x3d40ab34</span>,<span class="number">0x97960549</span>,<span class="number">0xfbae12d0</span>,<span class="number">0xb776de91</span>,<span class="number">0x4a3f6dd3</span>,<span class="number">0xb115b2e9</span>&#125;;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;&#125;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> key[]=&#123;<span class="number">0x6B0E7A6B</span>, <span class="number">0xD13011EE</span>, <span class="number">0xA7E12C6D</span>, <span class="number">0xC199ACA6</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> e = <span class="number">0</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> z;</span><br><span class="line"><span class="type">int</span> y;</span><br><span class="line"><span class="type">int</span> myrounds =<span class="number">50</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> sum=<span class="number">0x2B3AD324</span>;              </span><br><span class="line">y=v1[<span class="number">0</span>];          </span><br><span class="line"><span class="keyword">do</span>               <span class="comment">//decoding</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    e = (sum &gt;&gt; <span class="number">2</span>) &amp; <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0xb</span>;i&gt;<span class="number">0</span>;i--)         <span class="comment">//v11    v1</span></span><br><span class="line">    &#123;</span><br><span class="line">        z=v1[i<span class="number">-1</span>];</span><br><span class="line">        y=v1[i]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    &#125;</span><br><span class="line">    z=v1[<span class="number">11</span>];         <span class="comment">// v0        z v11   y v1</span></span><br><span class="line">    y=v1[<span class="number">0</span>]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    sum+=<span class="number">0x5B4B9F9E</span>;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">while</span> (--myrounds);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,v1[i]);  </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//0x68627544,0x46544365,0x6532387b,0x66336531,0x35382d38,0x36346566,0x382d6639,0x64393934,0x2d383464,0x61363634,0x30366439,0x7d</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//转换大小端</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> v[<span class="number">12</span>] = &#123;<span class="number">0x68627544</span>,<span class="number">0x46544365</span>,<span class="number">0x6532387b</span>,<span class="number">0x66336531</span>,<span class="number">0x35382d38</span>,<span class="number">0x36346566</span>,<span class="number">0x382d6639</span>,<span class="number">0x64393934</span>,<span class="number">0x2d383464</span>,<span class="number">0x61363634</span>,<span class="number">0x30366439</span>,<span class="number">0x7d</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">12</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">sizeof</span>(<span class="type">unsigned</span> <span class="type">int</span>); j++) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>, (v[i] &gt;&gt; (j * <span class="number">8</span>)) &amp; <span class="number">0xFF</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//DubheCTF&#123;82e1e3f8-85fe469f-8499dd48-466a9d60&#125;</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <tags>
-        <tag>wp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>OLLVM对抗</title>
-    <url>/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/</url>
-    <content><![CDATA[<p>题目：[RoarCTF2019]polyre</p>
-<h3 id="去除控制流平坦化"><a href="#去除控制流平坦化" class="headerlink" title="去除控制流平坦化"></a>去除控制流平坦化</h3><p><img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319205955.png"></p>
-<span id="more"></span>
-
-<p>一眼看出是控制流平坦化后的程序，可以使用deflat.py去除常规的混淆。</p>
-<p>在配置了angr的环境运行</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">python deflat.py attachment</span><br></pre></td></tr></table></figure>
-
-<p>可以得到attachment_recovered文件。</p>
-<h3 id="去除虚假控制流"><a href="#去除虚假控制流" class="headerlink" title="去除虚假控制流"></a>去除虚假控制流</h3><p>这是去除平坦化之后的程序</p>
-<p><img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319210458.png"></p>
-<p>看流程图更明显一些<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319210617.png"></p>
-<p>可以确定这是进行了虚假控制流的混淆，因为它的调转逻辑不受输入的影响，是既定的跳转，所以我们可以将那些根本没执行过的指令nop掉。借助ida trace可以清晰明了的知道哪些执行过，哪些是假的。<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319211142.png"></p>
-<p>执行过的代码块都进行了高亮处理，只需将为执行的部分nop掉然后重新解析即可。<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319211349.png"></p>
-<p>反编译后逻辑很简单<img src="/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20240319211857.png"></p>
-<p>验证输入，首先判断大于零还是小于零，也就是检测最高位是否为1，如果小于零，也就是最高位为1，那么乘2也就是左移一位，再异或上一个数。如果最高位为0，那么仅左移一位。</p>
-<p>逆向过程就是判断最低位，直接左移的最低位为0。由于异或的数据最低位为1，所以经异或处理，最低位为1。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="type">int</span> cpdata[<span class="number">7</span>] = &#123;<span class="number">0xBC8FF26D43536296</span>, <span class="number">0x520100780530EE16</span>, <span class="number">0x4DC0B5EA935F08EC</span>, <span class="number">0x342B90AFD853F450</span>, <span class="number">0x8B250EBCAA2C3681</span>, <span class="number">0x55759F81A2C68AE4</span>, <span class="number">0xB0004B7679FA26B3</span>&#125;;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">7</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="type">int</span> tmp=cpdata[i];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">64</span>;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(tmp&amp;<span class="number">0x1</span>==<span class="number">1</span>)  <span class="comment">//末位为1</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=((tmp^<span class="number">0xB0004B7679FA26B3</span>)&gt;&gt;<span class="number">1</span>)|<span class="number">0x8000000000000000</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=tmp&gt;&gt;<span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        cpdata[i]=tmp;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">7</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;0x%llx,&quot;</span>,cpdata[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//0x6666367b67616c66,0x63362d3039333932,0x2d363563342d3032,0x3539612d30376162,0x6631643365383537,0x7d38,0x1,</span></span><br></pre></td></tr></table></figure>
-
-<p>最后大小端反转一下</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="type">int</span> v[<span class="number">7</span>] = &#123;<span class="number">0x6666367b67616c66</span>,<span class="number">0x63362d3039333932</span>,<span class="number">0x2d363563342d3032</span>,<span class="number">0x3539612d30376162</span>,<span class="number">0x6631643365383537</span>,<span class="number">0x7d38</span>,<span class="number">0x1</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">7</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;0x&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">sizeof</span>(<span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span>); j++) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%x&quot;</span>, (v[i] &gt;&gt; (j * <span class="number">8</span>)) &amp; <span class="number">0xFF</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;,&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//0x666c61677b366666,0x32393339302d3663,0x32302d346335362d,0x626137302d613935,0x3735386533643166,0x387d000000,0x10000000,</span></span><br><span class="line"><span class="comment">//flag&#123;6ff29390-6c20-4c56-ba70-a95758e3d1f8&#125;</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <tags>
-        <tag>OLLVM</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>花指令实现与对抗</title>
     <url>/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/</url>
     <content><![CDATA[<blockquote>
@@ -2895,6 +2861,40 @@
 ]]></content>
       <tags>
         <tag>WP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>计算机网络（一）</title>
+    <url>/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h3 id="协议栈"><a href="#协议栈" class="headerlink" title="协议栈"></a>协议栈</h3><p>指的是操作系统中的<strong>网络控制软件</strong>。</p>
+<h3 id="套接字"><a href="#套接字" class="headerlink" title="套接字"></a>套接字</h3><p>套接字的实体就是<strong>通信控制信息</strong>，在协议栈的内部有一块专门用于存储控制信息的内存空间，具体是什么呢？通信对象的IP、端口号、通信状态等。协议栈是根据套接字中记录的控制信息来工作的。在终端使用netstat命令显示套接字内容<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115020243.png"></p>
+<span id="more"></span>
+
+<p>上图的每一行实际上就相当于一个套接字，拿一个具体的来说</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">TCP</span>    <span class="number">192.168.101.101:53369</span>  <span class="number">39.137.107.210</span>:https   ESTABLISHED     <span class="number">11844</span></span><br></pre></td></tr></table></figure>
+
+<p>PID为11844的程序正在使用IP地址为192.168.101.101的网卡与IP地址为39.137.107.210的对象进行通信，http指代特定端口，53369是本机使用的端口。</p>
+<p>通信操作中使用的<strong>控制信息</strong>分为两类。 </p>
+<p>（1）头部中记录的信息 </p>
+<p>（2）套接字（协议栈中的内存空间）中记录的信息</p>
+<h2 id="通信过程"><a href="#通信过程" class="headerlink" title="通信过程"></a>通信过程</h2><h3 id="创建套接字"><a href="#创建套接字" class="headerlink" title="创建套接字"></a>创建套接字</h3><p>创建套接字时，首先分配一个套接字所需的内存空间，然后向其 中写入初始状态。</p>
+<h3 id="连接服务器"><a href="#连接服务器" class="headerlink" title="连接服务器"></a>连接服务器</h3><p>创建套接字后，应用程序调用connect，随后协议栈将本地的套接字与服务器的套接字进行<strong>连接</strong>。这里的连接指的是通信双方交换控制信息。客户端会将IP地址和端口号等信息告知服务器。</p>
+<h4 id="连接的具体操作"><a href="#连接的具体操作" class="headerlink" title="连接的具体操作"></a>连接的具体操作</h4><figure class="highlight bnf"><table><tr><td class="code"><pre><span class="line">connect（<span class="attribute">&lt; 描述符 &gt;</span>, <span class="attribute">&lt; 服务器 IP 地址和端口号 &gt;</span>, …）</span><br></pre></td></tr></table></figure>
+
+<p>客户端会创建一个包含表示开始数据收发操作的控制信息<strong>头部</strong>，其中最重点的部分是接收方和发送方的端口号。<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115022815.png"></p>
+<p>随后头部的SYN会被设置为1表示连接。到此TCP头部创建好了，接下来TCP模块会将信息传递给IP模块。IP模块负责执行网络包的收发操作，网络包经IP模块通过网络到达服务器，服务器的IP模块将接收到的数据传递给TCP模块，服务器的TCP模块根据TCP头部信息找到端口号对应的套接字。接下来服务器的TCP模块工作流程和上述客户端工作流程相同。网络包到达客户端后会通过IP模块到达TCP模块，并通过头部信息确认连接是否成功，如果SYN为1则代表成功，这时会向套接字中写入服务器的IP地址和端口号等信息。</p>
+<p>我们可以认为连接完毕后有一个管子将客户端和服务器的两个套接字连接起来了，往后通过这根管子收发数据。连接操作完成后控制流被交回到应用程序。</p>
+<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><p>连接完成后进入收发阶段。应用程序首先会调用write将要发送的数据交给协议栈，协议栈收到数据后执行发送操作。</p>
+<p>协议栈并不是已收到数据就进行发送操作的，这样会产生大量的小网络包，导致网络效率下降。通常会累计一定的数据长度才会发送。说到长度，有两个比较重要的参数：</p>
+<p><strong>MTU</strong>：一个网络包的最大长度，以太网中一般为 1500 字节。 </p>
+<p><strong>MSS</strong>：除去头部之后，一个网络包所能容纳的 TCP 数据的最大 长度。</p>
+<p>如果数据长度很大，则会被拆分会若干个块<img src="/2023/11/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115030254.png"></p>
+<h4 id="确认信息是否到达"><a href="#确认信息是否到达" class="headerlink" title="确认信息是否到达"></a>确认信息是否到达</h4><p>通过“序号”和“ACK 号”可以确认接收方是否收到了网络包。</p>
+<p><strong>ACK号：</strong>与头部相对距离。</p>
+<h3 id="断开并删除套接字"><a href="#断开并删除套接字" class="headerlink" title="断开并删除套接字"></a>断开并删除套接字</h3><p>客户端应用程序调用close断开到戒子，结束数据收发操作。</p>
+]]></content>
+      <tags>
+        <tag>计算机网络</tag>
       </tags>
   </entry>
 </search>
