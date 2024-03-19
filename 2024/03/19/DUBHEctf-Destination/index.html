@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta property="og:type" content="article">
+<meta property="og:title" content="DUBHEctf_Destination">
+<meta property="og:url" content="http://example.com/2024/03/19/DUBHEctf-Destination/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319002958.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003154.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003947.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319004317.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010513.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010709.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010910.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011213.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011350.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011438.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319012403.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319013551.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014005.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014308.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015134.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015305.png">
+<meta property="og:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015748.png">
+<meta property="article:published_time" content="2024-03-19T12:53:24.000Z">
+<meta property="article:modified_time" content="2024-03-19T12:53:24.027Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="wp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319002958.png">
+
+<link rel="canonical" href="http://example.com/2024/03/19/DUBHEctf-Destination/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DUBHEctf_Destination | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/03/19/DUBHEctf-Destination/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DUBHEctf_Destination
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-03-19 20:53:24" itemprop="dateCreated datePublished" datetime="2024-03-19T20:53:24+08:00">2024-03-19</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319002958.png"></p>
+<span id="more"></span>
+
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003154.png"></p>
+<p>没有看到加密过程，能确定的就是input和cpdata，初步判断，猫腻应该在debugbreak那里。动调一下，直接退出，是有反调试。断点下在输入之前</p>
+<p>，还是直接闪退。查看一下main函数之前做了什么。<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319003947.png"></p>
+<p>经过查看，可以定位到scrt_common_main函数有反调试，<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319004317.png"></p>
+<p>在这个函数中，可以看到36行调用了invoke_main函数，而invoke_main调用了main函数，所以任务很简单，让其执行到这里即可。经过单步调试发现，在执行完26行之后，程序就卡死了，尝试了一下将这条指令nop掉，成功。然后保存文件。</p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010513.png"></p>
+<p>在读取完四十五字节的输入之后，有一个int 3的系统调用，而在此之前，还自定义了int 3的处理函数，也就是sub_4140d7,<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010709.png"></p>
+<p>经动调分析，这里就是主加密部分了，这一段是不能反编译的，因为参杂着大量的花指令，一类是利用call的假跳转<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319010910.png"></p>
+<p>另一类是jz、jnz的永真跳转</p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011213.png"></p>
+<p>动态跟了数条指令之后猜测可能是tea加密，因为有几条指令是按位移动</p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011350.png"></p>
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319011438.png"></p>
+<p>可以发现规律，每一个基本块中只有一条是真正的指令，其余的要么是花指令，要么是跳转指令。可以利用trace将执行部分高亮处理，然后将其余部分nop掉。</p>
+<p>选择instruction trace，然后一直f8<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319012403.png"></p>
+<p>执行到很长时间不再提示将数据解析为代码时，就差不多了，此时就可以比较轻松的去除花指令和无效数据了，但是由于大量的跳转，我猜测有可能f5失败。另一种方法就是提取所有的有效指令，对于上图，有效指令就是xor eax，ecx，然后提取出来机器码，最终将所有的机器码提取出来，再patch进去。从最开始的<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319013551.png"></p>
+<p>提取一个push ebp机器码是0x55，然后忽略jmp指令的机器码，来到下一个块，同样只提取一条有用的指令……最后patch到push ebp的位置<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014005.png"></p>
+<p>然后按p解析成函数，<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319014308.png"></p>
+<p>正如我们的猜测，是xxtea</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236&#125;;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1[<span class="number">12</span>]=&#123;<span class="number">0xc44ea811</span>,<span class="number">0xd98ae0d6</span>,<span class="number">0x984227d4</span>,<span class="number">0x1080a783</span>,<span class="number">0xf994d294</span>,<span class="number">0xc4ce08ce</span>,<span class="number">0x3d40ab34</span>,<span class="number">0x97960549</span>,<span class="number">0xfbae12d0</span>,<span class="number">0xb776de91</span>,<span class="number">0x4a3f6dd3</span>,<span class="number">0xb115b2e9</span>&#125;;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;&#125;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> key[]=&#123;<span class="number">0x6B0E7A6B</span>, <span class="number">0xD13011EE</span>, <span class="number">0xA7E12C6D</span>, <span class="number">0xC199ACA6</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> e = <span class="number">0</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> z;</span><br><span class="line"><span class="type">int</span> y;</span><br><span class="line"><span class="type">int</span> myrounds =<span class="number">50</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> sum=<span class="number">0x2B3AD324</span>;              </span><br><span class="line">y=v1[<span class="number">0</span>];          </span><br><span class="line"><span class="keyword">do</span>               <span class="comment">//decoding</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    e = (sum &gt;&gt; <span class="number">2</span>) &amp; <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0xb</span>;i&gt;<span class="number">0</span>;i--)         <span class="comment">//v11    v1</span></span><br><span class="line">    &#123;</span><br><span class="line">        z=v1[i<span class="number">-1</span>];</span><br><span class="line">        y=v1[i]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    &#125;</span><br><span class="line">    z=v1[<span class="number">11</span>];         <span class="comment">// v0        z v11   y v1</span></span><br><span class="line">    y=v1[<span class="number">0</span>]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    sum+=<span class="number">0x5B4B9F9E</span>;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">while</span> (--myrounds);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,v1[i]);  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>本来以为这就结束了，拿比较数据操作的一遍，果然没这么简单。在22mu师傅的不断摸索下，发现调用完这个xxtea之后，esp又落到了函数的开始，也就是xxtea被连续调用了两次。然后就是尝试两次解密，还是不对。</p>
+<p>这时候就开始考虑反调试修改数据之类的了，在以前的比赛因为反调试栽过不少跟头，基本上对xxtea的每一个变量都进行了交叉引用，没发现什么异常。然后返回一开始查看，发现input那里存在一处可疑的交叉引用。<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015134.png"></p>
+<p>代码量很少，但是很诡异<img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015305.png"></p>
+<p>可以说没有人类逻辑。</p>
+<p>3cly师傅靠着题目刚开始的提示“ HEAVEN or HELL?”，在看雪发现了<a target="_blank" rel="noopener" href="https://taardisaa.github.io/2021/09/25/Heaven'sGate/">天堂之门技术 | Taardis’s blog (taardisaa.github.io)</a></p>
+<p>这篇文章，就是在32位程序运行64位的代码，将这个函数dump下来，随便找一个64位的程序patch进去</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">558BEC81ECC00000005356578BFD33C9B8CCCCCCCCF3AB5756415641574831FF8B34BDA83442004D31F64989F749C1EF1F4983FF01750AD1E681F62F97A684EB02D1E649FFC64983FE2075DE8934BDA834420048FFC74883FF0C75C4415F415E5E5F6A2368F379410048CB</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319015748.png"></p>
+<p>简单明了了，首先判断符号位，如果为1，先右移一位，在异或。如果不为1，则直接右移一位。这里的异或数据末尾为1，所以和右移一位后（最低位为0）的数据异或后末尾为1。直接右移的末尾为0。可以根据此将32位还原</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> cpdata[<span class="number">12</span>] = &#123;<span class="number">0xA790FAD6</span>, <span class="number">0xE8C8A277</span>, <span class="number">0xCF0384FA</span>, <span class="number">0x2E6C7FD7</span>, <span class="number">0x6D33968B</span>, <span class="number">0x5B57C227</span>, <span class="number">0x653CA65E</span>, <span class="number">0x85C6F1FC</span>, <span class="number">0xE1F32577</span>, <span class="number">0xD4D7AE76</span>, <span class="number">0x3FAF6DC4</span>, <span class="number">0x0D599D8C</span>&#125;;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">unsigned</span>  <span class="type">int</span> tmp=cpdata[i];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j=<span class="number">0</span>;j&lt;<span class="number">32</span>;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(tmp&amp;<span class="number">0x1</span>==<span class="number">1</span>)  <span class="comment">//末位为1</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=((tmp^<span class="number">0x84A6972F</span>)&gt;&gt;<span class="number">1</span>)|<span class="number">0x80000000</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">               tmp=tmp&gt;&gt;<span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        cpdata[i]=tmp;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,cpdata[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236</span></span><br></pre></td></tr></table></figure>
+
+<p>加密逻辑：xxtea –&gt;xxtea—&gt;位操作</p>
+<p>解密逻辑：位操作–&gt;xxtea–&gt;xxtea</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//第一次填充从上面的位操作得出来的数据，第二次操作填充上一次xxtea的解密结果</span></span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;0x9e549543,0x5e7cb348,0xd9a84a2f,0x85eb99de,0xb6825884,0xc4f74ea1,0x22b1828a,0x290d7296,0x198ee473,0x9655b529,0x38ac196a,0x192b6236&#125;;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1[<span class="number">12</span>]=&#123;<span class="number">0xc44ea811</span>,<span class="number">0xd98ae0d6</span>,<span class="number">0x984227d4</span>,<span class="number">0x1080a783</span>,<span class="number">0xf994d294</span>,<span class="number">0xc4ce08ce</span>,<span class="number">0x3d40ab34</span>,<span class="number">0x97960549</span>,<span class="number">0xfbae12d0</span>,<span class="number">0xb776de91</span>,<span class="number">0x4a3f6dd3</span>,<span class="number">0xb115b2e9</span>&#125;;</span><br><span class="line">  <span class="comment">//unsigned int v1[12]=&#123;&#125;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> key[]=&#123;<span class="number">0x6B0E7A6B</span>, <span class="number">0xD13011EE</span>, <span class="number">0xA7E12C6D</span>, <span class="number">0xC199ACA6</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> e = <span class="number">0</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> z;</span><br><span class="line"><span class="type">int</span> y;</span><br><span class="line"><span class="type">int</span> myrounds =<span class="number">50</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> sum=<span class="number">0x2B3AD324</span>;              </span><br><span class="line">y=v1[<span class="number">0</span>];          </span><br><span class="line"><span class="keyword">do</span>               <span class="comment">//decoding</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    e = (sum &gt;&gt; <span class="number">2</span>) &amp; <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0xb</span>;i&gt;<span class="number">0</span>;i--)         <span class="comment">//v11    v1</span></span><br><span class="line">    &#123;</span><br><span class="line">        z=v1[i<span class="number">-1</span>];</span><br><span class="line">        y=v1[i]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    &#125;</span><br><span class="line">    z=v1[<span class="number">11</span>];         <span class="comment">// v0        z v11   y v1</span></span><br><span class="line">    y=v1[<span class="number">0</span>]-=(((z ^ key[e ^ i &amp; <span class="number">3</span>]) + (y ^ sum)) ^ (((<span class="number">16</span> * z) ^ ((<span class="type">unsigned</span> <span class="type">int</span>)y &gt;&gt; <span class="number">3</span>)) + ((<span class="number">4</span> * y) ^ (z &gt;&gt; <span class="number">5</span>))));</span><br><span class="line">    sum+=<span class="number">0x5B4B9F9E</span>;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">while</span> (--myrounds);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;0x%x,&quot;</span>,v1[i]);  </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//0x68627544,0x46544365,0x6532387b,0x66336531,0x35382d38,0x36346566,0x382d6639,0x64393934,0x2d383464,0x61363634,0x30366439,0x7d</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//转换大小端</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> v[<span class="number">12</span>] = &#123;<span class="number">0x68627544</span>,<span class="number">0x46544365</span>,<span class="number">0x6532387b</span>,<span class="number">0x66336531</span>,<span class="number">0x35382d38</span>,<span class="number">0x36346566</span>,<span class="number">0x382d6639</span>,<span class="number">0x64393934</span>,<span class="number">0x2d383464</span>,<span class="number">0x61363634</span>,<span class="number">0x30366439</span>,<span class="number">0x7d</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">12</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">sizeof</span>(<span class="type">unsigned</span> <span class="type">int</span>); j++) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>, (v[i] &gt;&gt; (j * <span class="number">8</span>)) &amp; <span class="number">0xFF</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//DubheCTF&#123;82e1e3f8-85fe469f-8499dd48-466a9d60&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/wp/" rel="tag"># wp</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/03/13/idapython%E7%94%A8%E6%B3%95/" rel="prev" title="idapython用法">
+      <i class="fa fa-chevron-left"></i> idapython用法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/" rel="next" title="花指令实现与对抗">
+      花指令实现与对抗 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">73k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:25</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>

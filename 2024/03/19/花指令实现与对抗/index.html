@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="花指令（junk code）是一种专门用来迷惑反编译器的指令片段，这些指令片段不会影响程序的原有功能，但会使得反汇编器的结果出现偏差，从而使破解者分析失败。比较经典的花指令技巧有利用 jmp 、call、ret 指令改变执行流，从而使得反汇编器解析出与运行时不相符的错误代码。 —CTF Wiki  简单来讲花指令分为两大类，一种是会被执行的花指令，另一种是不会被执行的花指令。 花指令出现的意义就">
+<meta property="og:type" content="article">
+<meta property="og:title" content="花指令实现与对抗">
+<meta property="og:url" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="花指令（junk code）是一种专门用来迷惑反编译器的指令片段，这些指令片段不会影响程序的原有功能，但会使得反汇编器的结果出现偏差，从而使破解者分析失败。比较经典的花指令技巧有利用 jmp 、call、ret 指令改变执行流，从而使得反汇编器解析出与运行时不相符的错误代码。 —CTF Wiki  简单来讲花指令分为两大类，一种是会被执行的花指令，另一种是不会被执行的花指令。 花指令出现的意义就">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012521.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012625.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012800.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023535.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023758.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023834.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023927.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023948.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129151334.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165105.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165256.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165314.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165430.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165601.png">
+<meta property="og:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165632.png">
+<meta property="article:published_time" content="2024-03-19T12:55:06.000Z">
+<meta property="article:modified_time" content="2024-03-19T12:55:06.601Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="花指令">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012521.png">
+
+<link rel="canonical" href="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>花指令实现与对抗 | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          花指令实现与对抗
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-03-19 20:55:06" itemprop="dateCreated datePublished" datetime="2024-03-19T20:55:06+08:00">2024-03-19</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>926</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>花指令（junk code）是一种专门用来迷惑反编译器的指令片段，这些指令片段不会影响程序的原有功能，但会使得反汇编器的结果出现偏差，从而使破解者分析失败。比较经典的花指令技巧有利用 <code>jmp</code> 、<code>call</code>、<code>ret</code> 指令改变执行流，从而使得反汇编器解析出与运行时不相符的错误代码。</p>
+<p>—CTF Wiki</p>
+</blockquote>
+<p>简单来讲花指令分为两大类，一种是会被执行的花指令，另一种是不会被执行的花指令。</p>
+<p>花指令出现的意义就是干扰机器进行反汇编，迫使人工进行分析。</p>
+<span id="more"></span>
+
+<h3 id="不会被执行的花指令"><a href="#不会被执行的花指令" class="headerlink" title="不会被执行的花指令"></a>不会被执行的花指令</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;xor %eax,%eax;&quot;</span></span><br><span class="line">        <span class="string">&quot;jz s;&quot;</span></span><br><span class="line">        <span class="string">&quot;add $0x11,%esp;&quot;</span>     <span class="comment">//让ida误认为栈不平衡，实则根本没有执行</span></span><br><span class="line">        <span class="string">&quot;s:;&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcode\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>内联汇编的语法，语句放在（）内，每条指令被””包裹，以分号结尾，如果要使用寄存器则要在寄存器前加上**%<strong>，如果使用立即数则在前面加上</strong>$**。</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012521.png"></p>
+<p>可以看到上方爆红。在汇编界面，直接将红框里的内容nop掉<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012625.png"></p>
+<p>修复后如下<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012800.png"></p>
+<h3 id="可以执行的花指令"><a href="#可以执行的花指令" class="headerlink" title="可以执行的花指令"></a>可以执行的花指令</h3><h4 id="破坏栈"><a href="#破坏栈" class="headerlink" title="破坏栈"></a>破坏栈</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;call next;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;next:\n&quot;</span></span><br><span class="line">        <span class="string">&quot;movl $continue,(%esp);\n&quot;</span></span><br><span class="line">        <span class="string">&quot;ret;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;continue:\n&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcodes\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>内联汇编的内容实际上就是使用call进行跳转，实现的效果就是跳转到continue打印hello,junkcodes。这样为什么能使ida异常呢？我的理解是：call可以看作是push ip + jmp 指令，ret可以看作是pop ip指令，第一个call next在我们看来相当于一个简单的jmp跳转到了下一条指令，而ida肯定会将它当作函数进行分析，函数内执行了**movl $continue,(%esp);**这样一个操作，将continue的地址放入了esp寄存器中，然后ret指令将IP设为continue的地址，于是顺利执行printf指令。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023535.png"></p>
+<p>也就是在ret指令执行过后，esp并没有复原，但是不影响程序运行，这就导致ida认为堆栈不平衡，导致不能反汇编。我们直接将这样的垃圾指令nop掉即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023758.png"></p>
+<p>然后f5一下即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023834.png"></p>
+<p>代码从之前的</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023927.png"></p>
+<p>变为了</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023948.png"></p>
+<p>参考：<a target="_blank" rel="noopener" href="https://nnnewb.github.io/blog/p/learning-packer-07/">https://nnnewb.github.io/blog/p/learning-packer-07/</a></p>
+<h4 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h4><p>在vs上，选择x86，编译</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call sub7</span><br><span class="line">		_emit <span class="number">0xE8</span></span><br><span class="line">		jmp label7</span><br><span class="line">		sub7 :</span><br><span class="line">		add dword ptr[esp], <span class="number">1</span></span><br><span class="line">			retn</span><br><span class="line">			label7 :</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;hello,world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个emit相当于汇编中的<strong>db</strong>，作用是在当前位置直接插入数据，而我们插入的0xE8是call指令的机器码，于是紧挨着的几个字节会被当作地址处处理，这会导致反汇编的失败。</p>
+<p>这段代码的逻辑：调用sub7，执行add dword ptr[esp], 1，给[esp]+1，而【esp】保存的是call下面一条指令也就是_emit 0xE8的地址，经过这样的操作，在执行retn语句的时候，不会返回_emit 0xE8而是直接执行下面的jmp label7，于是程序正常运行。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129151334.png"></p>
+<p>直接把红框部分nop掉,然后在这个位置按下U也就是undefine<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165105.png"></p>
+<p>然后再按下c，将数据解析为代码，按下p创建函数，最后F5即可。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165256.png"></p>
+<p>赏心悦目<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165314.png"></p>
+<p>话有一种方法是将E8后面的数据给还原，源代码我们知道，E8后面是一条跳转指令，而不应该像现在这样被解析为数据，在此处按下U<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165430.png"></p>
+<p>光标放在这个位置按下C<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165601.png"></p>
+<p>得到<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165632.png"></p>
+<p>woc，又不行了（刚才不知道为什么阴差阳错这种办法也行），无语了。。。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%8A%B1%E6%8C%87%E4%BB%A4/" rel="tag"># 花指令</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/03/19/DUBHEctf-Destination/" rel="prev" title="DUBHEctf_Destination">
+      <i class="fa fa-chevron-left"></i> DUBHEctf_Destination
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/03/19/%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91MZ/" rel="next" title="西湖论剑MZ">
+      西湖论剑MZ <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E4%BC%9A%E8%A2%AB%E6%89%A7%E8%A1%8C%E7%9A%84%E8%8A%B1%E6%8C%87%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">不会被执行的花指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E4%BB%A5%E6%89%A7%E8%A1%8C%E7%9A%84%E8%8A%B1%E6%8C%87%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">可以执行的花指令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A0%B4%E5%9D%8F%E6%A0%88"><span class="nav-number">2.1.</span> <span class="nav-text">破坏栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%95%B0%E6%8D%AE"><span class="nav-number">2.2.</span> <span class="nav-text">插入数据</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">73k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:25</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
