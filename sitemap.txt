@@ -1,3 +1,7 @@
+http://example.com/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/
+http://example.com/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/
+http://example.com/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/
+http://example.com/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/
 http://example.com/2024/03/19/OLLVM%E5%AF%B9%E6%8A%97/
 http://example.com/2024/03/19/%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91MZ/
 http://example.com/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/
