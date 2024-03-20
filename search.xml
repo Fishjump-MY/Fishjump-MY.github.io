@@ -1,6 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>2019红帽杯_snake</title>
+    <url>/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/</url>
+    <content><![CDATA[<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240320222514.png"></p>
+<p>Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。</p>
+<p>通过搜索阶段、长度、得分等关键字可以定位到关键方法。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003350.png"></p>
+<p>然后就是查看这几个类，在snakehead可以找到一个和坐标相关的方法，其他的一些方法基本上根据函数名就知道函数的作用。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003637.png"></p>
+<p>可以看到是从Interface调用的方法GameObject，在plugin目录有一个Interface.dll，拖入ida查看。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321004705.png"></p>
+<p>直接从导出函数找到GameObject。然后就是一个很难弄懂的逻辑，而且参数只有一个。但是通过定位这个关键参数<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321005342.png"></p>
+<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321005354.png"></p>
+<p>可以确定a大于等于0，小于等于99，只有这样他才会进入那个if语句，从而有可能触发下面的函数<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321005912.png"></p>
+<p>如果我们能用c语言把这个函数复原过来，使用0~99作为参数就可以暴破出来flag。</p>
+<p>然而，这是一个dll文件，gameobject函数作为导出函数，是可以直接被调用的。一下是调用程序</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数指针</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">signed</span> __int64 (*Dllfunc)(<span class="type">int</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    Dllfunc GameObject; <span class="comment">// GameObject是dll中想要调用的函数名称</span></span><br><span class="line">    HINSTANCE hdll = <span class="literal">NULL</span>;</span><br><span class="line">    hdll = LoadLibrary(TEXT(<span class="string">&quot;Interface.dll&quot;</span>)); <span class="comment">// 用LoadLibrary加载dll</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hdll == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;加载失败\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        GameObject = (Dllfunc)GetProcAddress(hdll, <span class="string">&quot;GameObject&quot;</span>); <span class="comment">// 到dll中定位函数</span></span><br><span class="line">        <span class="keyword">if</span> (GameObject == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;加载函数失败\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt;= <span class="number">99</span>; i++) &#123;</span><br><span class="line">                <span class="type">signed</span> __int64 res = GameObject(i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    FreeLibrary(hdll); <span class="comment">// 释放dll</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>有可能出现加载失败的问题，这时候可以在 调式–&gt;调式属性，更改平台<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010836.png"></p>
+<p>因为这是一个64位的dll，所以我们的平台要选择x64<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010848.png"></p>
+<p>实现的效果就是</p>
+<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010328.png"></p>
+<p>还有一种更为简单的调用方式：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> ctypes</span><br><span class="line">dll = ctypes.cdll.LoadLibrary(<span class="string">&quot;E:\\RE\\buuctf\\Snake\\Snake_Data\\Plugins\\Interface.dll&quot;</span>)<span class="comment">#导入库</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">    dll.GameObject(i)<span class="comment">#调用库函数</span></span><br><span class="line">    <span class="built_in">print</span>(i)</span><br></pre></td></tr></table></figure>
+
+<p>这段代码是使用Python的ctypes库加载一个名为”Interface.dll”的动态链接库，并调用其中的GameObject函数。循环100次，每次传入一个递增的整数i作为参数，并在每次调用后打印i的值。</p>
+<p>参考链接：</p>
+<p><a href="https://mp.weixin.qq.com/s/MKaMMihP8gPSYKswAxjNqQ">https://mp.weixin.qq.com/s/MKaMMihP8gPSYKswAxjNqQ</a></p>
+<p>[<a href="https://blog.csdn.net/m0_46296905/article/details/116209735">2019红帽杯]Snake-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>wp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2019红帽杯childRE</title>
+    <url>/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/</url>
+    <content><![CDATA[<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/QQ%E6%88%AA%E5%9B%BE20231221035743.png"></p>
+<p>题目逻辑并不难理解，只是遇到了船新的知识点<strong>UnDecorateSymbolName</strong>。</p>
+<span id="more"></span>
+
+<p>题目逻辑;</p>
+<ol>
+<li>验证输入长度是否为31</li>
+<li>将输入打乱，其实就是将输入存储到树中</li>
+<li>UnDecorateSymbolName函数发挥作用，得到outputstring</li>
+<li>校验</li>
+</ol>
+<p>首先可以从最后的校验，得出outputstring的值，查看a4，a5两个比较数据在表a1的位置，outputstring的元素模23是a4的下标，&#x2F;23是a5的下标</p>
+<figure class="highlight py"><table><tr><td class="code"><pre><span class="line">data1 = <span class="string">&#x27;(_@4620!08!6_0*0442!@186%%0@3=66!!974*3234=&amp;0^3&amp;1@=&amp;0908!6_0*&amp;&#x27;</span></span><br><span class="line">data2 = <span class="string">&#x27;55565653255552225565565555243466334653663544426565555525555222&#x27;</span></span><br><span class="line">table = <span class="string">&quot;1234567890-=!@#$%^&amp;*()_+qwertyuiop[]QWERTYUIOP&#123;&#125;asdfghjkl;&#x27;ASDFGHJKL:\&quot;ZXCVBNM&lt;&gt;?zxcvbnm,./&quot;</span></span><br><span class="line"></span><br><span class="line">positions_data1 = [table.index(c) <span class="keyword">for</span> c <span class="keyword">in</span> data1 <span class="keyword">if</span> c <span class="keyword">in</span> table]</span><br><span class="line">positions_data2 = [table.index(c) <span class="keyword">for</span> c <span class="keyword">in</span> data2 <span class="keyword">if</span> c <span class="keyword">in</span> table]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;data1在table中的位置：&quot;</span>, positions_data1)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;data2在table中的位置：&quot;</span>, positions_data2)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">62</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">chr</span>(positions_data1[i]+positions_data2[i]*<span class="number">23</span>),end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">//private: char * __thiscall R0Pxx::My_Aut0_PWN(unsigned char *)</span><br></pre></td></tr></table></figure>
+
+<p>接下来就是由outputstring字符串反推出v5，核心是要理解UnDecorateSymbolName函数<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/QQ%E6%88%AA%E5%9B%BE20231221040922.png"></p>
+<p>一个函数名称经编译器修饰后会变成一段记录其各种信息（返回值、参数等）的字符串，具体规则可见<a href="https://blog.csdn.net/liweigao01/article/details/78351464">c, c++函数名编译符号修饰符说明-CSDN博客</a></p>
+<p>UnDecorateSymbolName的函数可以根据上述字符串，还原出我们声明的函数信息</p>
+<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">private: char * <span class="built_in">_</span><span class="built_in">_</span>thiscall R0Pxx::My<span class="built_in">_</span>Aut0<span class="built_in">_</span>PWN(unsigned char *) 与 ?My<span class="built_in">_</span>Aut0<span class="built_in">_</span>PWN@R0Pxx@@AAEPADPAE@Z 相对应</span><br></pre></td></tr></table></figure>
+
+<p>然后将字符串?My_Aut0_PWN@R0Pxx@@AAEPADPAE@Z顺序还原即可</p>
+<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/QQ%E6%88%AA%E5%9B%BE20231221041743.png"></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">data11 = <span class="string">&#x27;$%8^&amp;94*(0)_-52+q=we!6rt@yu#731&#x27;</span></span><br><span class="line">data22 = <span class="string">&#x27;1234567890-=!@#$%^&amp;*()_+qwertyu&#x27;</span></span><br><span class="line">index=[]*<span class="number">31</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">31</span>):</span><br><span class="line"> index.append(data11.find(data22[i]))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line">flag0=<span class="string">&#x27;?My_Aut0_PWN@R0Pxx@@AAEPADPAE@Z&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">31</span>):</span><br><span class="line">   <span class="built_in">print</span>(flag0[index[i]],end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(flag0)</span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;&#x2F;Z0@tRAEyuP@xAAA?M_A0_WNPx@@EPDP</p>
+]]></content>
+      <tags>
+        <tag>wp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>2022极客大挑战</title>
     <url>/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/</url>
     <content><![CDATA[]]></content>
@@ -32,6 +95,36 @@
 <p><img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145355.png"></p>
 <p>逆向过程没啥障碍，写脚本的时候<code>flag[changedata[31-i]]=cmpdata[31-i];</code>31写成了32，造成了越界，但是非常的不明显<img src="/2023/10/12/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/QQ%E6%88%AA%E5%9B%BE20231012145647.png"></p>
 <p>离谱的是vscode有时候能跑起来有时候跑不起来，这里记录一下，以后注意这个问题，可能需要安装一个检测这种小错误的插件。</p>
+]]></content>
+      <tags>
+        <tag>wp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ACTF新生赛fungame</title>
+    <url>/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/</url>
+    <content><![CDATA[<p>一道有意思又有点脑洞的re&amp;pwn题目，第一次接触到这种类型的题目，记录一下。</p>
+<span id="more"></span>
+
+<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200026.png"></p>
+<p>很简单的异或，y1^y2即可得出16字节的input。</p>
+<figure class="highlight erlang-repl"><table><tr><td class="code"><pre><span class="line">Re_1s_So0_funny!</span><br></pre></td></tr></table></figure>
+
+<p>虽然觉得不可思议，但还是尝试提交了一下，果不其然是错误的，然后查看y1和y2的交叉引用，看看是否出现了反调试，结果也没有。运行程序基本可以确定，这十六字节的输入是没什么问题的，因为输入其他的字符串，程序是立即结束，而输入这十六个字节，有明显的等待时间。<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200457.png"></p>
+<p>接着就是查看另一个参数为input的函数，<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200621.png"></p>
+<p>乍一看，没有任何的价值<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200713.png"></p>
+<p>我也是查看了wp之后才注意到这里的溢出问题。</p>
+<p>strcpy不会检测字符串的长度，因此可能发生栈溢出。而destination是十二字节，input是16字节，明显存在溢出问题，而后面的input1更是引人怀疑，交叉引用发现，被这个函数所使用<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306201238.png"></p>
+<p>它提示input again，然后再次对输入的字符串进行检测。一眼看出base64，解码之后是a1s0_pWn，关键的问题是如何让上面的sub_4013BA函数执行完之后不返回main函数而是这个sub_40233D。这里要借助的就是strcpy的溢出。<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306202338.png"></p>
+<p>destination的地址被存放在了栈顶</p>
+<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306202459.png"></p>
+<p>进一步查看，可以找到原本的返回值</p>
+<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306202737.png"></p>
+<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306205608.png"></p>
+<p>前十六个字节是Re_1s_So0_funny!，60FEDC那里就要用sub_40233D的地址来覆盖了，也就是0x0040233D，然后考虑小端存储最后四个字节的内容是3D、23、40，00，最后一个00不用理会，只需要填入对应的字符即可，也就是**&#x3D;#@**。</p>
+<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306203704.png"></p>
+<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306203550.png"></p>
+<p>所以最终的flag：Re_1s_So0_funny!&#x3D;#@a1s0_pWn</p>
 ]]></content>
       <tags>
         <tag>wp</tag>
@@ -414,6 +507,205 @@
       </tags>
   </entry>
   <entry>
+    <title>CSAPP-第七章—链接</title>
+    <url>/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/</url>
+    <content><![CDATA[<p>虽然现在还没怎么使用过链接，因为小项目往往单个文件即可完美解决，但是当工程量大的时候，多文件操作是不可避免的。链接就是将各种代码和数据片段收集并组合成一个单一文件的过程。</p>
+<span id="more"></span>
+
+<h4 id="为什么学习链接："><a href="#为什么学习链接：" class="headerlink" title="为什么学习链接："></a>为什么学习链接：</h4><ul>
+<li>理解链接有利于我们构造大型程序。</li>
+<li>理解链接器将帮助我们避免一些危险的编程错误。</li>
+<li>理解链接帮助我们理解语言的作用域规则是如何实现的。</li>
+<li>理解链接将帮助我们理解其他重要的系统概念。</li>
+<li>理解链接使我们能够利用共享库。</li>
+</ul>
+<h3 id="静态链接"><a href="#静态链接" class="headerlink" title="静态链接"></a>静态链接</h3><blockquote>
+<p>静态链接（Static linking）是指在编译阶段将目标文件中所需的库文件代码全部复制到可执行文件中，形成一个独立的、完整的可执行文件。在运行程序时，操作系统不需要加载额外的库文件，因为所有必要的代码都已经包含在可执行文件中。</p>
+</blockquote>
+<p>优点：执行速度快、稳定性好、容易分发（移植性高？）、安全性高</p>
+<p>缺点：可执行文件大、更新困难、内存浪费</p>
+<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><blockquote>
+<p>动态链接（Dynamic linking）是指在程序运行时，需要某个库文件时才去查找和载入所需的库文件。与静态链接不同，动态链接并不会将所有的代码和数据都打包到可执行文件中，而是在程序启动时只加载所需的代码和数据，避免了一些资源浪费的问题。</p>
+</blockquote>
+<p>优点：文件小、容易更新、节约内存、更容易定位问题</p>
+<p>缺点：执行速度较慢、安全性问题、容易出错</p>
+<h3 id="编译器驱动程序"><a href="#编译器驱动程序" class="headerlink" title="编译器驱动程序"></a>编译器驱动程序</h3><p>跟着书上操作一下</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603152948.png"></p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603153012.png"></p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603153106.png"></p>
+<p>了解一下gcc的使用：<strong>gcc -Og -o prog main.c sum.c</strong></p>
+<ul>
+<li><code>gcc</code>: 使用 GNU C 编译器</li>
+<li><code>-Og</code>: 优化级别为“优化等级 g”，即启用大多数优化选项，但不会影响调试信息。</li>
+<li><code>-o prog</code>: 将生成的可执行文件命名为 <code>prog</code>。（如果没有该选项，则默认生成名为 <code>a.out</code> 的可执行文件）</li>
+<li><code>main.c</code>: 主程序文件，包含程序的入口函数。</li>
+<li><code>sum.c</code>: 函数库文件，包含用于计算求和的函数代码。</li>
+</ul>
+<p>综上所述，该命令会将 <code>main.c</code> 和 <code>sum.c</code> 两个源文件编译成一个名为 <code>prog</code> 的可执行文件，并且在编译过程中启用了大多数优化选项，同时保留了调试信息以方便调试。</p>
+<h3 id="目标文件"><a href="#目标文件" class="headerlink" title="目标文件"></a>目标文件</h3><p>目标文件有三种形式</p>
+<ul>
+<li>可重定位目标文件。包含二进制代码和数据，可执行目标文件的中间产物。</li>
+</ul>
+<blockquote>
+<p>可重定位目标文件包含了代码、数据和符号表等信息，但并不包含所有的地址信息。因此，在链接时需要通过重新定位（relocation）来分配地址，并建立各个目标文件之间的联系，生成最终的可执行文件或动态链接库。</p>
+</blockquote>
+<ul>
+<li>可执行目标文件。包含二进制代码和数据，可以直接复制到内存并执行。</li>
+<li>共享目标文件。一种特殊类型的可重定位文件。</li>
+</ul>
+<h3 id="可重定位目标文件"><a href="#可重定位目标文件" class="headerlink" title="可重定位目标文件"></a>可重定位目标文件</h3><p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603162030.png"></p>
+<p>我们拿一个具体的文件对照着理解</p>
+<p>mian1.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> count=<span class="number">10</span>;</span><br><span class="line"><span class="type">int</span> value;</span><br><span class="line"><span class="type">void</span> <span class="title function_">func</span><span class="params">(<span class="type">int</span> sum)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;sum is:%d\n&quot;</span>,sum);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="type">static</span> <span class="type">int</span> a=<span class="number">1</span>;</span><br><span class="line">        <span class="type">static</span> <span class="type">int</span> b=<span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> x=<span class="number">1</span>;</span><br><span class="line">        func(a+b+x);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>gcc -c main1.c</strong>  命令将源文件编译成可重定位目标文件。-c只编译源代码不进行链接操作，生成main1.o文件</p>
+<p> <strong>readelf -h main1.o</strong>   -h选项表示只显示header信息。</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603163426.png"></p>
+<p>这就是7-3所示的ELF头的内容。</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603163658.png"></p>
+<p>我们可以看到节头部表的起始位置是992.共有14个表，每个长度为64字节。992+14*64&#x3D;1888和我们用wc（word count）命令查看的文件的字节数目一致。</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603164202.png"></p>
+<p><strong>readelf -S main1.o</strong>  -S选项，打印整个表的信息</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603164339.png"></p>
+<p><strong>.text</strong>：存放已经编译好的机器代码。通过objdump -s -d main1.o命令可以查看<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603165048.png"></p>
+<p><strong>.data</strong>：存放已经初始化的全局和静态变量<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603165408.png"></p>
+<p>我们初始化了一个count和a，值分别为10和1.其实还初始化了b，不过赋值为0，当作未初始化处理。我们看到的是小端存储，0a000000实际上是0000000a。</p>
+<p><strong>.bss</strong>：未初始化的全局变量和静态变量，以及所以被初始化为0的全局或静态变量。在目标文件中这个节不占实际的空间，仅仅是一个占位符。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603170707.png"></p>
+<p>可以看到他和.rodata起始位置是相同的。</p>
+<blockquote>
+<p><code>.bss</code> 段不包含实际的数据内容，是因为该段中存储的是未初始化的全局变量和静态变量。在程序启动时，这些变量会被自动初始化为 0 或者 NULL，而不是在编译时就确定了其具体的值。因此，在编译时并没有将这些变量的实际值保存到 <code>.bss</code> 段中。</p>
+<p>对于已经初始化的全局变量和静态变量，它们将被保存在 <code>.data</code> 段或 <code>.rodata</code> 段中，并在编译时就确定了其具体的值。相比之下，<code>.bss</code> 段只是记录了需要分配多少空间给未初始化的变量，并在程序启动时进行自动初始化。因此，<code>.bss</code> 段中不包含实际的数据内容。</p>
+</blockquote>
+<p>.rodata：只读文件，比如printf语句中的格式串和开关语句的跳转表<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603171213.png"></p>
+<p>其余的</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603171455.png"></p>
+<h3 id="符号和符号表"><a href="#符号和符号表" class="headerlink" title="符号和符号表"></a>符号和符号表</h3><p>每个可重定位目标模块m都有一个符号表，它包含m定义和应用的符号的信息。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603174013.png"></p>
+<p><strong>readelf -s main1.o</strong>  查看符号表内容<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603171927.png"></p>
+<p>从这个表中我们可以看到所有定义的符号以及他们的位置和大小。比如说main函数，在0x2b处大小是52字节。对于count 和 value 他俩的type为object表明符号是个数据对象，ndx值是其段位置，3代表count在section3即.data中。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603173509.png"></p>
+<p>局部变量x并未出现在符号表中，因为局部变量在运行时栈中被管理，因此不会出现。</p>
+<h3 id="符号解析与静态库"><a href="#符号解析与静态库" class="headerlink" title="符号解析与静态库"></a>符号解析与静态库</h3><p>链接器解析符号引用的方法是将每个引用与他输入的可重定位目标文件的符号表中的一个确定的符号定义关联起来。对于局部变量，解析是非常明了的。对于全局变量，编译器会假设他在其他的某个模块被定义，如果链接器在任何一个模块中都未被定义，就会输出一个错误信息并终止。   </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">foo</span><span class="params">(<span class="type">void</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">        foo();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603180037.png"></p>
+<p>编译和汇编过程没有问题。连接成可执行文件时报错<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603180303.png"></p>
+<h4 id="编译器如何解析多重定义的全局符号"><a href="#编译器如何解析多重定义的全局符号" class="headerlink" title="编译器如何解析多重定义的全局符号"></a>编译器如何解析多重定义的全局符号</h4><p>全局符号分强弱两种类型。</p>
+<p>强符号：函数和已经初始化的全局变量</p>
+<p>弱符号：未初始化的全局变量<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603180723.png"></p>
+<h4 id="静态库"><a href="#静态库" class="headerlink" title="静态库"></a>静态库</h4><p>静态库就是各种可重定位文件的集合，如lib.a静态库就包含了printf.o等</p>
+<p>静态链接就是链接静态库的过程。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603181855.png"></p>
+<h3 id="静态库的解析过程"><a href="#静态库的解析过程" class="headerlink" title="静态库的解析过程"></a>静态库的解析过程</h3><p>连接器从左到右扫描文件并维护三个集合，顺序是比较重要的</p>
+<p>E：可重定位目标文件的集合，这个集合会被合并起来并形成可执行文件。</p>
+<p>U：未解析的符号（引用了但是尚未定义的符号）集合</p>
+<p>D：在前面输入文件中已经定义的符号集合。</p>
+<p>最开始是空的</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183005.png"></p>
+<p>接收目标文件放入E<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183029.png"></p>
+<p>main中有未解析的符号<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183038.png"></p>
+<p>继续往下查看静态库，发现了addvec的定义，于是从U中删除，将addvec.o放入E中<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183118.png"></p>
+<p>D的目的是动心定位，分配地址。</p>
+<h3 id="重定位"><a href="#重定位" class="headerlink" title="重定位"></a>重定位</h3><p>重定位合并输入模块，并未每个模块分配运行时地址。重定位由两步组成：</p>
+<ul>
+<li><strong>重定位节和符号定义</strong>  。将相同类型的节合并，然后链接器将运行时内存地址赋给新的聚合节。当这一步完成时，程序的每个指令和全局变量都有唯一的运行时内存地址了。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604022044.png"></li>
+<li><strong>重定位节中的符号引用</strong> 。连接器修改代码节和数据节中对每个符号的引用，使得他们指向正确的。</li>
+</ul>
+<h4 id="重定位条目"><a href="#重定位条目" class="headerlink" title="重定位条目"></a>重定位条目</h4><p>当汇编器生成一个目标模块时，并不知道数据和代码最终将存放在什么位置。当汇编器遇到对最终位置未知的目标引用，他就会生成一个可重定位条条目，告诉连接器在将文件合并成可执行文件时如何修改这个引用。代码的重定位条目放在.rel.text中。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604023138.png"></p>
+<p>在重定位之前，操作码之后的内容被汇编器填充为0<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604023934.png"></p>
+<p>根据重定位条目来确定具体内容。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604024716.png"></p>
+<p>0x5,是两个地址之间的距离<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604024928.png"></p>
+<p>现在学的内容和当时学习汇编语言接触到的东西接轨了，比如说为什么call指令会进行这样那样的操作，jmp指令有的是相对跳转有的是绝对跳转。这里解释的是重定位相对引用。</p>
+<p>重定位绝对引用比较简单<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604025205.png"></p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604025246.png"></p>
+<p>最终<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604025318.png"></p>
+<h3 id="可执行目标文件"><a href="#可执行目标文件" class="headerlink" title="可执行目标文件"></a>可执行目标文件</h3><p>可以复制到内存并直接执行的文件<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604144059.png"></p>
+<p>ELF头描述文件的总体格式，它还包括程序的入口点，也就是当程序运行时要执行的第一条指令的地址。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604154958.png"></p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604155129.png"></p>
+<p><strong>.&#x2F;prog</strong> 运行可执行文件prog。</p>
+<h3 id="动态链接共享库"><a href="#动态链接共享库" class="headerlink" title="动态链接共享库"></a>动态链接共享库</h3><p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604162238.png"></p>
+<h3 id="库打桩机制"><a href="#库打桩机制" class="headerlink" title="库打桩机制"></a>库打桩机制</h3><blockquote>
+<p>库打桩机制允许你接获对共享库函数的调用，取而代之执行自己的代码。使用打桩机制，你可以追踪对某个特殊库函数的调用次数。验证和追踪它的输入值和输出值，或者甚至把他天换成一个完全不同的实现。</p>
+</blockquote>
+<p>先说明一下库打桩的应用场景，比如说我们使用库函数malloc()，他返回一个地址，而我们呢想知道malloc函数被调用了多少次，这时我们就可以通过库打桩将我们自己编写的可以打印信息的mymolloc进行替换，这好像和hook有点关系。库打桩技术的主要思想是:在不修改原程序源代码的情况下,替换掉不稳定或难以获取的第三方库。替换的库称为桩库或模拟库,它实现目标库的接口,但是里面的实现是自定义的代码。通过使用桩库,可以<strong>隔离原程序与第三方库</strong>,便于测试或解决依赖问题。常用于软件测试中,以提高测试用例的准确性和可重复性。</p>
+<p>按照打桩时机，库打桩分为以下三类：</p>
+<ol>
+<li>编译时打桩。此种情况需要能够访问源代码。</li>
+<li>链接时打桩。需要能够访问可重定位文件文件。</li>
+<li>运行时打桩。没有上述需求，比较nb。</li>
+</ol>
+<h4 id="编译时打桩"><a href="#编译时打桩" class="headerlink" title="编译时打桩"></a>编译时打桩</h4><p>使用宏定义将malloc()定义为mymalloc()即可，自定义malloc.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> malloc(size) mymalloc(size)</span></span><br><span class="line"><span class="type">void</span> *<span class="title function_">mymalloc</span><span class="params">(<span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们自定义malloc的内容</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX      <span class="comment">//相当于一个if语句，就是如果定义了宏XXX，下面的代码就会被加载，在编译中我们使用DXXX来定义XXX</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="comment">//打桩函数</span></span><br><span class="line"><span class="type">void</span> *<span class="title function_">mymalloc</span><span class="params">(<span class="type">size_t</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span>* ptr=<span class="built_in">malloc</span>(size);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;mzy success\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>main函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;malloc.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> *p=<span class="built_in">malloc</span>(<span class="number">32</span>);</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -DMYMOCK -c mymalloc.c    <span class="comment">#编译源代码文件而不进行链接</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -I . -o main main.c mymalloc.o</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">./main</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605021520.png"></p>
+<p>很离谱的是没有任何反应<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605021707.png"></p>
+<p>经过一番求助之后，原来是tmd头文件的名字写错了，<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605110200.png"></p>
+<p>跟着这个就来了，但是作者是怎么成功的呢，按理来说他应该include”mymalooc.h”才对呀。</p>
+<h4 id="链接时打桩"><a href="#链接时打桩" class="headerlink" title="链接时打桩"></a>链接时打桩</h4><p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605110428.png"></p>
+<p>l连接过程中对应关系是</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span>       ----&gt;     _ _wrap_fun</span></span><br><span class="line">__real_f  ----&gt;     <span class="function"><span class="keyword">fun</span></span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> *__real_malloc(<span class="type">size_t</span> size);</span><br><span class="line"></span><br><span class="line"><span class="type">void</span>* __wrap_malloc(<span class="type">size_t</span> size)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span>* ptr =__real_malloc(size);<span class="comment">//调用malooc</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;mzy success*2&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>main.c和上面有一点不同，将头文件去掉</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="comment">//#include&quot;malloc.h&quot;</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> *p =<span class="built_in">malloc</span>(<span class="number">32</span>);</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后进行</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -DXXX -c mymalloc.c    <span class="comment">#得到mymalloc.o</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -c main.c               <span class="comment">#得到main.o</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -Wl,--wrap,malloc -o main main.o mymalloc.o</span> </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">#-Wl,--wrap,malloc把--wrap malloc传递给链接器</span></span></span><br></pre></td></tr></table></figure>
+
+<h4 id="运行时打桩"><a href="#运行时打桩" class="headerlink" title="运行时打桩"></a>运行时打桩</h4><p>不需要源代码，不需要重定位文件，太酷啦。在学习这个炫酷的技能之前，我们先了解一下如何制造动态库。</p>
+<h5 id="动态库的制作"><a href="#动态库的制作" class="headerlink" title="动态库的制作"></a>动态库的制作</h5><p>test.c代码</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;test.h&quot;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>test.h</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span>;</span><br></pre></td></tr></table></figure>
+
+<p>制作生成.so文件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc test.c -fPIC -shared -o libtest.so</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -DMYMOCK -shared -fPIC -o libmymalloc.so mymalloc.c -ldl</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li><code>-DMYMOCK</code>：定义预处理器宏 <code>MYMOCK</code>，使得在编译时预处理阶段可以根据这个宏名称进行条件编译。</li>
+<li><code>-shared</code>：指定生成一个共享库（即动态链接库）。</li>
+<li><code>-fPIC</code>：指定编译为位置独立代码（Position Independent Code），以便被动态链接库调用。</li>
+<li><code>-o libmymalloc.so</code>：指定输出文件名为 <code>libmymalloc.so</code>，其中 <code>.so</code> 表示共享对象文件（Shared Object）的后缀名。</li>
+<li><code>mymalloc.c</code>：指定输入文件名为 <code>mymalloc.c</code>，该文件包含了需要编译成动态链接库的代码。</li>
+<li><code>-ldl</code>：告诉编译器需要链接 <code>dl</code> 库（即动态链接库库），该库包含了 dlsym() 函数等相关函数的实现。</li>
+</ul>
+<p>当执行这个命令后，将会在当前目录下生成一个名为 <code>libmymalloc.so</code> 的动态链接库文件，该库包含了我们在 <code>mymalloc.c</code> 文件中定义的 <code>malloc()</code> 封装函数。用户可以使用 <code>LD_PRELOAD</code> 环境变量来加载这个动态链接库，从而覆盖掉系统默认的 <code>malloc()</code> 函数。</p>
+</blockquote>
+<p><strong>LD_PRELOAD</strong> :可以通过设置该环境变量，达到在加载动态库或者解析一个符号时，<strong>先</strong>从LD_PRELOAD指定的库中寻找符号的目的。</p>
+<p>跟着操作了一番出现了Segmentation fault，查了一下我不是个例。mymalloc.c</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dlfcn.h&gt;</span>   <span class="comment">//提供动态链接库的相关函数和类型的声明</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span>* <span class="title function_">malloc</span><span class="params">(<span class="type">size_t</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">void</span> *(*mallocp)(<span class="type">size_t</span> size);</span><br><span class="line">   <span class="type">char</span> *error;</span><br><span class="line"></span><br><span class="line">   mallocp=dlsym(RTLD_NEXT,<span class="string">&quot;malloc&quot;</span>);   <span class="comment">//得到libc malloc的地址</span></span><br><span class="line">   <span class="keyword">if</span>((error=dlerror())!=<span class="literal">NULL</span>)       <span class="comment">//dlerro()检查最后一次动态链接库操作是否出现错误，如果失败则返回一个非空字符串指针赋值给error</span></span><br><span class="line">   &#123;</span><br><span class="line">      <span class="built_in">fputs</span>(error,<span class="built_in">stderr</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="type">char</span>* ptr =mallocp(size);<span class="comment">//在封装函数中调用原函数</span></span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;malloc(%zu)=%p\n&quot;</span>,size,ptr);</span><br><span class="line">   <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">                                          </span><br></pre></td></tr></table></figure>
+
+<p>RTLD_NEXT是一个伪句柄，表示在当前库之后的库中查找malloc，为什么是下一个库？因为当前库被LD_PRELOAD设置成了mymalloc.so</p>
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230606153928.png"></p>
+<p>错误产生的原因：malloc的反复调用，应该是类似没有终止的递归导致，这里留一个坑位，学明白了再解释。</p>
+<p><strong>为什么出现段错误：</strong> 我们自定义的malloc函数调用了printf函数，printf函数又调用了malloc函数，malloc函数有调用printf函数，这是一个死循环，会导致栈溢出。</p>
+<p>解决方法：避免反复调用&#x2F;使用不调用打桩函数的函数。我们设置了静态变量来检测调用malloc的情况，因为每次进入的状态是0，然后进行自增，运行到后面如果次数为1，那么一切正常，如果为2那么说明此时对malloc进行了第二次调用，第一次调用还没有结束，那么直接跳过printf避免它再次触发我们的malloc。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dlfcn.h&gt;</span>   <span class="comment">//提供动态链接库的相关函数和类型的声明</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span>* <span class="title function_">malloc</span><span class="params">(<span class="type">size_t</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> calltimes;</span><br><span class="line">    calltimes++;</span><br><span class="line">   <span class="type">void</span> *(*mallocp)(<span class="type">size_t</span> size)=<span class="literal">NULL</span>;</span><br><span class="line">   <span class="type">char</span> *error;</span><br><span class="line"></span><br><span class="line">   mallocp=dlsym(RTLD_NEXT,<span class="string">&quot;malloc&quot;</span>);   <span class="comment">//得到libc malloc的地址</span></span><br><span class="line">   <span class="keyword">if</span>((error=dlerror())!=<span class="literal">NULL</span>)       <span class="comment">//dlerro()检查最后一次动态链接库操作是否出现错误，如果失败则返回一个非空字符串指针赋值给error</span></span><br><span class="line">   &#123;</span><br><span class="line">      <span class="built_in">fputs</span>(error,<span class="built_in">stderr</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="type">char</span>* ptr =mallocp(size);<span class="comment">//在封装函数中调用原函数</span></span><br><span class="line">   <span class="keyword">if</span>(calltimes==<span class="number">1</span>)</span><br><span class="line">   &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;malloc(%zu)=%p\n&quot;</span>,size,ptr);   </span><br><span class="line">   &#125;</span><br><span class="line">   calltimes=<span class="number">0</span>;</span><br><span class="line">   <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">                                          </span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230606165010.png"></p>
+<p>只要设置 LD_PRELOAD&#x3D;”.&#x2F;mymalloc.so”，所有调用malloc函数的程序都会被改变。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export LD_PRELOAD=./libxxx.so     #应用到全局</span><br><span class="line">unset LD_PREALOD      #取消环境变量设置</span><br></pre></td></tr></table></figure>
+
+<p>参考链接：</p>
+<p><a href="https://www.yanbinghu.com/2019/07/28/59484.html">库打桩机制-偷梁换柱 | 守望的个人博客 (yanbinghu.com)</a></p>
+<p><a href="https://blog.csdn.net/imred/article/details/77418323">(17条消息) CSAPP第三版运行时打桩Segmentation fault_imred的博客-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>csapp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DUBHEctf_Destination</title>
     <url>/2024/03/19/DUBHEctf-Destination/</url>
     <content><![CDATA[<p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319002958.png"></p>
@@ -682,6 +974,35 @@
       </tags>
   </entry>
   <entry>
+    <title>RC4</title>
+    <url>/2023/08/20/RC4/</url>
+    <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>RC4是<strong>对称密码</strong>算法中的<strong>流密码</strong>加密算法，对称及加解密的密钥相同，流密码意思是加密是逐字节进行的与之对应的就是<strong>块加密</strong>。</p>
+<span id="more"></span>
+
+<h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h2><p>RC4生成一种称为密钥流的伪随机流（S表），他与明文通过异或操作混合，以达到加密的目的，解密时与明文进行异或操作。其密钥流由两部分组成，分别是KSA和PRGA。可以简单的理解为RC4由这两部分组成。</p>
+<p><strong>KSA</strong> 部分的代码。密钥的长度一般为5<del>16字节及40</del>128位，通常不超过256位。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    j=(j+S[i]+key[i % keylength]) % <span class="number">256</span>;  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>PRGA</strong> 根据待加密的data进行置换，得到的子密码k与data进行异或即可得到密文</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">i,j,t=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(m=<span class="number">0</span>;j&lt;datalength;m++)</span><br><span class="line">&#123;</span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>合并起来的代码</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Swap</span><span class="params">(<span class="type">int</span>*a,<span class="type">int</span>*b)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    t=*a;</span><br><span class="line">    *a=*b;</span><br><span class="line">    *b=t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> key[]=<span class="string">&quot;fishjump&quot;</span>;</span><br><span class="line">    <span class="type">int</span> keylength=<span class="built_in">strlen</span>(key);</span><br><span class="line">    <span class="type">int</span> S[<span class="number">255</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      j=((j+S[i]+key[i % keylength]) % <span class="number">256</span>);  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">      Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    j=<span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span> data[]=<span class="string">&quot;mzyloveyy&quot;</span>;</span><br><span class="line">    <span class="type">int</span> datalength=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> m=<span class="number">0</span>;m&lt;datalength;m++)</span><br><span class="line">  &#123; </span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    <span class="type">int</span> k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%x\n&quot;</span>,data[m]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>验证一下成果</p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234509.png"></p>
+<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234535.png"></p>
+<p>okk。</p>
+<h2 id="特征"><a href="#特征" class="headerlink" title="特征"></a><strong>特征</strong></h2><p>总结一下，如何在茫茫人海中一眼认出RC4？<strong>256位的数组</strong>，<strong>交换函数</strong>，异或，over。</p>
+<p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
+]]></content>
+      <tags>
+        <tag>密码学</tag>
+        <tag>对称加密</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PE文件学习篇</title>
     <url>/2023/08/23/PE%E6%96%87%E4%BB%B6%E5%AD%A6%E4%B9%A0%E7%AF%87/</url>
     <content><![CDATA[<p>在《逆向工程核心原理》这本书接触到了PE文件，但是当时学不进去，感觉很晦涩，虽然是一个结构体一个结构体的进行分析，但还是掌握不了。今天在YouTube上找到了一个视频，看了一下有种恍然大明白的感觉。正巧今天看了一期关于国产大飞机C919的视频很有感想，我们的策略是先整体后局部，即不过分死抠细节，不把国产化率排在首位，先造出来一个大飞机，于是我们就有了一张蓝图，知道方向在哪里。学习PE文件这里也是，先整体的过一遍，知道个轮廓，在学起来会容易和有趣不少。</p>
@@ -929,35 +1250,6 @@
       </tags>
   </entry>
   <entry>
-    <title>RC4</title>
-    <url>/2023/08/20/RC4/</url>
-    <content><![CDATA[<p>题目中也遇到过很多次RC4了，一般是都是从加密函数的名字看出，现在学习一下，了解其特征，更方便识别出。</p>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>RC4是<strong>对称密码</strong>算法中的<strong>流密码</strong>加密算法，对称及加解密的密钥相同，流密码意思是加密是逐字节进行的与之对应的就是<strong>块加密</strong>。</p>
-<span id="more"></span>
-
-<h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h2><p>RC4生成一种称为密钥流的伪随机流（S表），他与明文通过异或操作混合，以达到加密的目的，解密时与明文进行异或操作。其密钥流由两部分组成，分别是KSA和PRGA。可以简单的理解为RC4由这两部分组成。</p>
-<p><strong>KSA</strong> 部分的代码。密钥的长度一般为5<del>16字节及40</del>128位，通常不超过256位。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    j=(j+S[i]+key[i % keylength]) % <span class="number">256</span>;  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>PRGA</strong> 根据待加密的data进行置换，得到的子密码k与data进行异或即可得到密文</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">i,j,t=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(m=<span class="number">0</span>;j&lt;datalength;m++)</span><br><span class="line">&#123;</span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(S[i],S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>合并起来的代码</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Swap</span><span class="params">(<span class="type">int</span>*a,<span class="type">int</span>*b)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    t=*a;</span><br><span class="line">    *a=*b;</span><br><span class="line">    *b=t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> key[]=<span class="string">&quot;fishjump&quot;</span>;</span><br><span class="line">    <span class="type">int</span> keylength=<span class="built_in">strlen</span>(key);</span><br><span class="line">    <span class="type">int</span> S[<span class="number">255</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    S[i]=i;       <span class="comment">//用0~255初始化S数组</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> j=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      j=((j+S[i]+key[i % keylength]) % <span class="number">256</span>);  <span class="comment">//使用密钥进行替换</span></span><br><span class="line">      Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line">    j=<span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> t=<span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span> data[]=<span class="string">&quot;mzyloveyy&quot;</span>;</span><br><span class="line">    <span class="type">int</span> datalength=<span class="built_in">strlen</span>(data);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> m=<span class="number">0</span>;m&lt;datalength;m++)</span><br><span class="line">  &#123; </span><br><span class="line">    i=(i+<span class="number">1</span>)%<span class="number">256</span>;</span><br><span class="line">    j=(j+S[i])%<span class="number">256</span>;</span><br><span class="line">    Swap(&amp;S[i],&amp;S[j]);</span><br><span class="line">    t=(S[i]+S[j])%<span class="number">256</span>;</span><br><span class="line">    <span class="type">int</span> k=S[t];</span><br><span class="line">    data[m]^=k;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%x\n&quot;</span>,data[m]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>验证一下成果</p>
-<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234509.png"></p>
-<p><img src="/2023/08/20/RC4/QQ%E6%88%AA%E5%9B%BE20230729234535.png"></p>
-<p>okk。</p>
-<h2 id="特征"><a href="#特征" class="headerlink" title="特征"></a><strong>特征</strong></h2><p>总结一下，如何在茫茫人海中一眼认出RC4？<strong>256位的数组</strong>，<strong>交换函数</strong>，异或，over。</p>
-<p>手写一遍之后以后遇到魔改的RC4应该就能拿捏了。</p>
-]]></content>
-      <tags>
-        <tag>密码学</tag>
-        <tag>对称加密</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>angr学习</title>
     <url>/2023/05/28/angr%E5%AD%A6%E4%B9%A0/</url>
     <content><![CDATA[<p>早就听闻了angr，之前看wp也有大佬使用了angr，上一次打开angrctf一头雾水，还要装环境啥的，就先搁置了。现在趁着军训开始angr的学习。</p>
@@ -1125,6 +1417,129 @@
 <h2 id="14-angr-shared-library"><a href="#14-angr-shared-library" class="headerlink" title="14_angr_shared_library"></a>14_angr_shared_library</h2><h2 id><a href="#" class="headerlink" title></a></h2>]]></content>
       <tags>
         <tag>angr</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>csapp.lab</title>
+    <url>/2023/03/24/csapp-lab/</url>
+    <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
+<li><a href="https://blog.csdn.net/FlamelNW/article/details/123039299">https://blog.csdn.net/FlamelNW/article/details/123039299</a></li>
+<li></li>
+</ul>
+<h2 id="int"><a href="#int" class="headerlink" title="int"></a>int</h2><h3 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h3><p>x^y using only ~ and &amp;,用按位运算~和&amp;实现异或。</p>
+<p>&amp;是1、1的时候返回1，^是0、1的时候返回1,就拿4和5举例子吧</p>
+<p>4：0100  0100 1011 1010 0101 1011</p>
+<p>5：0101  0100 1010 1010 0101 1011</p>
+<p>x、y是未知的，所以进行~运算的时候一定是对他两个同时。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> z=<span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> w=<span class="number">0</span>;</span><br><span class="line">  z=x&amp;y;<span class="comment">//0100</span></span><br><span class="line">  x=~x;<span class="comment">//1011</span></span><br><span class="line">  y=~y;<span class="comment">//1010</span></span><br><span class="line">  w=x&amp;y;<span class="comment">//1010</span></span><br><span class="line">  w=~w;<span class="comment">//0101</span></span><br><span class="line">  z=~z;<span class="comment">//1011</span></span><br><span class="line">  z=z&amp;w;<span class="comment">//0001</span></span><br><span class="line">  <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png"></p>
+<p>成功，其实很大程度是连蒙带猜的，毕竟就这两种运算。看看大佬是怎么分析的<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png"></p>
+<p>思路：用(x&amp;y)定位出共同的1所在，用(<del>x&amp;</del>y)定位出共同的0所在，其余部位就是既有1又有0啦，然后非全0部位和非全1部位进行&amp;运算<del>(x&amp;y)&amp;</del>(<del>x&amp;</del>y)</p>
+<h3 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h3><p>return minimum two’s complement integer，返回补码最小值。</p>
+<p>对于一个正数，它的二进制形式就是它的原码，正数的原码补码反码相同。</p>
+<p>对于一个负数，反码是将除符号位以外的位全部取反，补码就是将反码加上1。</p>
+<p>对于-1</p>
+<p>原码：1000 0001</p>
+<p>反码：1111 1110</p>
+<p>补码：1111 1111</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png"></p>
+<p>补码最小值，及第32位为1，其余位为0</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">   <span class="type">int</span> min =<span class="number">1</span>;</span><br><span class="line">   min=min&lt;&lt;<span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h3><p>returns 1 if x is the maximum, two’s complement number,and 0 otherwise，传来的参数是补码的最大值则返回1，其余情况返回0。</p>
+<p>从上图我们可以看到，补码的最大值紧挨着补码的最小值，所以我们只要将最小值减1即可，可是题目不允许使用移位操作符。</p>
+<p>经过很长时间的思考，发现根本表示不出最大值，参考了一下，豁然开朗，可以假设传入的参数就是就是最大值。我们可以看出最大值有一个特性，那就是max+1&#x3D;<del>(max+1),也不能完全说是特性吧，因为-1也拥有这个属性，仅此两个。首先我们可以通过max^(</del>(max+1)),如果其值返回0那我们可以锁定-1和max这两种情况,接下来我们在排除其是-1这种情况。我们只要找出-1的特性即可，(-1+1)&amp;-1&#x3D;0,其他的任何数都满足不了这一点。这种做法可以实现函数功能，却没有满足操作符的数量，使用了11个操作符，题目规定不能大于10。参考过后修改一下操作数变成9啦。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">isMax</span><span class="params">(<span class="type">int</span> x)</span><span class="comment">//如果是max则返回1，其余返回0</span></span><br><span class="line">&#123; <span class="comment">//int a=((x+1)&amp;~0);//如果x等于-1则返回0，其余的所有数都是非零</span></span><br><span class="line">  <span class="type">int</span> a=x+<span class="number">1</span>;<span class="comment">//这样也能判断是否为-1</span></span><br><span class="line">  <span class="type">int</span> b=(x^(~(x+<span class="number">1</span>)));<span class="comment">//如果是max或—1则返回0，其余的会返回非0</span></span><br><span class="line">  <span class="type">int</span> c=!!(!a)^(!b);！！可以使非零值返回<span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参考一下<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png"></p>
+<h3 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h3><p>return 1 if all odd-numbered bits in word set to 1，如果所有的奇数位都为1则返回1，最左侧为第31位，最右侧为第0位。</p>
+<p>我们可以看看奇数位为1的数有什么共同点。<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png"></p>
+<p>额，这我只能说是毫无头绪好吧。奇数位必须为1，偶数位不做要求。灵光一现：左移偶数位，得到的数一定是负数。然而并没有什么卵用。直接选择参考。data&#x3D;1010 1010(32位)，参数x^data,如果x满足要求，则返回data。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//题目要求可以使用的最大的数为0xff即1010 1010 我们要通过移位操作构造出32位奇数位全为1的data</span></span><br><span class="line"><span class="type">int</span> a=<span class="number">0xAA</span>;<span class="comment">//1010 1010</span></span><br><span class="line"><span class="type">int</span> a2=a&lt;&lt;<span class="number">8</span>|a;<span class="comment">//1010 1010 x 2</span></span><br><span class="line"><span class="type">int</span> data=((a2&lt;&lt;<span class="number">16</span>)|a2);<span class="comment">//1010 1010 x 4 32位</span></span><br><span class="line"><span class="type">int</span> mid=x&amp;data;<span class="comment">//x的偶数位全部变成0，奇数位是1则1，是0则0,即如果x奇数位全部为1则返回data</span></span><br><span class="line"><span class="type">int</span> final=mid^data；<span class="comment">//如果x为符合，则mid==data，则异或结果为0</span></span><br><span class="line"><span class="keyword">return</span> !final;<span class="comment">//final为0则符合，题目让返回1    </span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>可以这么说，这题要是不看点提示，想一天也想不来。还是按位操作这里有所欠缺。</p>
+<h3 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h3><p>return -x ，返回-x。即返回一个数的相反数</p>
+<p>这题比较简单，我们直接看一个数和他的相反数在二进制形式上有什么异同点。可以看出，只要按位取反再加上1即可</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//0000 0001   1</span></span><br><span class="line"><span class="comment">//1111 1111  -1</span></span><br><span class="line"><span class="comment">//0000 0010   2</span></span><br><span class="line"><span class="comment">//1111 1110  -2</span></span><br><span class="line"><span class="comment">//0111 1111   127</span></span><br><span class="line"><span class="comment">//1000 0001  -127</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x)+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h3><p>return 1 if 0x30 &lt;&#x3D; x &lt;&#x3D; 0x39 (ASCII codes for characters ‘0’ to ‘9’)，如果传来的参数是数字则反回1</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment">//0x30  0011 0000</span></span><br><span class="line"><span class="comment">//0x31  0011 0001</span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="comment">//0x39  0011 1001</span></span><br><span class="line"><span class="type">int</span> a=(x&gt;&gt;<span class="number">4</span>)^<span class="number">3</span>(<span class="number">0011b</span>);<span class="comment">//若a为0，则说明前28位相同，我们只用再判断后四位即可,若不同则返回值非零</span></span><br><span class="line"><span class="type">int</span> b=(x&gt;&gt;<span class="number">4</span>)^(x+((~<span class="number">10</span>)+<span class="number">1</span>)&gt;&gt;<span class="number">4</span>);<span class="comment">//后四位如果是0~9则返回非零，如果不是则返回0</span></span><br><span class="line"><span class="keyword">return</span> !(a|(!b));<span class="comment">//如果前28位相同，且后四位小于10则返回1</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>解释一下最后一行，假设x是数字，则a&#x3D;0，b≠0，c&#x3D;!b&#x3D;0，所以a|(!b)&#x3D;0，反之a|(!b)≠0，所以在前面加上一个！。</p>
+<h3 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h3><p>same as x ? y : z   如果x非零则返回y如果x为零则返回z。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=!!x;<span class="comment">//如果x为零则返回0，如果x非零则返回1</span></span><br><span class="line"><span class="type">int</span> b=(~a)+<span class="number">1</span>;<span class="comment">//如果a=0则返回0(全0)，如果a＝1则返回—1(全1)</span></span><br><span class="line"><span class="keyword">return</span> ((b&amp;y)+((~b)&amp;z));<span class="comment">//如果x为零则b为零，则返回z，反之返回y</span></span><br><span class="line"><span class="comment">//最后的return 也可以写成这样：return (b&amp;y)|((~b)&amp;z)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h3><p>if x &lt;&#x3D; y  then return 1, else return 0  如果x&lt;&#x3D;y,返回1，反之返回0</p>
+<p>Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=x+((~y)+<span class="number">1</span>);<span class="comment">//a=x-y,如果a&lt;0，则a的最高位为1，如果a&gt;=0,最高位时0，这样有点不好实现，因为小于和等于没在一起</span></span><br><span class="line"><span class="type">int</span> b=y+((~x)+<span class="number">1</span>);<span class="comment">//b=y-x,如果y&gt;=x,则b的最高位为0，反之b的最高位为1</span></span><br><span class="line"><span class="type">int</span> c=b&gt;&gt;<span class="number">31</span>;<span class="comment">//如果成立则返回全0，如果不成立则返回全1</span></span><br><span class="line"><span class="keyword">return</span> c+<span class="number">1</span>；</span><br></pre></td></tr></table></figure>
+
+<p>本来以为简简单单大功告成，进行测试发现没分，cao,上面的方法只适合同符号比较。   y&gt;&#x3D;x等价于y-x&gt;&#x3D;0在数学是行得通的，可是在计算机中要考虑 溢出问题。也就是可能会出现一些比较诡异的情况：</p>
+<p>当y&lt;0,x&gt;0时，可能出现y-x&gt;0的情况，比如1000 0000-0000 0001<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png"></p>
+<p>可以看到，由于第一位的1变成了0，所以就变成了正数。</p>
+<p>当y&gt;0,x&lt;0时，可能出现y-x&lt;0的情况，比如0000 0001-1000 0000<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png"></p>
+<p>有什么是可以肯定的呢，符号不同时，正数肯定比负数大，符号相同时看差值。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//我测真的烦</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> singX=(x&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//如果不&amp;1，负数情况下就会返回-1</span></span><br><span class="line">    <span class="type">int</span> signY=(y&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="type">int</span> signY_X=((y+(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//y-x如果大于等于则返回0，小于则返回1</span></span><br><span class="line">    <span class="type">int</span> checknSign=signX^signY;<span class="comment">//相同为0，不同为1</span></span><br><span class="line">    <span class="keyword">return</span> (!checkSign&amp;!signY_X)|(checkSign&amp;signX)</span><br><span class="line">&#125;          符号相同，看差的符号         符号不同时，x&lt;<span class="number">0</span>则返回<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这个return比较长，我们分开来看一下其实很简单，</p>
+<p>左半部分：!checkSign&amp;!signY_X，符号相等的情况，符号相等不用考虑溢出的问题，我们可以直接根据差值的符号进行大小的判断，符号相等则check为0，signY_X如果满足则为0，否则为1，这里我们倒换一下，也就是满足时返回1，不满足时返回0，如果出现符号不相等，则左半部分返回0</p>
+<p>右半部分：如果符号相同则右半部分返回0，如果符号不同，那么我们只需要看x的符号即可，如果x是负数，一定满足条件则返回他的符号1</p>
+<p>反思：卡在这里很久很久，因为什么？？？一个很重要的原因对按位运算|掌握得不够熟悉，看到很多师傅的解前面有很多都使用了|，从这一题往后很难不用到|，不能再简单的使用加减。</p>
+<h3 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h3><p>implement the ! operator, using all of   the legal operators except !</p>
+<p> Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<p>使用其他合规操作符实现！，也就是传入的参数为0则返回1，非零则返回0</p>
+<p>思路零：未完成</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//0   0000 0000     0的相反数是0 相反数和自身异或取其符号位，为零则为零，非零则为1</span></span><br><span class="line"><span class="comment">//正数 0000 1110</span></span><br><span class="line"><span class="comment">//负数 1000 0100</span></span><br><span class="line"><span class="comment">//0 异或0为0</span></span><br><span class="line">   <span class="type">int</span> signX=(X&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取x的符号，负数则为1</span></span><br><span class="line">   <span class="type">int</span> _signX=((~x+<span class="number">1</span>)&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取-x的符号</span></span><br><span class="line">   <span class="keyword">return</span> signX^_signX^<span class="number">1</span>;</span><br><span class="line">   <span class="comment">//零异或上自己的相反数为0，其他数为1，在异或上1，改变符号</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="type">int</span> xor0=(<span class="number">0</span>^x)&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;x为零和正数则为<span class="number">0</span>，负数返回<span class="number">1</span></span><br><span class="line">    <span class="comment">//我们需要这样一个数，等于零时返回1，其余时候返回0 死循环</span></span><br></pre></td></tr></table></figure>
+
+<p>运行失败，看以下错误原因</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png"></p>
+<p>0x80000也就是最小数10000000这里出现了错误，我们知道对于有符号整型，负数范围比正数大一，所以表示不出来最小数的相反数，这个数和零一样，相反数等于自身。收到一位师傅的启发，我们可以给符号位取反，这样0x80000的符号位就变成0，不造成影响</p>
+<p>思路一：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> _x=~x+<span class="number">1</span>;</span><br><span class="line">   <span class="type">int</span> sign=(((~x&amp;~_x))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign;</span><br><span class="line">   取反后非零数相反数进行&amp;运算符号位为<span class="number">0</span>，如果不进行取反操作则不能绕过<span class="number">0x8000</span>这个存在，它的相反数和自身符号相同都为<span class="number">1</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p>思路二：</p>
+<p>一个非零数或上自己的相反数其符号位总是1，最小值0x8000也不例外，虽然它的相反数无法表示，但其最高位都是1</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> sign=(x|(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>;如果是零则返回<span class="number">0000</span>，非零则返回<span class="number">1111</span></span><br><span class="line">    <span class="keyword">return</span> sign+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>都是用到相反数，只是如果使用异或的话不可行，因为0和min的相反数最高位相同，所以只能考虑使用|或&amp;。</p>
+<h3 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h3><p>return the minimum number of bits required to represent x in   two’s complement    返回用二进制补码表示x的最小位数，比如1、0只用一位即可表示</p>
+<p>-1也是1，因为-1的补码是1111 1111其实等价于1，补码101和1101代表的都是-3，所以-3最少需要三位，补码的最高位是符号位，就像非负数01和001、0001代表的都是1，前面有多少0都无关紧要，对于负数的补码，前面有多少个1都无关紧要，用数学来解释的话就是最高的两位之和是个定值，对于101最高两位是-2&#x3D;-2，对于1101最高两位是-4+2&#x3D;-2。</p>
+<p>负数以补码的形式储存，正数的原码补码反码相同。思路：如果是整数那就检索其最高位的1的位置，如果1首先出现在了第三位，比如0101，最高位的1所在的位置就是3，那么这个数最少就可以用3+1位来表示,加的那个1是符号位。对于负数，我们检索其最高位0出现的位置，11101，0出现在第2位，那么最少可以用2+1（符号位）来表示此数，对于-1也就是全1，可以用1表示，仍然符合，也就是它的第0位是0然后我们加上1。</p>
+<p>那么怎么检索呢？一个一个来肯定是不能满足操作符数量上的要求的。可以用二分法，我们处理的int是32位的，我们可以先检测它的前十六位，比如说如果全部位0，那么肯定可以用16及更少的位来表示它，再检测其余十六位的前八位，如果不全为零，那么我们继续缩小范围，检测前八位的前四位……</p>
+<p>具体怎么实现还是参考的网上的，两个主要操作：计数和缩小范围</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> a0,a1,a2,a4,a8,a16;</span><br><span class="line">   <span class="type">int</span> w;<span class="comment">//位数</span></span><br><span class="line">   <span class="type">int</span> sign=x&gt;&gt;<span class="number">31</span>;<span class="comment">//如果是正数返回全0，如果是负数返回全1</span></span><br><span class="line">   x=(~sign&amp;x)|(sign&amp;~x);<span class="comment">//如果是非负数则返回x，如果是负数则按位取反</span></span><br><span class="line">   a16=(!!(x&gt;&gt;<span class="number">16</span>))&lt;&lt;<span class="number">4</span>;<span class="comment">//右移16位，两次取非，左移4；如果如果没出现1则高16位为0则返回0，如果出现1则非零则返回16</span></span><br><span class="line">   x=x&gt;&gt;a16;<span class="comment">//如果高十六位非零，右移16位；</span></span><br><span class="line">   a8=(!!(x&gt;&gt;<span class="number">8</span>))&lt;&lt;<span class="number">3</span>;<span class="comment">//如果前十六位为0，则检测其前24位，如果无1，则返回0，如果出现1，则返回8；如果前十六位不为0，则检测32~25位，如果为0则返回0，否则返回8</span></span><br><span class="line">   x=x&gt;&gt;a8;<span class="comment">//如果a8非零则右移8位；</span></span><br><span class="line">   a4=(!!(x&gt;&gt;<span class="number">4</span>)&lt;&lt;<span class="number">2</span>);<span class="comment">//如果前8位为零的话，检测其前28位；如果前8位不为为零的话，这一步检测其前四位（32~29位），如果非零则返回4，为零返回0；</span></span><br><span class="line">   x=x&gt;&gt;a4;</span><br><span class="line">   a2=!!(x&gt;&gt;<span class="number">2</span>)&lt;&lt;<span class="number">1</span>;<span class="comment">//如果24位为零的话，则只检测其前30位，为零则返回0，出现1则返回2；</span></span><br><span class="line">   x=x&gt;&gt;a2;<span class="comment">//如果a2非零则右移四位</span></span><br><span class="line">   a1=!!(x&gt;&gt;<span class="number">1</span>);<span class="comment">//如果前30位为零的话，则检测其前31位。</span></span><br><span class="line">   x=x&gt;&gt;a1;<span class="comment">//如果a1非零则右移两位</span></span><br><span class="line">   a0=x;<span class="comment">//如果前31位为零，那么x要么是1，要么是0</span></span><br><span class="line">   w=a0+a1+a2+a4+a8+a16+<span class="number">1</span>;</span><br><span class="line">   <span class="keyword">return</span> w;<span class="comment">//1是符号位</span></span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="float"><a href="#float" class="headerlink" title="float"></a>float</h2><p>float型 符号 阶码 尾数位分别为 1、8、23，</p>
+<p>规格化的，尾数以隐含的1开头，E&#x3D;e-bias</p>
+<p>非规格化的，尾数无隐含的1，E&#x3D;1-bias</p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328115316.png"></p>
+<h3 id="floatScale2"><a href="#floatScale2" class="headerlink" title="floatScale2"></a>floatScale2</h3><p>Return bit-level equivalent of expression 2*f for floating point argument f.将传来的参数当成float的位级表示，返回浮点数乘2的位级表示，如果是NAN和极大值(阶码全部为1)则返回0x800000(1000 0000)</p>
+<p>思路：对于规格话数，乘2只需要将阶码+1，其它位保持不变</p>
+<p> 非规格化的数左移一位即可得到2倍，原因见下图。参考：<a href="https://blog.csdn.net/qq_43855740/article/details/106843924">https://blog.csdn.net/qq_43855740/article/details/106843924</a></p>
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328140534.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;   <span class="comment">//拿1来举例子0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> s=((uf&gt;&gt;<span class="number">31</span>)&lt;&lt;<span class="number">31</span>);<span class="comment">//符号            0    0000 0000    0000 0000 0000 0000 0000 000 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> e=((uf&gt;&gt;<span class="number">23</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码     0    0000 0000    0000 0000 0000 0000 0000 000</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> m=((uf&lt;&lt;<span class="number">9</span>)&gt;&gt;<span class="number">9</span>);<span class="comment">//获得尾数           0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0</span>)</span><br><span class="line">   <span class="keyword">return</span> (uf&lt;&lt;<span class="number">1</span>)|s;<span class="comment">//非规格化数左移1位变为两倍，再恢复其符号位</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0x7f800000</span>)<span class="comment">//无穷大和非规格化数 无穷大的二倍还是无穷大</span></span><br><span class="line">   <span class="keyword">return</span> uf;</span><br><span class="line">  e=(((uf&gt;&gt;<span class="number">23</span>)+<span class="number">1</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码+1 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> r=s+e+m;</span><br><span class="line">  <span class="keyword">return</span> r;                     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="floatFloat2Int"><a href="#floatFloat2Int" class="headerlink" title="floatFloat2Int"></a>floatFloat2Int</h3><p>Return bit-level equivalent of expression (int) f  for floating point argument f.将浮点型转换为位级等价整数 Anything out of range (including NaN and infinity) should return 0x80000000u.</p>
+<p>取出他的符号 指数和尾数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">    <span class="type">int</span> s=uf&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;<span class="comment">//取符号</span></span><br><span class="line">     <span class="type">int</span> e=(uf&lt;&lt;<span class="number">1</span>&gt;&gt;<span class="number">24</span>)<span class="number">-127</span>;<span class="comment">//e属于(-127~126)</span></span><br><span class="line">     <span class="type">int</span> m=uf&lt;&lt;<span class="number">9</span>&gt;&gt;<span class="number">9</span>;<span class="comment">//尾数</span></span><br><span class="line">     m=m+<span class="number">0x800000</span>;</span><br><span class="line">     <span class="type">int</span> r=<span class="number">0x80000000</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)<span class="comment">//小数点左移，实际的数就是0.xxx</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">31</span>)<span class="comment">//溢出，包括NaN</span></span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">23</span>)</span><br><span class="line">        m=(m&lt;&lt;(e<span class="number">-23</span>));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        m=(m&gt;&gt;(<span class="number">23</span>-e));</span><br><span class="line">    <span class="type">int</span> mSign=m&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(s)<span class="comment">//如果传来的参数是负数，那么我们直接将得到的数取反</span></span><br><span class="line">      <span class="keyword">return</span> -m;</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//传参为正数</span></span><br><span class="line">      <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="floatPower2"><a href="#floatPower2" class="headerlink" title="floatPower2"></a>floatPower2</h3><p>Return bit-level equivalent of the expression 2.0^x  (2.0 raised to the power x) for any 32-bit integer x.以浮点数形式返回2^x&#x3D;r</p>
+<p>2的多少次方，其尾数全零，隐含1，我们只需要将e改为127+x即可</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="type">int</span> e=x+<span class="number">127</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;=<span class="number">255</span>) </span><br><span class="line">        <span class="keyword">return</span> <span class="number">0x7F000000</span>u;<span class="comment">//返回+INF（正无穷大）</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> (e&lt;&lt;<span class="number">23</span>)|<span class="number">0</span>;</span><br><span class="line">       </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328212413.png"></p>
+<p>完结撒花</p>
+]]></content>
+      <tags>
+        <tag>lab</tag>
       </tags>
   </entry>
   <entry>
@@ -1402,129 +1817,6 @@
       </tags>
   </entry>
   <entry>
-    <title>csapp.lab</title>
-    <url>/2023/03/24/csapp-lab/</url>
-    <content><![CDATA[<h1 id="1-datalab-handout"><a href="#1-datalab-handout" class="headerlink" title="1.datalab-handout"></a>1.datalab-handout</h1><h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make clean//每次更改都要重新编译</span><br><span class="line">make btest//进行测试</span><br><span class="line">./btest -g//以紧凑形式进行测试</span><br><span class="line">./dlc -e bits.c//检测是否符合编码准则</span><br></pre></td></tr></table></figure>
-
-<span id="more"></span>
-
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
-<li><a href="https://blog.csdn.net/FlamelNW/article/details/123039299">https://blog.csdn.net/FlamelNW/article/details/123039299</a></li>
-<li></li>
-</ul>
-<h2 id="int"><a href="#int" class="headerlink" title="int"></a>int</h2><h3 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h3><p>x^y using only ~ and &amp;,用按位运算~和&amp;实现异或。</p>
-<p>&amp;是1、1的时候返回1，^是0、1的时候返回1,就拿4和5举例子吧</p>
-<p>4：0100  0100 1011 1010 0101 1011</p>
-<p>5：0101  0100 1010 1010 0101 1011</p>
-<p>x、y是未知的，所以进行~运算的时候一定是对他两个同时。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> z=<span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> w=<span class="number">0</span>;</span><br><span class="line">  z=x&amp;y;<span class="comment">//0100</span></span><br><span class="line">  x=~x;<span class="comment">//1011</span></span><br><span class="line">  y=~y;<span class="comment">//1010</span></span><br><span class="line">  w=x&amp;y;<span class="comment">//1010</span></span><br><span class="line">  w=~w;<span class="comment">//0101</span></span><br><span class="line">  z=~z;<span class="comment">//1011</span></span><br><span class="line">  z=z&amp;w;<span class="comment">//0001</span></span><br><span class="line">  <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312010752.png"></p>
-<p>成功，其实很大程度是连蒙带猜的，毕竟就这两种运算。看看大佬是怎么分析的<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312011601.png"></p>
-<p>思路：用(x&amp;y)定位出共同的1所在，用(<del>x&amp;</del>y)定位出共同的0所在，其余部位就是既有1又有0啦，然后非全0部位和非全1部位进行&amp;运算<del>(x&amp;y)&amp;</del>(<del>x&amp;</del>y)</p>
-<h3 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h3><p>return minimum two’s complement integer，返回补码最小值。</p>
-<p>对于一个正数，它的二进制形式就是它的原码，正数的原码补码反码相同。</p>
-<p>对于一个负数，反码是将除符号位以外的位全部取反，补码就是将反码加上1。</p>
-<p>对于-1</p>
-<p>原码：1000 0001</p>
-<p>反码：1111 1110</p>
-<p>补码：1111 1111</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230312202856.png"></p>
-<p>补码最小值，及第32位为1，其余位为0</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">   <span class="type">int</span> min =<span class="number">1</span>;</span><br><span class="line">   min=min&lt;&lt;<span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h3><p>returns 1 if x is the maximum, two’s complement number,and 0 otherwise，传来的参数是补码的最大值则返回1，其余情况返回0。</p>
-<p>从上图我们可以看到，补码的最大值紧挨着补码的最小值，所以我们只要将最小值减1即可，可是题目不允许使用移位操作符。</p>
-<p>经过很长时间的思考，发现根本表示不出最大值，参考了一下，豁然开朗，可以假设传入的参数就是就是最大值。我们可以看出最大值有一个特性，那就是max+1&#x3D;<del>(max+1),也不能完全说是特性吧，因为-1也拥有这个属性，仅此两个。首先我们可以通过max^(</del>(max+1)),如果其值返回0那我们可以锁定-1和max这两种情况,接下来我们在排除其是-1这种情况。我们只要找出-1的特性即可，(-1+1)&amp;-1&#x3D;0,其他的任何数都满足不了这一点。这种做法可以实现函数功能，却没有满足操作符的数量，使用了11个操作符，题目规定不能大于10。参考过后修改一下操作数变成9啦。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">isMax</span><span class="params">(<span class="type">int</span> x)</span><span class="comment">//如果是max则返回1，其余返回0</span></span><br><span class="line">&#123; <span class="comment">//int a=((x+1)&amp;~0);//如果x等于-1则返回0，其余的所有数都是非零</span></span><br><span class="line">  <span class="type">int</span> a=x+<span class="number">1</span>;<span class="comment">//这样也能判断是否为-1</span></span><br><span class="line">  <span class="type">int</span> b=(x^(~(x+<span class="number">1</span>)));<span class="comment">//如果是max或—1则返回0，其余的会返回非0</span></span><br><span class="line">  <span class="type">int</span> c=!!(!a)^(!b);！！可以使非零值返回<span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>参考一下<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313005141.png"></p>
-<h3 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h3><p>return 1 if all odd-numbered bits in word set to 1，如果所有的奇数位都为1则返回1，最左侧为第31位，最右侧为第0位。</p>
-<p>我们可以看看奇数位为1的数有什么共同点。<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230313201116.png"></p>
-<p>额，这我只能说是毫无头绪好吧。奇数位必须为1，偶数位不做要求。灵光一现：左移偶数位，得到的数一定是负数。然而并没有什么卵用。直接选择参考。data&#x3D;1010 1010(32位)，参数x^data,如果x满足要求，则返回data。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//题目要求可以使用的最大的数为0xff即1010 1010 我们要通过移位操作构造出32位奇数位全为1的data</span></span><br><span class="line"><span class="type">int</span> a=<span class="number">0xAA</span>;<span class="comment">//1010 1010</span></span><br><span class="line"><span class="type">int</span> a2=a&lt;&lt;<span class="number">8</span>|a;<span class="comment">//1010 1010 x 2</span></span><br><span class="line"><span class="type">int</span> data=((a2&lt;&lt;<span class="number">16</span>)|a2);<span class="comment">//1010 1010 x 4 32位</span></span><br><span class="line"><span class="type">int</span> mid=x&amp;data;<span class="comment">//x的偶数位全部变成0，奇数位是1则1，是0则0,即如果x奇数位全部为1则返回data</span></span><br><span class="line"><span class="type">int</span> final=mid^data；<span class="comment">//如果x为符合，则mid==data，则异或结果为0</span></span><br><span class="line"><span class="keyword">return</span> !final;<span class="comment">//final为0则符合，题目让返回1    </span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>可以这么说，这题要是不看点提示，想一天也想不来。还是按位操作这里有所欠缺。</p>
-<h3 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h3><p>return -x ，返回-x。即返回一个数的相反数</p>
-<p>这题比较简单，我们直接看一个数和他的相反数在二进制形式上有什么异同点。可以看出，只要按位取反再加上1即可</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//0000 0001   1</span></span><br><span class="line"><span class="comment">//1111 1111  -1</span></span><br><span class="line"><span class="comment">//0000 0010   2</span></span><br><span class="line"><span class="comment">//1111 1110  -2</span></span><br><span class="line"><span class="comment">//0111 1111   127</span></span><br><span class="line"><span class="comment">//1000 0001  -127</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x)+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h3><p>return 1 if 0x30 &lt;&#x3D; x &lt;&#x3D; 0x39 (ASCII codes for characters ‘0’ to ‘9’)，如果传来的参数是数字则反回1</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment">//0x30  0011 0000</span></span><br><span class="line"><span class="comment">//0x31  0011 0001</span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="comment">//0x39  0011 1001</span></span><br><span class="line"><span class="type">int</span> a=(x&gt;&gt;<span class="number">4</span>)^<span class="number">3</span>(<span class="number">0011b</span>);<span class="comment">//若a为0，则说明前28位相同，我们只用再判断后四位即可,若不同则返回值非零</span></span><br><span class="line"><span class="type">int</span> b=(x&gt;&gt;<span class="number">4</span>)^(x+((~<span class="number">10</span>)+<span class="number">1</span>)&gt;&gt;<span class="number">4</span>);<span class="comment">//后四位如果是0~9则返回非零，如果不是则返回0</span></span><br><span class="line"><span class="keyword">return</span> !(a|(!b));<span class="comment">//如果前28位相同，且后四位小于10则返回1</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>解释一下最后一行，假设x是数字，则a&#x3D;0，b≠0，c&#x3D;!b&#x3D;0，所以a|(!b)&#x3D;0，反之a|(!b)≠0，所以在前面加上一个！。</p>
-<h3 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h3><p>same as x ? y : z   如果x非零则返回y如果x为零则返回z。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=!!x;<span class="comment">//如果x为零则返回0，如果x非零则返回1</span></span><br><span class="line"><span class="type">int</span> b=(~a)+<span class="number">1</span>;<span class="comment">//如果a=0则返回0(全0)，如果a＝1则返回—1(全1)</span></span><br><span class="line"><span class="keyword">return</span> ((b&amp;y)+((~b)&amp;z));<span class="comment">//如果x为零则b为零，则返回z，反之返回y</span></span><br><span class="line"><span class="comment">//最后的return 也可以写成这样：return (b&amp;y)|((~b)&amp;z)</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h3><p>if x &lt;&#x3D; y  then return 1, else return 0  如果x&lt;&#x3D;y,返回1，反之返回0</p>
-<p>Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a=x+((~y)+<span class="number">1</span>);<span class="comment">//a=x-y,如果a&lt;0，则a的最高位为1，如果a&gt;=0,最高位时0，这样有点不好实现，因为小于和等于没在一起</span></span><br><span class="line"><span class="type">int</span> b=y+((~x)+<span class="number">1</span>);<span class="comment">//b=y-x,如果y&gt;=x,则b的最高位为0，反之b的最高位为1</span></span><br><span class="line"><span class="type">int</span> c=b&gt;&gt;<span class="number">31</span>;<span class="comment">//如果成立则返回全0，如果不成立则返回全1</span></span><br><span class="line"><span class="keyword">return</span> c+<span class="number">1</span>；</span><br></pre></td></tr></table></figure>
-
-<p>本来以为简简单单大功告成，进行测试发现没分，cao,上面的方法只适合同符号比较。   y&gt;&#x3D;x等价于y-x&gt;&#x3D;0在数学是行得通的，可是在计算机中要考虑 溢出问题。也就是可能会出现一些比较诡异的情况：</p>
-<p>当y&lt;0,x&gt;0时，可能出现y-x&gt;0的情况，比如1000 0000-0000 0001<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316233030.png"></p>
-<p>可以看到，由于第一位的1变成了0，所以就变成了正数。</p>
-<p>当y&gt;0,x&lt;0时，可能出现y-x&lt;0的情况，比如0000 0001-1000 0000<img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230316234033.png"></p>
-<p>有什么是可以肯定的呢，符号不同时，正数肯定比负数大，符号相同时看差值。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//我测真的烦</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> singX=(x&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//如果不&amp;1，负数情况下就会返回-1</span></span><br><span class="line">    <span class="type">int</span> signY=(y&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="type">int</span> signY_X=((y+(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//y-x如果大于等于则返回0，小于则返回1</span></span><br><span class="line">    <span class="type">int</span> checknSign=signX^signY;<span class="comment">//相同为0，不同为1</span></span><br><span class="line">    <span class="keyword">return</span> (!checkSign&amp;!signY_X)|(checkSign&amp;signX)</span><br><span class="line">&#125;          符号相同，看差的符号         符号不同时，x&lt;<span class="number">0</span>则返回<span class="number">1</span></span><br></pre></td></tr></table></figure>
-
-<p>这个return比较长，我们分开来看一下其实很简单，</p>
-<p>左半部分：!checkSign&amp;!signY_X，符号相等的情况，符号相等不用考虑溢出的问题，我们可以直接根据差值的符号进行大小的判断，符号相等则check为0，signY_X如果满足则为0，否则为1，这里我们倒换一下，也就是满足时返回1，不满足时返回0，如果出现符号不相等，则左半部分返回0</p>
-<p>右半部分：如果符号相同则右半部分返回0，如果符号不同，那么我们只需要看x的符号即可，如果x是负数，一定满足条件则返回他的符号1</p>
-<p>反思：卡在这里很久很久，因为什么？？？一个很重要的原因对按位运算|掌握得不够熟悉，看到很多师傅的解前面有很多都使用了|，从这一题往后很难不用到|，不能再简单的使用加减。</p>
-<h3 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h3><p>implement the ! operator, using all of   the legal operators except !</p>
-<p> Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
-<p>使用其他合规操作符实现！，也就是传入的参数为0则返回1，非零则返回0</p>
-<p>思路零：未完成</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="comment">//0   0000 0000     0的相反数是0 相反数和自身异或取其符号位，为零则为零，非零则为1</span></span><br><span class="line"><span class="comment">//正数 0000 1110</span></span><br><span class="line"><span class="comment">//负数 1000 0100</span></span><br><span class="line"><span class="comment">//0 异或0为0</span></span><br><span class="line">   <span class="type">int</span> signX=(X&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取x的符号，负数则为1</span></span><br><span class="line">   <span class="type">int</span> _signX=((~x+<span class="number">1</span>)&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;<span class="comment">//获取-x的符号</span></span><br><span class="line">   <span class="keyword">return</span> signX^_signX^<span class="number">1</span>;</span><br><span class="line">   <span class="comment">//零异或上自己的相反数为0，其他数为1，在异或上1，改变符号</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="type">int</span> xor0=(<span class="number">0</span>^x)&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;x为零和正数则为<span class="number">0</span>，负数返回<span class="number">1</span></span><br><span class="line">    <span class="comment">//我们需要这样一个数，等于零时返回1，其余时候返回0 死循环</span></span><br></pre></td></tr></table></figure>
-
-<p>运行失败，看以下错误原因</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230323155705.png"></p>
-<p>0x80000也就是最小数10000000这里出现了错误，我们知道对于有符号整型，负数范围比正数大一，所以表示不出来最小数的相反数，这个数和零一样，相反数等于自身。收到一位师傅的启发，我们可以给符号位取反，这样0x80000的符号位就变成0，不造成影响</p>
-<p>思路一：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> _x=~x+<span class="number">1</span>;</span><br><span class="line">   <span class="type">int</span> sign=(((~x&amp;~_x))&gt;&gt;<span class="number">31</span>)&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign;</span><br><span class="line">   取反后非零数相反数进行&amp;运算符号位为<span class="number">0</span>，如果不进行取反操作则不能绕过<span class="number">0x8000</span>这个存在，它的相反数和自身符号相同都为<span class="number">1</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
-
-<p>思路二：</p>
-<p>一个非零数或上自己的相反数其符号位总是1，最小值0x8000也不例外，虽然它的相反数无法表示，但其最高位都是1</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> sign=(x|(~x+<span class="number">1</span>))&gt;&gt;<span class="number">31</span>;如果是零则返回<span class="number">0000</span>，非零则返回<span class="number">1111</span></span><br><span class="line">    <span class="keyword">return</span> sign+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>都是用到相反数，只是如果使用异或的话不可行，因为0和min的相反数最高位相同，所以只能考虑使用|或&amp;。</p>
-<h3 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h3><p>return the minimum number of bits required to represent x in   two’s complement    返回用二进制补码表示x的最小位数，比如1、0只用一位即可表示</p>
-<p>-1也是1，因为-1的补码是1111 1111其实等价于1，补码101和1101代表的都是-3，所以-3最少需要三位，补码的最高位是符号位，就像非负数01和001、0001代表的都是1，前面有多少0都无关紧要，对于负数的补码，前面有多少个1都无关紧要，用数学来解释的话就是最高的两位之和是个定值，对于101最高两位是-2&#x3D;-2，对于1101最高两位是-4+2&#x3D;-2。</p>
-<p>负数以补码的形式储存，正数的原码补码反码相同。思路：如果是整数那就检索其最高位的1的位置，如果1首先出现在了第三位，比如0101，最高位的1所在的位置就是3，那么这个数最少就可以用3+1位来表示,加的那个1是符号位。对于负数，我们检索其最高位0出现的位置，11101，0出现在第2位，那么最少可以用2+1（符号位）来表示此数，对于-1也就是全1，可以用1表示，仍然符合，也就是它的第0位是0然后我们加上1。</p>
-<p>那么怎么检索呢？一个一个来肯定是不能满足操作符数量上的要求的。可以用二分法，我们处理的int是32位的，我们可以先检测它的前十六位，比如说如果全部位0，那么肯定可以用16及更少的位来表示它，再检测其余十六位的前八位，如果不全为零，那么我们继续缩小范围，检测前八位的前四位……</p>
-<p>具体怎么实现还是参考的网上的，两个主要操作：计数和缩小范围</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">int</span> a0,a1,a2,a4,a8,a16;</span><br><span class="line">   <span class="type">int</span> w;<span class="comment">//位数</span></span><br><span class="line">   <span class="type">int</span> sign=x&gt;&gt;<span class="number">31</span>;<span class="comment">//如果是正数返回全0，如果是负数返回全1</span></span><br><span class="line">   x=(~sign&amp;x)|(sign&amp;~x);<span class="comment">//如果是非负数则返回x，如果是负数则按位取反</span></span><br><span class="line">   a16=(!!(x&gt;&gt;<span class="number">16</span>))&lt;&lt;<span class="number">4</span>;<span class="comment">//右移16位，两次取非，左移4；如果如果没出现1则高16位为0则返回0，如果出现1则非零则返回16</span></span><br><span class="line">   x=x&gt;&gt;a16;<span class="comment">//如果高十六位非零，右移16位；</span></span><br><span class="line">   a8=(!!(x&gt;&gt;<span class="number">8</span>))&lt;&lt;<span class="number">3</span>;<span class="comment">//如果前十六位为0，则检测其前24位，如果无1，则返回0，如果出现1，则返回8；如果前十六位不为0，则检测32~25位，如果为0则返回0，否则返回8</span></span><br><span class="line">   x=x&gt;&gt;a8;<span class="comment">//如果a8非零则右移8位；</span></span><br><span class="line">   a4=(!!(x&gt;&gt;<span class="number">4</span>)&lt;&lt;<span class="number">2</span>);<span class="comment">//如果前8位为零的话，检测其前28位；如果前8位不为为零的话，这一步检测其前四位（32~29位），如果非零则返回4，为零返回0；</span></span><br><span class="line">   x=x&gt;&gt;a4;</span><br><span class="line">   a2=!!(x&gt;&gt;<span class="number">2</span>)&lt;&lt;<span class="number">1</span>;<span class="comment">//如果24位为零的话，则只检测其前30位，为零则返回0，出现1则返回2；</span></span><br><span class="line">   x=x&gt;&gt;a2;<span class="comment">//如果a2非零则右移四位</span></span><br><span class="line">   a1=!!(x&gt;&gt;<span class="number">1</span>);<span class="comment">//如果前30位为零的话，则检测其前31位。</span></span><br><span class="line">   x=x&gt;&gt;a1;<span class="comment">//如果a1非零则右移两位</span></span><br><span class="line">   a0=x;<span class="comment">//如果前31位为零，那么x要么是1，要么是0</span></span><br><span class="line">   w=a0+a1+a2+a4+a8+a16+<span class="number">1</span>;</span><br><span class="line">   <span class="keyword">return</span> w;<span class="comment">//1是符号位</span></span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="float"><a href="#float" class="headerlink" title="float"></a>float</h2><p>float型 符号 阶码 尾数位分别为 1、8、23，</p>
-<p>规格化的，尾数以隐含的1开头，E&#x3D;e-bias</p>
-<p>非规格化的，尾数无隐含的1，E&#x3D;1-bias</p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328115316.png"></p>
-<h3 id="floatScale2"><a href="#floatScale2" class="headerlink" title="floatScale2"></a>floatScale2</h3><p>Return bit-level equivalent of expression 2*f for floating point argument f.将传来的参数当成float的位级表示，返回浮点数乘2的位级表示，如果是NAN和极大值(阶码全部为1)则返回0x800000(1000 0000)</p>
-<p>思路：对于规格话数，乘2只需要将阶码+1，其它位保持不变</p>
-<p> 非规格化的数左移一位即可得到2倍，原因见下图。参考：<a href="https://blog.csdn.net/qq_43855740/article/details/106843924">https://blog.csdn.net/qq_43855740/article/details/106843924</a></p>
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328140534.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;   <span class="comment">//拿1来举例子0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> s=((uf&gt;&gt;<span class="number">31</span>)&lt;&lt;<span class="number">31</span>);<span class="comment">//符号            0    0000 0000    0000 0000 0000 0000 0000 000 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> e=((uf&gt;&gt;<span class="number">23</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码     0    0000 0000    0000 0000 0000 0000 0000 000</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> m=((uf&lt;&lt;<span class="number">9</span>)&gt;&gt;<span class="number">9</span>);<span class="comment">//获得尾数           0    0000 0000    0000 0000 0000 0000 0000 001</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0</span>)</span><br><span class="line">   <span class="keyword">return</span> (uf&lt;&lt;<span class="number">1</span>)|s;<span class="comment">//非规格化数左移1位变为两倍，再恢复其符号位</span></span><br><span class="line">  <span class="keyword">if</span>(e==<span class="number">0x7f800000</span>)<span class="comment">//无穷大和非规格化数 无穷大的二倍还是无穷大</span></span><br><span class="line">   <span class="keyword">return</span> uf;</span><br><span class="line">  e=(((uf&gt;&gt;<span class="number">23</span>)+<span class="number">1</span>)&lt;&lt;<span class="number">24</span>&gt;&gt;<span class="number">1</span>);<span class="comment">//获得阶码+1 </span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> r=s+e+m;</span><br><span class="line">  <span class="keyword">return</span> r;                     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="floatFloat2Int"><a href="#floatFloat2Int" class="headerlink" title="floatFloat2Int"></a>floatFloat2Int</h3><p>Return bit-level equivalent of expression (int) f  for floating point argument f.将浮点型转换为位级等价整数 Anything out of range (including NaN and infinity) should return 0x80000000u.</p>
-<p>取出他的符号 指数和尾数。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">    <span class="type">int</span> s=uf&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;<span class="comment">//取符号</span></span><br><span class="line">     <span class="type">int</span> e=(uf&lt;&lt;<span class="number">1</span>&gt;&gt;<span class="number">24</span>)<span class="number">-127</span>;<span class="comment">//e属于(-127~126)</span></span><br><span class="line">     <span class="type">int</span> m=uf&lt;&lt;<span class="number">9</span>&gt;&gt;<span class="number">9</span>;<span class="comment">//尾数</span></span><br><span class="line">     m=m+<span class="number">0x800000</span>;</span><br><span class="line">     <span class="type">int</span> r=<span class="number">0x80000000</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)<span class="comment">//小数点左移，实际的数就是0.xxx</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">31</span>)<span class="comment">//溢出，包括NaN</span></span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;<span class="number">23</span>)</span><br><span class="line">        m=(m&lt;&lt;(e<span class="number">-23</span>));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        m=(m&gt;&gt;(<span class="number">23</span>-e));</span><br><span class="line">    <span class="type">int</span> mSign=m&gt;&gt;<span class="number">31</span>&amp;<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(s)<span class="comment">//如果传来的参数是负数，那么我们直接将得到的数取反</span></span><br><span class="line">      <span class="keyword">return</span> -m;</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//传参为正数</span></span><br><span class="line">      <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="floatPower2"><a href="#floatPower2" class="headerlink" title="floatPower2"></a>floatPower2</h3><p>Return bit-level equivalent of the expression 2.0^x  (2.0 raised to the power x) for any 32-bit integer x.以浮点数形式返回2^x&#x3D;r</p>
-<p>2的多少次方，其尾数全零，隐含1，我们只需要将e改为127+x即可</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="title function_">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="type">int</span> e=x+<span class="number">127</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(e&gt;=<span class="number">255</span>) </span><br><span class="line">        <span class="keyword">return</span> <span class="number">0x7F000000</span>u;<span class="comment">//返回+INF（正无穷大）</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> (e&lt;&lt;<span class="number">23</span>)|<span class="number">0</span>;</span><br><span class="line">       </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2023/03/24/csapp-lab/QQ%E6%88%AA%E5%9B%BE20230328212413.png"></p>
-<p>完结撒花</p>
-]]></content>
-      <tags>
-        <tag>lab</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>csapp笔记</title>
     <url>/2022/12/21/csapp/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>记录一些自己的看法和心得。</p>
@@ -1759,24 +2051,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2022/12/18/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>idapython用法</title>
     <url>/2024/03/13/idapython%E7%94%A8%E6%B3%95/</url>
     <content><![CDATA[<h3 id="去除简单的花指令"><a href="#去除简单的花指令" class="headerlink" title="去除简单的花指令"></a>去除简单的花指令</h3><p>在main函数存在多个这样的花指令<img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240301201158.png"></p>
@@ -1801,6 +2075,72 @@
 ]]></content>
       <tags>
         <tag>idapython</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2022/12/18/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>初识OLLVM</title>
+    <url>/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/</url>
+    <content><![CDATA[<h3 id="OLLVM"><a href="#OLLVM" class="headerlink" title="OLLVM"></a>OLLVM</h3><p>OLLVM是一个基于LLVM的框架的混淆器，主要功能有三：指令替换、混淆控制流、控制流平坦化。一言以蔽之，ollvm可以用来混淆程序，增加逆向难度。</p>
+<span id="more"></span>
+
+<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>那么什么是LLVM呢？LLVM（low level virtual machine）是一个编译器框架，是一系列模块化、可重用的编译器及工具链技术的集合。</p>
+<p><img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20231230213344.png"></p>
+<p>通过这张图，可以很好的理解llvm的作用。</p>
+<p>第一部分：Clang作为前端接收C（各种语言）源文件，生成中间代码IR<img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/QQ%E6%88%AA%E5%9B%BE20231230213931.png"></p>
+<p>第二部分：中间代码IR经pass的优化处理得到新的IR，不同的PASS对应不同的优化</p>
+<p>第三部分：生成机器码</p>
+<h3 id="OLLVM原理"><a href="#OLLVM原理" class="headerlink" title="OLLVM原理"></a>OLLVM原理</h3><p>费这么大篇幅介绍LLVM肯定是有用的，前面讲了OLLVM是基于LLVM，最大的区别在于PASS不同，我的理解是LLVM的pass是用来优化的，而OLLVM的PASS是用来混淆的。</p>
+<h3 id="OLLVM的环境搭建"><a href="#OLLVM的环境搭建" class="headerlink" title="OLLVM的环境搭建"></a>OLLVM的环境搭建</h3><p>涉及到gcc、g++以及各种环境，建议直接在Ubuntu使用docker一步到位</p>
+<p><a href="https://www.bilibili.com/read/cv13148903/">跟着铁头干混淆3 ubuntu下用docker编译ollvm(保证成功) - 哔哩哔哩 (bilibili.com)</a></p>
+<h3 id="OLLVM的使用"><a href="#OLLVM的使用" class="headerlink" title="OLLVM的使用"></a>OLLVM的使用</h3><h4 id="控制流平坦化"><a href="#控制流平坦化" class="headerlink" title="控制流平坦化"></a>控制流平坦化</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -fla : 激活控制流平坦化</li>
+<li>-mllvm -split : 激活基本块分割</li>
+<li>-mllvm -split_num&#x3D;3 : 指定基本块分割的数目</li>
+</ul>
+<p>语法</p>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">clang 选项一 选项二 选项<span class="built_in">N</span> 原码 -o 可执行文件</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">clang -mllvm -fla test.c -o test</span><br></pre></td></tr></table></figure>
+
+<h4 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -bcf : 激活虚假控制流</li>
+<li>-mllvm -bcf_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1</li>
+<li>-mllvm -bcf_prob&#x3D;40 : 每个基本块被混淆的概率，这里每个基本块被混淆的概率为40%，默认为 30 %</li>
+</ul>
+<p>语法同上</p>
+<h4 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -sub : 激活指令替代</li>
+<li>-mllvm -sub_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1次</li>
+</ul>
+<p>语法同上</p>
+<p>下一篇文章介绍各个混淆实现的效果。</p>
+<p>参考链接：</p>
+<p><a href="https://jev0n.com/2022/07/07/ollvm-0.html">OLLVM混淆学习（0）——环境搭建及混淆初体验 - 思泉 | Jev0n</a></p>
+<p><a href="https://www.cnblogs.com/lqerio/p/16009042.html#Clang">LLVM 简介 （一） - Erio - 博客园 (cnblogs.com)</a></p>
+]]></content>
+      <tags>
+        <tag>OLLVM</tag>
       </tags>
   </entry>
   <entry>
@@ -1907,54 +2247,6 @@
       <tags>
         <tag>language</tag>
         <tag>rust</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>初识OLLVM</title>
-    <url>/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/</url>
-    <content><![CDATA[<h3 id="OLLVM"><a href="#OLLVM" class="headerlink" title="OLLVM"></a>OLLVM</h3><p>OLLVM是一个基于LLVM的框架的混淆器，主要功能有三：指令替换、混淆控制流、控制流平坦化。一言以蔽之，ollvm可以用来混淆程序，增加逆向难度。</p>
-<span id="more"></span>
-
-<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>那么什么是LLVM呢？LLVM（low level virtual machine）是一个编译器框架，是一系列模块化、可重用的编译器及工具链技术的集合。</p>
-<p><img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20231230213344.png"></p>
-<p>通过这张图，可以很好的理解llvm的作用。</p>
-<p>第一部分：Clang作为前端接收C（各种语言）源文件，生成中间代码IR<img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/QQ%E6%88%AA%E5%9B%BE20231230213931.png"></p>
-<p>第二部分：中间代码IR经pass的优化处理得到新的IR，不同的PASS对应不同的优化</p>
-<p>第三部分：生成机器码</p>
-<h3 id="OLLVM原理"><a href="#OLLVM原理" class="headerlink" title="OLLVM原理"></a>OLLVM原理</h3><p>费这么大篇幅介绍LLVM肯定是有用的，前面讲了OLLVM是基于LLVM，最大的区别在于PASS不同，我的理解是LLVM的pass是用来优化的，而OLLVM的PASS是用来混淆的。</p>
-<h3 id="OLLVM的环境搭建"><a href="#OLLVM的环境搭建" class="headerlink" title="OLLVM的环境搭建"></a>OLLVM的环境搭建</h3><p>涉及到gcc、g++以及各种环境，建议直接在Ubuntu使用docker一步到位</p>
-<p><a href="https://www.bilibili.com/read/cv13148903/">跟着铁头干混淆3 ubuntu下用docker编译ollvm(保证成功) - 哔哩哔哩 (bilibili.com)</a></p>
-<h3 id="OLLVM的使用"><a href="#OLLVM的使用" class="headerlink" title="OLLVM的使用"></a>OLLVM的使用</h3><h4 id="控制流平坦化"><a href="#控制流平坦化" class="headerlink" title="控制流平坦化"></a>控制流平坦化</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -fla : 激活控制流平坦化</li>
-<li>-mllvm -split : 激活基本块分割</li>
-<li>-mllvm -split_num&#x3D;3 : 指定基本块分割的数目</li>
-</ul>
-<p>语法</p>
-<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">clang 选项一 选项二 选项<span class="built_in">N</span> 原码 -o 可执行文件</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">clang -mllvm -fla test.c -o test</span><br></pre></td></tr></table></figure>
-
-<h4 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -bcf : 激活虚假控制流</li>
-<li>-mllvm -bcf_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1</li>
-<li>-mllvm -bcf_prob&#x3D;40 : 每个基本块被混淆的概率，这里每个基本块被混淆的概率为40%，默认为 30 %</li>
-</ul>
-<p>语法同上</p>
-<h4 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -sub : 激活指令替代</li>
-<li>-mllvm -sub_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1次</li>
-</ul>
-<p>语法同上</p>
-<p>下一篇文章介绍各个混淆实现的效果。</p>
-<p>参考链接：</p>
-<p><a href="https://jev0n.com/2022/07/07/ollvm-0.html">OLLVM混淆学习（0）——环境搭建及混淆初体验 - 思泉 | Jev0n</a></p>
-<p><a href="https://www.cnblogs.com/lqerio/p/16009042.html#Clang">LLVM 简介 （一） - Erio - 博客园 (cnblogs.com)</a></p>
-]]></content>
-      <tags>
-        <tag>OLLVM</tag>
       </tags>
   </entry>
   <entry>
@@ -2144,49 +2436,6 @@
       <tags>
         <tag>数据结构</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>破解010Editor</title>
-    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
-    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载</p>
-<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
-
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-]]></content>
   </entry>
   <entry>
     <title>汇编语言</title>
@@ -2453,6 +2702,49 @@
       <tags>
         <tag>汇编</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>破解010Editor</title>
+    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
+    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
+
+<p>我是win64</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
+<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
+<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
+<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
+<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
+<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
+<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
+<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
+<p>查看流程图更加明了一点</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
+<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
+<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
+<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
+<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
+<p>然后我们将这个275修改成219</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
+<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
+<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
+<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
+<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
+<p>这个就算大功告成啦</p>
+<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
+<p>点击help –&gt; about 随意输入即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
+<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
+<p>参考：</p>
+<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
+]]></content>
   </entry>
   <entry>
     <title>第八章-异常控制流</title>
@@ -2789,50 +3081,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>花指令实现与对抗</title>
-    <url>/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/</url>
-    <content><![CDATA[<blockquote>
-<p>花指令（junk code）是一种专门用来迷惑反编译器的指令片段，这些指令片段不会影响程序的原有功能，但会使得反汇编器的结果出现偏差，从而使破解者分析失败。比较经典的花指令技巧有利用 <code>jmp</code> 、<code>call</code>、<code>ret</code> 指令改变执行流，从而使得反汇编器解析出与运行时不相符的错误代码。</p>
-<p>—CTF Wiki</p>
-</blockquote>
-<p>简单来讲花指令分为两大类，一种是会被执行的花指令，另一种是不会被执行的花指令。</p>
-<p>花指令出现的意义就是干扰机器进行反汇编，迫使人工进行分析。</p>
-<span id="more"></span>
-
-<h3 id="不会被执行的花指令"><a href="#不会被执行的花指令" class="headerlink" title="不会被执行的花指令"></a>不会被执行的花指令</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;xor %eax,%eax;&quot;</span></span><br><span class="line">        <span class="string">&quot;jz s;&quot;</span></span><br><span class="line">        <span class="string">&quot;add $0x11,%esp;&quot;</span>     <span class="comment">//让ida误认为栈不平衡，实则根本没有执行</span></span><br><span class="line">        <span class="string">&quot;s:;&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcode\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>内联汇编的语法，语句放在（）内，每条指令被””包裹，以分号结尾，如果要使用寄存器则要在寄存器前加上**%<strong>，如果使用立即数则在前面加上</strong>$**。</p>
-<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012521.png"></p>
-<p>可以看到上方爆红。在汇编界面，直接将红框里的内容nop掉<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012625.png"></p>
-<p>修复后如下<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012800.png"></p>
-<h3 id="可以执行的花指令"><a href="#可以执行的花指令" class="headerlink" title="可以执行的花指令"></a>可以执行的花指令</h3><h4 id="破坏栈"><a href="#破坏栈" class="headerlink" title="破坏栈"></a>破坏栈</h4><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;call next;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;next:\n&quot;</span></span><br><span class="line">        <span class="string">&quot;movl $continue,(%esp);\n&quot;</span></span><br><span class="line">        <span class="string">&quot;ret;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;continue:\n&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcodes\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>内联汇编的内容实际上就是使用call进行跳转，实现的效果就是跳转到continue打印hello,junkcodes。这样为什么能使ida异常呢？我的理解是：call可以看作是push ip + jmp 指令，ret可以看作是pop ip指令，第一个call next在我们看来相当于一个简单的jmp跳转到了下一条指令，而ida肯定会将它当作函数进行分析，函数内执行了**movl $continue,(%esp);**这样一个操作，将continue的地址放入了esp寄存器中，然后ret指令将IP设为continue的地址，于是顺利执行printf指令。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023535.png"></p>
-<p>也就是在ret指令执行过后，esp并没有复原，但是不影响程序运行，这就导致ida认为堆栈不平衡，导致不能反汇编。我们直接将这样的垃圾指令nop掉即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023758.png"></p>
-<p>然后f5一下即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023834.png"></p>
-<p>代码从之前的</p>
-<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023927.png"></p>
-<p>变为了</p>
-<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023948.png"></p>
-<p>参考：<a href="https://nnnewb.github.io/blog/p/learning-packer-07/">https://nnnewb.github.io/blog/p/learning-packer-07/</a></p>
-<h4 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h4><p>在vs上，选择x86，编译</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call sub7</span><br><span class="line">		_emit <span class="number">0xE8</span></span><br><span class="line">		jmp label7</span><br><span class="line">		sub7 :</span><br><span class="line">		add dword ptr[esp], <span class="number">1</span></span><br><span class="line">			retn</span><br><span class="line">			label7 :</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;hello,world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这个emit相当于汇编中的<strong>db</strong>，作用是在当前位置直接插入数据，而我们插入的0xE8是call指令的机器码，于是紧挨着的几个字节会被当作地址处处理，这会导致反汇编的失败。</p>
-<p>这段代码的逻辑：调用sub7，执行add dword ptr[esp], 1，给[esp]+1，而【esp】保存的是call下面一条指令也就是_emit 0xE8的地址，经过这样的操作，在执行retn语句的时候，不会返回_emit 0xE8而是直接执行下面的jmp label7，于是程序正常运行。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129151334.png"></p>
-<p>直接把红框部分nop掉,然后在这个位置按下U也就是undefine<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165105.png"></p>
-<p>然后再按下c，将数据解析为代码，按下p创建函数，最后F5即可。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165256.png"></p>
-<p>赏心悦目<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165314.png"></p>
-<p>话有一种方法是将E8后面的数据给还原，源代码我们知道，E8后面是一条跳转指令，而不应该像现在这样被解析为数据，在此处按下U<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165430.png"></p>
-<p>光标放在这个位置按下C<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165601.png"></p>
-<p>得到<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165632.png"></p>
-<p>woc，又不行了（刚才不知道为什么阴差阳错这种办法也行），无语了。。。</p>
-]]></content>
-      <tags>
-        <tag>花指令</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>西湖论剑MZ</title>
     <url>/2024/03/19/%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91MZ/</url>
     <content><![CDATA[<p>题目大致三个步骤</p>
@@ -2898,295 +3146,47 @@
       </tags>
   </entry>
   <entry>
-    <title>2019红帽杯_snake</title>
-    <url>/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/</url>
-    <content><![CDATA[<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240320222514.png"></p>
-<p>Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。</p>
-<p>通过搜索阶段、长度、得分等关键字可以定位到关键方法。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003350.png"></p>
-<p>然后就是查看这几个类，在snakehead可以找到一个和坐标相关的方法，其他的一些方法基本上根据函数名就知道函数的作用。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003637.png"></p>
-<p>可以看到是从Interface调用的方法GameObject，在plugin目录有一个Interface.dll，拖入ida查看。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321004705.png"></p>
-<p>直接从导出函数找到GameObject。然后就是一个很难弄懂的逻辑，而且参数只有一个。但是通过定位这个关键参数<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321005342.png"></p>
-<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321005354.png"></p>
-<p>可以确定a大于等于0，小于等于99，只有这样他才会进入那个if语句，从而有可能触发下面的函数<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321005912.png"></p>
-<p>如果我们能用c语言把这个函数复原过来，使用0~99作为参数就可以暴破出来flag。</p>
-<p>然而，这是一个dll文件，gameobject函数作为导出函数，是可以直接被调用的。一下是调用程序</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数指针</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">signed</span> __int64 (*Dllfunc)(<span class="type">int</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    Dllfunc GameObject; <span class="comment">// GameObject是dll中想要调用的函数名称</span></span><br><span class="line">    HINSTANCE hdll = <span class="literal">NULL</span>;</span><br><span class="line">    hdll = LoadLibrary(TEXT(<span class="string">&quot;Interface.dll&quot;</span>)); <span class="comment">// 用LoadLibrary加载dll</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hdll == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;加载失败\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        GameObject = (Dllfunc)GetProcAddress(hdll, <span class="string">&quot;GameObject&quot;</span>); <span class="comment">// 到dll中定位函数</span></span><br><span class="line">        <span class="keyword">if</span> (GameObject == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;加载函数失败\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt;= <span class="number">99</span>; i++) &#123;</span><br><span class="line">                <span class="type">signed</span> __int64 res = GameObject(i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    FreeLibrary(hdll); <span class="comment">// 释放dll</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>有可能出现加载失败的问题，这时候可以在 调式–&gt;调式属性，更改平台<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010836.png"></p>
-<p>因为这是一个64位的dll，所以我们的平台要选择x64<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010848.png"></p>
-<p>实现的效果就是</p>
-<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010328.png"></p>
-<p>还有一种更为简单的调用方式：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> ctypes</span><br><span class="line">dll = ctypes.cdll.LoadLibrary(<span class="string">&quot;E:\\RE\\buuctf\\Snake\\Snake_Data\\Plugins\\Interface.dll&quot;</span>)<span class="comment">#导入库</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">    dll.GameObject(i)<span class="comment">#调用库函数</span></span><br><span class="line">    <span class="built_in">print</span>(i)</span><br></pre></td></tr></table></figure>
-
-<p>这段代码是使用Python的ctypes库加载一个名为”Interface.dll”的动态链接库，并调用其中的GameObject函数。循环100次，每次传入一个递增的整数i作为参数，并在每次调用后打印i的值。</p>
-<p>参考链接：</p>
-<p><a href="https://mp.weixin.qq.com/s/MKaMMihP8gPSYKswAxjNqQ">https://mp.weixin.qq.com/s/MKaMMihP8gPSYKswAxjNqQ</a></p>
-<p>[<a href="https://blog.csdn.net/m0_46296905/article/details/116209735">2019红帽杯]Snake-CSDN博客</a></p>
-]]></content>
-      <tags>
-        <tag>wp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ACTF新生赛fungame</title>
-    <url>/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/</url>
-    <content><![CDATA[<p>一道有意思又有点脑洞的re&amp;pwn题目，第一次接触到这种类型的题目，记录一下。</p>
+    <title>花指令实现与对抗</title>
+    <url>/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/</url>
+    <content><![CDATA[<blockquote>
+<p>花指令（junk code）是一种专门用来迷惑反编译器的指令片段，这些指令片段不会影响程序的原有功能，但会使得反汇编器的结果出现偏差，从而使破解者分析失败。比较经典的花指令技巧有利用 <code>jmp</code> 、<code>call</code>、<code>ret</code> 指令改变执行流，从而使得反汇编器解析出与运行时不相符的错误代码。</p>
+<p>—CTF Wiki</p>
+</blockquote>
+<p>简单来讲花指令分为两大类，一种是会被执行的花指令，另一种是不会被执行的花指令。</p>
+<p>花指令出现的意义就是干扰机器进行反汇编，迫使人工进行分析。</p>
 <span id="more"></span>
 
-<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200026.png"></p>
-<p>很简单的异或，y1^y2即可得出16字节的input。</p>
-<figure class="highlight erlang-repl"><table><tr><td class="code"><pre><span class="line">Re_1s_So0_funny!</span><br></pre></td></tr></table></figure>
+<h3 id="不会被执行的花指令"><a href="#不会被执行的花指令" class="headerlink" title="不会被执行的花指令"></a>不会被执行的花指令</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;xor %eax,%eax;&quot;</span></span><br><span class="line">        <span class="string">&quot;jz s;&quot;</span></span><br><span class="line">        <span class="string">&quot;add $0x11,%esp;&quot;</span>     <span class="comment">//让ida误认为栈不平衡，实则根本没有执行</span></span><br><span class="line">        <span class="string">&quot;s:;&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcode\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>虽然觉得不可思议，但还是尝试提交了一下，果不其然是错误的，然后查看y1和y2的交叉引用，看看是否出现了反调试，结果也没有。运行程序基本可以确定，这十六字节的输入是没什么问题的，因为输入其他的字符串，程序是立即结束，而输入这十六个字节，有明显的等待时间。<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200457.png"></p>
-<p>接着就是查看另一个参数为input的函数，<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200621.png"></p>
-<p>乍一看，没有任何的价值<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306200713.png"></p>
-<p>我也是查看了wp之后才注意到这里的溢出问题。</p>
-<p>strcpy不会检测字符串的长度，因此可能发生栈溢出。而destination是十二字节，input是16字节，明显存在溢出问题，而后面的input1更是引人怀疑，交叉引用发现，被这个函数所使用<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306201238.png"></p>
-<p>它提示input again，然后再次对输入的字符串进行检测。一眼看出base64，解码之后是a1s0_pWn，关键的问题是如何让上面的sub_4013BA函数执行完之后不返回main函数而是这个sub_40233D。这里要借助的就是strcpy的溢出。<img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306202338.png"></p>
-<p>destination的地址被存放在了栈顶</p>
-<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306202459.png"></p>
-<p>进一步查看，可以找到原本的返回值</p>
-<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306202737.png"></p>
-<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306205608.png"></p>
-<p>前十六个字节是Re_1s_So0_funny!，60FEDC那里就要用sub_40233D的地址来覆盖了，也就是0x0040233D，然后考虑小端存储最后四个字节的内容是3D、23、40，00，最后一个00不用理会，只需要填入对应的字符即可，也就是**&#x3D;#@**。</p>
-<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306203704.png"></p>
-<p><img src="/2024/03/21/ACTF%E6%96%B0%E7%94%9F%E8%B5%9Bfungame/QQ%E6%88%AA%E5%9B%BE20240306203550.png"></p>
-<p>所以最终的flag：Re_1s_So0_funny!&#x3D;#@a1s0_pWn</p>
+<p>内联汇编的语法，语句放在（）内，每条指令被””包裹，以分号结尾，如果要使用寄存器则要在寄存器前加上**%<strong>，如果使用立即数则在前面加上</strong>$**。</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012521.png"></p>
+<p>可以看到上方爆红。在汇编界面，直接将红框里的内容nop掉<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012625.png"></p>
+<p>修复后如下<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012800.png"></p>
+<h3 id="可以执行的花指令"><a href="#可以执行的花指令" class="headerlink" title="可以执行的花指令"></a>可以执行的花指令</h3><h4 id="破坏栈"><a href="#破坏栈" class="headerlink" title="破坏栈"></a>破坏栈</h4><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;call next;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;next:\n&quot;</span></span><br><span class="line">        <span class="string">&quot;movl $continue,(%esp);\n&quot;</span></span><br><span class="line">        <span class="string">&quot;ret;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;continue:\n&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcodes\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>内联汇编的内容实际上就是使用call进行跳转，实现的效果就是跳转到continue打印hello,junkcodes。这样为什么能使ida异常呢？我的理解是：call可以看作是push ip + jmp 指令，ret可以看作是pop ip指令，第一个call next在我们看来相当于一个简单的jmp跳转到了下一条指令，而ida肯定会将它当作函数进行分析，函数内执行了**movl $continue,(%esp);**这样一个操作，将continue的地址放入了esp寄存器中，然后ret指令将IP设为continue的地址，于是顺利执行printf指令。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023535.png"></p>
+<p>也就是在ret指令执行过后，esp并没有复原，但是不影响程序运行，这就导致ida认为堆栈不平衡，导致不能反汇编。我们直接将这样的垃圾指令nop掉即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023758.png"></p>
+<p>然后f5一下即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023834.png"></p>
+<p>代码从之前的</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023927.png"></p>
+<p>变为了</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023948.png"></p>
+<p>参考：<a href="https://nnnewb.github.io/blog/p/learning-packer-07/">https://nnnewb.github.io/blog/p/learning-packer-07/</a></p>
+<h4 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h4><p>在vs上，选择x86，编译</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call sub7</span><br><span class="line">		_emit <span class="number">0xE8</span></span><br><span class="line">		jmp label7</span><br><span class="line">		sub7 :</span><br><span class="line">		add dword ptr[esp], <span class="number">1</span></span><br><span class="line">			retn</span><br><span class="line">			label7 :</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;hello,world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个emit相当于汇编中的<strong>db</strong>，作用是在当前位置直接插入数据，而我们插入的0xE8是call指令的机器码，于是紧挨着的几个字节会被当作地址处处理，这会导致反汇编的失败。</p>
+<p>这段代码的逻辑：调用sub7，执行add dword ptr[esp], 1，给[esp]+1，而【esp】保存的是call下面一条指令也就是_emit 0xE8的地址，经过这样的操作，在执行retn语句的时候，不会返回_emit 0xE8而是直接执行下面的jmp label7，于是程序正常运行。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129151334.png"></p>
+<p>直接把红框部分nop掉,然后在这个位置按下U也就是undefine<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165105.png"></p>
+<p>然后再按下c，将数据解析为代码，按下p创建函数，最后F5即可。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165256.png"></p>
+<p>赏心悦目<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165314.png"></p>
+<p>话有一种方法是将E8后面的数据给还原，源代码我们知道，E8后面是一条跳转指令，而不应该像现在这样被解析为数据，在此处按下U<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165430.png"></p>
+<p>光标放在这个位置按下C<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165601.png"></p>
+<p>得到<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165632.png"></p>
+<p>woc，又不行了（刚才不知道为什么阴差阳错这种办法也行），无语了。。。</p>
 ]]></content>
       <tags>
-        <tag>wp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>2019红帽杯childRE</title>
-    <url>/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/</url>
-    <content><![CDATA[<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/QQ%E6%88%AA%E5%9B%BE20231221035743.png"></p>
-<p>题目逻辑并不难理解，只是遇到了船新的知识点<strong>UnDecorateSymbolName</strong>。</p>
-<span id="more"></span>
-
-<p>题目逻辑;</p>
-<ol>
-<li>验证输入长度是否为31</li>
-<li>将输入打乱，其实就是将输入存储到树中</li>
-<li>UnDecorateSymbolName函数发挥作用，得到outputstring</li>
-<li>校验</li>
-</ol>
-<p>首先可以从最后的校验，得出outputstring的值，查看a4，a5两个比较数据在表a1的位置，outputstring的元素模23是a4的下标，&#x2F;23是a5的下标</p>
-<figure class="highlight py"><table><tr><td class="code"><pre><span class="line">data1 = <span class="string">&#x27;(_@4620!08!6_0*0442!@186%%0@3=66!!974*3234=&amp;0^3&amp;1@=&amp;0908!6_0*&amp;&#x27;</span></span><br><span class="line">data2 = <span class="string">&#x27;55565653255552225565565555243466334653663544426565555525555222&#x27;</span></span><br><span class="line">table = <span class="string">&quot;1234567890-=!@#$%^&amp;*()_+qwertyuiop[]QWERTYUIOP&#123;&#125;asdfghjkl;&#x27;ASDFGHJKL:\&quot;ZXCVBNM&lt;&gt;?zxcvbnm,./&quot;</span></span><br><span class="line"></span><br><span class="line">positions_data1 = [table.index(c) <span class="keyword">for</span> c <span class="keyword">in</span> data1 <span class="keyword">if</span> c <span class="keyword">in</span> table]</span><br><span class="line">positions_data2 = [table.index(c) <span class="keyword">for</span> c <span class="keyword">in</span> data2 <span class="keyword">if</span> c <span class="keyword">in</span> table]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;data1在table中的位置：&quot;</span>, positions_data1)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;data2在table中的位置：&quot;</span>, positions_data2)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">62</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">chr</span>(positions_data1[i]+positions_data2[i]*<span class="number">23</span>),end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">//private: char * __thiscall R0Pxx::My_Aut0_PWN(unsigned char *)</span><br></pre></td></tr></table></figure>
-
-<p>接下来就是由outputstring字符串反推出v5，核心是要理解UnDecorateSymbolName函数<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/QQ%E6%88%AA%E5%9B%BE20231221040922.png"></p>
-<p>一个函数名称经编译器修饰后会变成一段记录其各种信息（返回值、参数等）的字符串，具体规则可见<a href="https://blog.csdn.net/liweigao01/article/details/78351464">c, c++函数名编译符号修饰符说明-CSDN博客</a></p>
-<p>UnDecorateSymbolName的函数可以根据上述字符串，还原出我们声明的函数信息</p>
-<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">private: char * <span class="built_in">_</span><span class="built_in">_</span>thiscall R0Pxx::My<span class="built_in">_</span>Aut0<span class="built_in">_</span>PWN(unsigned char *) 与 ?My<span class="built_in">_</span>Aut0<span class="built_in">_</span>PWN@R0Pxx@@AAEPADPAE@Z 相对应</span><br></pre></td></tr></table></figure>
-
-<p>然后将字符串?My_Aut0_PWN@R0Pxx@@AAEPADPAE@Z顺序还原即可</p>
-<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFchildRE/QQ%E6%88%AA%E5%9B%BE20231221041743.png"></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">data11 = <span class="string">&#x27;$%8^&amp;94*(0)_-52+q=we!6rt@yu#731&#x27;</span></span><br><span class="line">data22 = <span class="string">&#x27;1234567890-=!@#$%^&amp;*()_+qwertyu&#x27;</span></span><br><span class="line">index=[]*<span class="number">31</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">31</span>):</span><br><span class="line"> index.append(data11.find(data22[i]))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line">flag0=<span class="string">&#x27;?My_Aut0_PWN@R0Pxx@@AAEPADPAE@Z&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">31</span>):</span><br><span class="line">   <span class="built_in">print</span>(flag0[index[i]],end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(flag0)</span><br></pre></td></tr></table></figure>
-
-<p>&#x2F;&#x2F;Z0@tRAEyuP@xAAA?M_A0_WNPx@@EPDP</p>
-]]></content>
-      <tags>
-        <tag>wp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CSAPP-第七章—链接</title>
-    <url>/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/</url>
-    <content><![CDATA[<p>虽然现在还没怎么使用过链接，因为小项目往往单个文件即可完美解决，但是当工程量大的时候，多文件操作是不可避免的。链接就是将各种代码和数据片段收集并组合成一个单一文件的过程。</p>
-<!--more_-->
-
-<h4 id="为什么学习链接："><a href="#为什么学习链接：" class="headerlink" title="为什么学习链接："></a>为什么学习链接：</h4><ul>
-<li>理解链接有利于我们构造大型程序。</li>
-<li>理解链接器将帮助我们避免一些危险的编程错误。</li>
-<li>理解链接帮助我们理解语言的作用域规则是如何实现的。</li>
-<li>理解链接将帮助我们理解其他重要的系统概念。</li>
-<li>理解链接使我们能够利用共享库。</li>
-</ul>
-<h3 id="静态链接"><a href="#静态链接" class="headerlink" title="静态链接"></a>静态链接</h3><blockquote>
-<p>静态链接（Static linking）是指在编译阶段将目标文件中所需的库文件代码全部复制到可执行文件中，形成一个独立的、完整的可执行文件。在运行程序时，操作系统不需要加载额外的库文件，因为所有必要的代码都已经包含在可执行文件中。</p>
-</blockquote>
-<p>优点：执行速度快、稳定性好、容易分发（移植性高？）、安全性高</p>
-<p>缺点：可执行文件大、更新困难、内存浪费</p>
-<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><blockquote>
-<p>动态链接（Dynamic linking）是指在程序运行时，需要某个库文件时才去查找和载入所需的库文件。与静态链接不同，动态链接并不会将所有的代码和数据都打包到可执行文件中，而是在程序启动时只加载所需的代码和数据，避免了一些资源浪费的问题。</p>
-</blockquote>
-<p>优点：文件小、容易更新、节约内存、更容易定位问题</p>
-<p>缺点：执行速度较慢、安全性问题、容易出错</p>
-<h3 id="编译器驱动程序"><a href="#编译器驱动程序" class="headerlink" title="编译器驱动程序"></a>编译器驱动程序</h3><p>跟着书上操作一下</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603152948.png"></p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603153012.png"></p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603153106.png"></p>
-<p>了解一下gcc的使用：<strong>gcc -Og -o prog main.c sum.c</strong></p>
-<ul>
-<li><code>gcc</code>: 使用 GNU C 编译器</li>
-<li><code>-Og</code>: 优化级别为“优化等级 g”，即启用大多数优化选项，但不会影响调试信息。</li>
-<li><code>-o prog</code>: 将生成的可执行文件命名为 <code>prog</code>。（如果没有该选项，则默认生成名为 <code>a.out</code> 的可执行文件）</li>
-<li><code>main.c</code>: 主程序文件，包含程序的入口函数。</li>
-<li><code>sum.c</code>: 函数库文件，包含用于计算求和的函数代码。</li>
-</ul>
-<p>综上所述，该命令会将 <code>main.c</code> 和 <code>sum.c</code> 两个源文件编译成一个名为 <code>prog</code> 的可执行文件，并且在编译过程中启用了大多数优化选项，同时保留了调试信息以方便调试。</p>
-<h3 id="目标文件"><a href="#目标文件" class="headerlink" title="目标文件"></a>目标文件</h3><p>目标文件有三种形式</p>
-<ul>
-<li>可重定位目标文件。包含二进制代码和数据，可执行目标文件的中间产物。</li>
-</ul>
-<blockquote>
-<p>可重定位目标文件包含了代码、数据和符号表等信息，但并不包含所有的地址信息。因此，在链接时需要通过重新定位（relocation）来分配地址，并建立各个目标文件之间的联系，生成最终的可执行文件或动态链接库。</p>
-</blockquote>
-<ul>
-<li>可执行目标文件。包含二进制代码和数据，可以直接复制到内存并执行。</li>
-<li>共享目标文件。一种特殊类型的可重定位文件。</li>
-</ul>
-<h3 id="可重定位目标文件"><a href="#可重定位目标文件" class="headerlink" title="可重定位目标文件"></a>可重定位目标文件</h3><p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603162030.png"></p>
-<p>我们拿一个具体的文件对照着理解</p>
-<p>mian1.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> count=<span class="number">10</span>;</span><br><span class="line"><span class="type">int</span> value;</span><br><span class="line"><span class="type">void</span> <span class="title function_">func</span><span class="params">(<span class="type">int</span> sum)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;sum is:%d\n&quot;</span>,sum);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="type">static</span> <span class="type">int</span> a=<span class="number">1</span>;</span><br><span class="line">        <span class="type">static</span> <span class="type">int</span> b=<span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> x=<span class="number">1</span>;</span><br><span class="line">        func(a+b+x);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>gcc -c main1.c</strong>  命令将源文件编译成可重定位目标文件。-c只编译源代码不进行链接操作，生成main1.o文件</p>
-<p> <strong>readelf -h main1.o</strong>   -h选项表示只显示header信息。</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603163426.png"></p>
-<p>这就是7-3所示的ELF头的内容。</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603163658.png"></p>
-<p>我们可以看到节头部表的起始位置是992.共有14个表，每个长度为64字节。992+14*64&#x3D;1888和我们用wc（word count）命令查看的文件的字节数目一致。</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603164202.png"></p>
-<p><strong>readelf -S main1.o</strong>  -S选项，打印整个表的信息</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603164339.png"></p>
-<p><strong>.text</strong>：存放已经编译好的机器代码。通过objdump -s -d main1.o命令可以查看<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603165048.png"></p>
-<p><strong>.data</strong>：存放已经初始化的全局和静态变量<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603165408.png"></p>
-<p>我们初始化了一个count和a，值分别为10和1.其实还初始化了b，不过赋值为0，当作未初始化处理。我们看到的是小端存储，0a000000实际上是0000000a。</p>
-<p><strong>.bss</strong>：未初始化的全局变量和静态变量，以及所以被初始化为0的全局或静态变量。在目标文件中这个节不占实际的空间，仅仅是一个占位符。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603170707.png"></p>
-<p>可以看到他和.rodata起始位置是相同的。</p>
-<blockquote>
-<p><code>.bss</code> 段不包含实际的数据内容，是因为该段中存储的是未初始化的全局变量和静态变量。在程序启动时，这些变量会被自动初始化为 0 或者 NULL，而不是在编译时就确定了其具体的值。因此，在编译时并没有将这些变量的实际值保存到 <code>.bss</code> 段中。</p>
-<p>对于已经初始化的全局变量和静态变量，它们将被保存在 <code>.data</code> 段或 <code>.rodata</code> 段中，并在编译时就确定了其具体的值。相比之下，<code>.bss</code> 段只是记录了需要分配多少空间给未初始化的变量，并在程序启动时进行自动初始化。因此，<code>.bss</code> 段中不包含实际的数据内容。</p>
-</blockquote>
-<p>.rodata：只读文件，比如printf语句中的格式串和开关语句的跳转表<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603171213.png"></p>
-<p>其余的</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603171455.png"></p>
-<h3 id="符号和符号表"><a href="#符号和符号表" class="headerlink" title="符号和符号表"></a>符号和符号表</h3><p>每个可重定位目标模块m都有一个符号表，它包含m定义和应用的符号的信息。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603174013.png"></p>
-<p><strong>readelf -s main1.o</strong>  查看符号表内容<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603171927.png"></p>
-<p>从这个表中我们可以看到所有定义的符号以及他们的位置和大小。比如说main函数，在0x2b处大小是52字节。对于count 和 value 他俩的type为object表明符号是个数据对象，ndx值是其段位置，3代表count在section3即.data中。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603173509.png"></p>
-<p>局部变量x并未出现在符号表中，因为局部变量在运行时栈中被管理，因此不会出现。</p>
-<h3 id="符号解析与静态库"><a href="#符号解析与静态库" class="headerlink" title="符号解析与静态库"></a>符号解析与静态库</h3><p>链接器解析符号引用的方法是将每个引用与他输入的可重定位目标文件的符号表中的一个确定的符号定义关联起来。对于局部变量，解析是非常明了的。对于全局变量，编译器会假设他在其他的某个模块被定义，如果链接器在任何一个模块中都未被定义，就会输出一个错误信息并终止。   </p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">foo</span><span class="params">(<span class="type">void</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">        foo();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603180037.png"></p>
-<p>编译和汇编过程没有问题。连接成可执行文件时报错<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603180303.png"></p>
-<h4 id="编译器如何解析多重定义的全局符号"><a href="#编译器如何解析多重定义的全局符号" class="headerlink" title="编译器如何解析多重定义的全局符号"></a>编译器如何解析多重定义的全局符号</h4><p>全局符号分强弱两种类型。</p>
-<p>强符号：函数和已经初始化的全局变量</p>
-<p>弱符号：未初始化的全局变量<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603180723.png"></p>
-<h4 id="静态库"><a href="#静态库" class="headerlink" title="静态库"></a>静态库</h4><p>静态库就是各种可重定位文件的集合，如lib.a静态库就包含了printf.o等</p>
-<p>静态链接就是链接静态库的过程。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603181855.png"></p>
-<h3 id="静态库的解析过程"><a href="#静态库的解析过程" class="headerlink" title="静态库的解析过程"></a>静态库的解析过程</h3><p>连接器从左到右扫描文件并维护三个集合，顺序是比较重要的</p>
-<p>E：可重定位目标文件的集合，这个集合会被合并起来并形成可执行文件。</p>
-<p>U：未解析的符号（引用了但是尚未定义的符号）集合</p>
-<p>D：在前面输入文件中已经定义的符号集合。</p>
-<p>最开始是空的</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183005.png"></p>
-<p>接收目标文件放入E<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183029.png"></p>
-<p>main中有未解析的符号<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183038.png"></p>
-<p>继续往下查看静态库，发现了addvec的定义，于是从U中删除，将addvec.o放入E中<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230603183118.png"></p>
-<p>D的目的是动心定位，分配地址。</p>
-<h3 id="重定位"><a href="#重定位" class="headerlink" title="重定位"></a>重定位</h3><p>重定位合并输入模块，并未每个模块分配运行时地址。重定位由两步组成：</p>
-<ul>
-<li><strong>重定位节和符号定义</strong>  。将相同类型的节合并，然后链接器将运行时内存地址赋给新的聚合节。当这一步完成时，程序的每个指令和全局变量都有唯一的运行时内存地址了。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604022044.png"></li>
-<li><strong>重定位节中的符号引用</strong> 。连接器修改代码节和数据节中对每个符号的引用，使得他们指向正确的。</li>
-</ul>
-<h4 id="重定位条目"><a href="#重定位条目" class="headerlink" title="重定位条目"></a>重定位条目</h4><p>当汇编器生成一个目标模块时，并不知道数据和代码最终将存放在什么位置。当汇编器遇到对最终位置未知的目标引用，他就会生成一个可重定位条条目，告诉连接器在将文件合并成可执行文件时如何修改这个引用。代码的重定位条目放在.rel.text中。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604023138.png"></p>
-<p>在重定位之前，操作码之后的内容被汇编器填充为0<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604023934.png"></p>
-<p>根据重定位条目来确定具体内容。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604024716.png"></p>
-<p>0x5,是两个地址之间的距离<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604024928.png"></p>
-<p>现在学的内容和当时学习汇编语言接触到的东西接轨了，比如说为什么call指令会进行这样那样的操作，jmp指令有的是相对跳转有的是绝对跳转。这里解释的是重定位相对引用。</p>
-<p>重定位绝对引用比较简单<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604025205.png"></p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604025246.png"></p>
-<p>最终<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604025318.png"></p>
-<h3 id="可执行目标文件"><a href="#可执行目标文件" class="headerlink" title="可执行目标文件"></a>可执行目标文件</h3><p>可以复制到内存并直接执行的文件<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604144059.png"></p>
-<p>ELF头描述文件的总体格式，它还包括程序的入口点，也就是当程序运行时要执行的第一条指令的地址。<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604154958.png"></p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604155129.png"></p>
-<p><strong>.&#x2F;prog</strong> 运行可执行文件prog。</p>
-<h3 id="动态链接共享库"><a href="#动态链接共享库" class="headerlink" title="动态链接共享库"></a>动态链接共享库</h3><p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230604162238.png"></p>
-<h3 id="库打桩机制"><a href="#库打桩机制" class="headerlink" title="库打桩机制"></a>库打桩机制</h3><blockquote>
-<p>库打桩机制允许你接获对共享库函数的调用，取而代之执行自己的代码。使用打桩机制，你可以追踪对某个特殊库函数的调用次数。验证和追踪它的输入值和输出值，或者甚至把他天换成一个完全不同的实现。</p>
-</blockquote>
-<p>先说明一下库打桩的应用场景，比如说我们使用库函数malloc()，他返回一个地址，而我们呢想知道malloc函数被调用了多少次，这时我们就可以通过库打桩将我们自己编写的可以打印信息的mymolloc进行替换，这好像和hook有点关系。库打桩技术的主要思想是:在不修改原程序源代码的情况下,替换掉不稳定或难以获取的第三方库。替换的库称为桩库或模拟库,它实现目标库的接口,但是里面的实现是自定义的代码。通过使用桩库,可以<strong>隔离原程序与第三方库</strong>,便于测试或解决依赖问题。常用于软件测试中,以提高测试用例的准确性和可重复性。</p>
-<p>按照打桩时机，库打桩分为以下三类：</p>
-<ol>
-<li>编译时打桩。此种情况需要能够访问源代码。</li>
-<li>链接时打桩。需要能够访问可重定位文件文件。</li>
-<li>运行时打桩。没有上述需求，比较nb。</li>
-</ol>
-<h4 id="编译时打桩"><a href="#编译时打桩" class="headerlink" title="编译时打桩"></a>编译时打桩</h4><p>使用宏定义将malloc()定义为mymalloc()即可，自定义malloc.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> malloc(size) mymalloc(size)</span></span><br><span class="line"><span class="type">void</span> *<span class="title function_">mymalloc</span><span class="params">(<span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>接下来我们自定义malloc的内容</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX      <span class="comment">//相当于一个if语句，就是如果定义了宏XXX，下面的代码就会被加载，在编译中我们使用DXXX来定义XXX</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="comment">//打桩函数</span></span><br><span class="line"><span class="type">void</span> *<span class="title function_">mymalloc</span><span class="params">(<span class="type">size_t</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span>* ptr=<span class="built_in">malloc</span>(size);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;mzy success\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
-
-<p>main函数</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;malloc.h&quot;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> *p=<span class="built_in">malloc</span>(<span class="number">32</span>);</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>然后</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -DMYMOCK -c mymalloc.c    <span class="comment">#编译源代码文件而不进行链接</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -I . -o main main.c mymalloc.o</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">./main</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605021520.png"></p>
-<p>很离谱的是没有任何反应<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605021707.png"></p>
-<p>经过一番求助之后，原来是tmd头文件的名字写错了，<img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605110200.png"></p>
-<p>跟着这个就来了，但是作者是怎么成功的呢，按理来说他应该include”mymalooc.h”才对呀。</p>
-<h4 id="链接时打桩"><a href="#链接时打桩" class="headerlink" title="链接时打桩"></a>链接时打桩</h4><p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230605110428.png"></p>
-<p>l连接过程中对应关系是</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span>       ----&gt;     _ _wrap_fun</span></span><br><span class="line">__real_f  ----&gt;     <span class="function"><span class="keyword">fun</span></span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> *__real_malloc(<span class="type">size_t</span> size);</span><br><span class="line"></span><br><span class="line"><span class="type">void</span>* __wrap_malloc(<span class="type">size_t</span> size)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span>* ptr =__real_malloc(size);<span class="comment">//调用malooc</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;mzy success*2&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
-
-<p>main.c和上面有一点不同，将头文件去掉</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="comment">//#include&quot;malloc.h&quot;</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> *p =<span class="built_in">malloc</span>(<span class="number">32</span>);</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>然后进行</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -DXXX -c mymalloc.c    <span class="comment">#得到mymalloc.o</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -c main.c               <span class="comment">#得到main.o</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -Wl,--wrap,malloc -o main main.o mymalloc.o</span> </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">#-Wl,--wrap,malloc把--wrap malloc传递给链接器</span></span></span><br></pre></td></tr></table></figure>
-
-<h4 id="运行时打桩"><a href="#运行时打桩" class="headerlink" title="运行时打桩"></a>运行时打桩</h4><p>不需要源代码，不需要重定位文件，太酷啦。在学习这个炫酷的技能之前，我们先了解一下如何制造动态库。</p>
-<h5 id="动态库的制作"><a href="#动态库的制作" class="headerlink" title="动态库的制作"></a>动态库的制作</h5><p>test.c代码</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&quot;test.h&quot;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>test.h</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">test</span><span class="params">()</span>;</span><br></pre></td></tr></table></figure>
-
-<p>制作生成.so文件</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc test.c -fPIC -shared -o libtest.so</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc -DMYMOCK -shared -fPIC -o libmymalloc.so mymalloc.c -ldl</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<ul>
-<li><code>-DMYMOCK</code>：定义预处理器宏 <code>MYMOCK</code>，使得在编译时预处理阶段可以根据这个宏名称进行条件编译。</li>
-<li><code>-shared</code>：指定生成一个共享库（即动态链接库）。</li>
-<li><code>-fPIC</code>：指定编译为位置独立代码（Position Independent Code），以便被动态链接库调用。</li>
-<li><code>-o libmymalloc.so</code>：指定输出文件名为 <code>libmymalloc.so</code>，其中 <code>.so</code> 表示共享对象文件（Shared Object）的后缀名。</li>
-<li><code>mymalloc.c</code>：指定输入文件名为 <code>mymalloc.c</code>，该文件包含了需要编译成动态链接库的代码。</li>
-<li><code>-ldl</code>：告诉编译器需要链接 <code>dl</code> 库（即动态链接库库），该库包含了 dlsym() 函数等相关函数的实现。</li>
-</ul>
-<p>当执行这个命令后，将会在当前目录下生成一个名为 <code>libmymalloc.so</code> 的动态链接库文件，该库包含了我们在 <code>mymalloc.c</code> 文件中定义的 <code>malloc()</code> 封装函数。用户可以使用 <code>LD_PRELOAD</code> 环境变量来加载这个动态链接库，从而覆盖掉系统默认的 <code>malloc()</code> 函数。</p>
-</blockquote>
-<p><strong>LD_PRELOAD</strong> :可以通过设置该环境变量，达到在加载动态库或者解析一个符号时，<strong>先</strong>从LD_PRELOAD指定的库中寻找符号的目的。</p>
-<p>跟着操作了一番出现了Segmentation fault，查了一下我不是个例。mymalloc.c</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dlfcn.h&gt;</span>   <span class="comment">//提供动态链接库的相关函数和类型的声明</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span>* <span class="title function_">malloc</span><span class="params">(<span class="type">size_t</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">void</span> *(*mallocp)(<span class="type">size_t</span> size);</span><br><span class="line">   <span class="type">char</span> *error;</span><br><span class="line"></span><br><span class="line">   mallocp=dlsym(RTLD_NEXT,<span class="string">&quot;malloc&quot;</span>);   <span class="comment">//得到libc malloc的地址</span></span><br><span class="line">   <span class="keyword">if</span>((error=dlerror())!=<span class="literal">NULL</span>)       <span class="comment">//dlerro()检查最后一次动态链接库操作是否出现错误，如果失败则返回一个非空字符串指针赋值给error</span></span><br><span class="line">   &#123;</span><br><span class="line">      <span class="built_in">fputs</span>(error,<span class="built_in">stderr</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="type">char</span>* ptr =mallocp(size);<span class="comment">//在封装函数中调用原函数</span></span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;malloc(%zu)=%p\n&quot;</span>,size,ptr);</span><br><span class="line">   <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">                                          </span><br></pre></td></tr></table></figure>
-
-<p>RTLD_NEXT是一个伪句柄，表示在当前库之后的库中查找malloc，为什么是下一个库？因为当前库被LD_PRELOAD设置成了mymalloc.so</p>
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230606153928.png"></p>
-<p>错误产生的原因：malloc的反复调用，应该是类似没有终止的递归导致，这里留一个坑位，学明白了再解释。</p>
-<p><strong>为什么出现段错误：</strong> 我们自定义的malloc函数调用了printf函数，printf函数又调用了malloc函数，malloc函数有调用printf函数，这是一个死循环，会导致栈溢出。</p>
-<p>解决方法：避免反复调用&#x2F;使用不调用打桩函数的函数。我们设置了静态变量来检测调用malloc的情况，因为每次进入的状态是0，然后进行自增，运行到后面如果次数为1，那么一切正常，如果为2那么说明此时对malloc进行了第二次调用，第一次调用还没有结束，那么直接跳过printf避免它再次触发我们的malloc。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> XXX</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dlfcn.h&gt;</span>   <span class="comment">//提供动态链接库的相关函数和类型的声明</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span>* <span class="title function_">malloc</span><span class="params">(<span class="type">size_t</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> calltimes;</span><br><span class="line">    calltimes++;</span><br><span class="line">   <span class="type">void</span> *(*mallocp)(<span class="type">size_t</span> size)=<span class="literal">NULL</span>;</span><br><span class="line">   <span class="type">char</span> *error;</span><br><span class="line"></span><br><span class="line">   mallocp=dlsym(RTLD_NEXT,<span class="string">&quot;malloc&quot;</span>);   <span class="comment">//得到libc malloc的地址</span></span><br><span class="line">   <span class="keyword">if</span>((error=dlerror())!=<span class="literal">NULL</span>)       <span class="comment">//dlerro()检查最后一次动态链接库操作是否出现错误，如果失败则返回一个非空字符串指针赋值给error</span></span><br><span class="line">   &#123;</span><br><span class="line">      <span class="built_in">fputs</span>(error,<span class="built_in">stderr</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="type">char</span>* ptr =mallocp(size);<span class="comment">//在封装函数中调用原函数</span></span><br><span class="line">   <span class="keyword">if</span>(calltimes==<span class="number">1</span>)</span><br><span class="line">   &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;malloc(%zu)=%p\n&quot;</span>,size,ptr);   </span><br><span class="line">   &#125;</span><br><span class="line">   calltimes=<span class="number">0</span>;</span><br><span class="line">   <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">                                          </span><br></pre></td></tr></table></figure>
-
-<p><img src="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/QQ%E6%88%AA%E5%9B%BE20230606165010.png"></p>
-<p>只要设置 LD_PRELOAD&#x3D;”.&#x2F;mymalloc.so”，所有调用malloc函数的程序都会被改变。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export LD_PRELOAD=./libxxx.so     #应用到全局</span><br><span class="line">unset LD_PREALOD      #取消环境变量设置</span><br></pre></td></tr></table></figure>
-
-<p>参考链接：</p>
-<p><a href="https://www.yanbinghu.com/2019/07/28/59484.html">库打桩机制-偷梁换柱 | 守望的个人博客 (yanbinghu.com)</a></p>
-<p><a href="https://blog.csdn.net/imred/article/details/77418323">(17条消息) CSAPP第三版运行时打桩Segmentation fault_imred的博客-CSDN博客</a></p>
-]]></content>
-      <tags>
-        <tag>csapp</tag>
+        <tag>花指令</tag>
       </tags>
   </entry>
 </search>
