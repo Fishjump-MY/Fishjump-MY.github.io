@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。 通过搜索阶段、长度、得分等关键字可以定位到关键方法。 然后就是查看这几个类，在snakehead可以找到一个和坐标相关的方法，其他的一些方法基本上根据函数名就知道函数的作用。 可以看到是从Interface调用的方法GameObject">
+  <meta name="description" content="Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="2019红帽杯_snake">
 <meta property="og:url" content="http://example.com/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/index.html">
 <meta property="og:site_name" content="fishjump&#39;s blog">
-<meta property="og:description" content="Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。 通过搜索阶段、长度、得分等关键字可以定位到关键方法。 然后就是查看这几个类，在snakehead可以找到一个和坐标相关的方法，其他的一些方法基本上根据函数名就知道函数的作用。 可以看到是从Interface调用的方法GameObject">
+<meta property="og:description" content="Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240320222514.png">
 <meta property="og:image" content="http://example.com/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003350.png">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="http://example.com/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010848.png">
 <meta property="og:image" content="http://example.com/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321010328.png">
 <meta property="article:published_time" content="2024-03-20T17:22:19.000Z">
-<meta property="article:modified_time" content="2024-03-20T17:22:19.611Z">
+<meta property="article:modified_time" content="2024-03-20T17:31:58.855Z">
 <meta property="article:author" content="fishjump">
 <meta property="article:tag" content="wp">
 <meta name="twitter:card" content="summary">
@@ -219,8 +219,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2024-03-21 01:22:19" itemprop="dateCreated datePublished" datetime="2024-03-21T01:22:19+08:00">2024-03-21</time>
+              <time title="创建时间：2024-03-21 01:22:19 / 修改时间：01:31:58" itemprop="dateCreated datePublished" datetime="2024-03-21T01:22:19+08:00">2024-03-21</time>
             </span>
 
           
@@ -236,7 +237,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>582</span>
+              <span>583</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -256,7 +257,10 @@
 
       
         <p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240320222514.png"></p>
-<p>Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。</p>
+<p>Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。</p>
+<span id="more"></span>
+
+<p>发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。</p>
 <p>通过搜索阶段、长度、得分等关键字可以定位到关键方法。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003350.png"></p>
 <p>然后就是查看这几个类，在snakehead可以找到一个和坐标相关的方法，其他的一些方法基本上根据函数名就知道函数的作用。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003637.png"></p>
 <p>可以看到是从Interface调用的方法GameObject，在plugin目录有一个Interface.dll，拖入ida查看。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321004705.png"></p>

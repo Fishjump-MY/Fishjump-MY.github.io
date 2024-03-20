@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>2022极客大挑战</title>
+    <url>/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>2019红帽杯_snake</title>
     <url>/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/</url>
     <content><![CDATA[<p><img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240320222514.png"></p>
-<p>Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。</p>
+<p>Windows游戏逆向。使用到了unity框架，C#直接使用dnspy查看一下。</p>
+<span id="more"></span>
+
+<p>发现没啥思路，而且是完全的陌生，于是就直接找了几个wp来研究，看完之后大有收获。</p>
 <p>通过搜索阶段、长度、得分等关键字可以定位到关键方法。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003350.png"></p>
 <p>然后就是查看这几个类，在snakehead可以找到一个和坐标相关的方法，其他的一些方法基本上根据函数名就知道函数的作用。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321003637.png"></p>
 <p>可以看到是从Interface调用的方法GameObject，在plugin目录有一个Interface.dll，拖入ida查看。<img src="/2024/03/21/2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-snake/QQ%E6%88%AA%E5%9B%BE20240321004705.png"></p>
@@ -62,11 +70,6 @@
       <tags>
         <tag>wp</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>2022极客大挑战</title>
-    <url>/2022/12/21/2022%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%98/</url>
-    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>2023柏鹭杯rev1-wp</title>
@@ -1250,6 +1253,141 @@
       </tags>
   </entry>
   <entry>
+    <title>bomblab</title>
+    <url>/2023/06/02/bomblab/</url>
+    <content><![CDATA[<p>解压完出现了三个文件bomb、bomb.c、readme，其中bomb.c是实验的源代码，不过他最重要的部分被删除了。我们可以通过将可执行文件bomb反汇编来查看内部情况。通过objdump -d bomb &gt; bomb.asm我们获得了一个新的文件，内容是bomb的汇编代码。</p>
+<span id="more"></span>
+
+<h2 id="gdb的使用"><a href="#gdb的使用" class="headerlink" title="gdb的使用"></a>gdb的使用</h2><table>
+<thead>
+<tr>
+<th>基本命令</th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.进入调试状态</td>
+<td>gdb bomb</td>
+<td>后面的bomb是我们要调试的程序</td>
+</tr>
+<tr>
+<td>2.查看源码</td>
+<td>(gdb) l</td>
+<td>前面的（gdb）代表已经进入调试状态，后面的l，将源码按行号显示</td>
+</tr>
+<tr>
+<td>3.设置断点</td>
+<td>(gdb) b   6</td>
+<td>意思是运行到源码的第六行时停止（第六行的指令没有执行）</td>
+</tr>
+<tr>
+<td>4.查看断点情况</td>
+<td>(gdb) info b</td>
+<td>将我们设置的断点列举出来</td>
+</tr>
+<tr>
+<td>5.运行代码</td>
+<td>(gdb) r</td>
+<td></td>
+</tr>
+<tr>
+<td>6.显示变量值</td>
+<td>(gdb) p n</td>
+<td>p（print）变量名</td>
+</tr>
+<tr>
+<td>7.单步运行</td>
+<td>(gdb) n</td>
+<td>next</td>
+</tr>
+<tr>
+<td>8.程序继续运行</td>
+<td>(gdb) c</td>
+<td>continue</td>
+</tr>
+<tr>
+<td>9.退出</td>
+<td>(gdb) q</td>
+<td>quit</td>
+</tr>
+<tr>
+<td>10.访问内存</td>
+<td>x&#x2F;参数 &lt;地址&gt;</td>
+<td>参数s是输出为字符串，d为十进制输出，x为十六进制输出</td>
+</tr>
+<tr>
+<td>11.跟踪寄存器</td>
+<td>display&lt;$寄存器&gt;</td>
+<td>碰到断点停下时显示所有跟踪寄存器的值</td>
+</tr>
+</tbody></table>
+<p>用$前缀表示一个立即数</p>
+<p>函数传参：当参数个数小于等于6个时，使用寄存器<strong>rdi,rsi,rdx,rcx,r8,r9，从第7个参数开始通过栈传递，顺序为从右往左入栈。</strong>csapp 3.7</p>
+<h2 id="实验部分"><a href="#实验部分" class="headerlink" title="实验部分"></a>实验部分</h2><h3 id="phase-1"><a href="#phase-1" class="headerlink" title="phase_1"></a>phase_1</h3><p>这就是第一个炸弹</p>
+<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230424151255.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400ee0 &lt;phase_1&gt;:</span><br><span class="line">  400ee0:	48 83 ec 08          	sub    $0x8,%rsp                   ;创建栈帧</span><br><span class="line">  400ee4:	be 00 24 40 00       	mov    $0x402400,%esi              ;将0x402400复制到esi中，前去查看</span><br><span class="line">  400ee9:	e8 4a 04 00 00       	call   401338 &lt;strings_not_equal&gt;  ;根据名字来看，调用比较函数</span><br><span class="line">  400eee:	85 c0                	test   %eax,%eax                    </span><br><span class="line">  400ef0:	74 05                	je     400ef7 &lt;phase_1+0x17&gt;        ;相等则跳转</span><br><span class="line">  400ef2:	e8 43 05 00 00       	call   40143a &lt;explode_bomb&gt;        ;爆炸</span><br><span class="line">  400ef7:	48 83 c4 08          	add    $0x8,%rsp                    ;恢复栈帧</span><br><span class="line">  400efb:	c3                   	ret    </span><br></pre></td></tr></table></figure>
+
+<p>test执行过程与and相似，但他只设置条件码寄存器，不改变目的寄存器中的值。这里的用法是，如果返回值为零，则条件码寄存器置1，je进行跳转。</p>
+<p>我们用x&#x2F;s 0x402400查看以0x402400为首地址的字符串。</p>
+<p>先把一个值（字符串的地址）放到了%esi里，而放到%edi里的就是我们输入的字符串地址，记住传参顺序，di、si、dx、cx、r8、r9.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">(gdb) x/s 0x402400</span><br><span class="line">0x402400:       &quot;Border relations with Canada have never been better.&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="phase-2"><a href="#phase-2" class="headerlink" title="phase_2"></a>phase_2</h3><p>第二个</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400efc &lt;phase_2&gt;:</span><br><span class="line">  400efc:	55                   	push   rbp                     ;保存栈帧寄存器</span><br><span class="line">  400efd:	53                   	push   rbx                </span><br><span class="line">  400efe:	48 83 ec 28          	sub    rsp,0x28                </span><br><span class="line">  400f02:	48 89 e6             	mov    rsi,rsp        ;-------------------为函数的调用做准备</span><br><span class="line">  400f05:	e8 52 05 00 00       	call   40145c &lt;read_six_numbers&gt;</span><br><span class="line">  400f0a:	83 3c 24 01          	cmp    DWORD PTR [rsp],0x1</span><br><span class="line">  400f0e:	74 20                	je     400f30 &lt;phase_2+0x34&gt;</span><br><span class="line">  400f10:	e8 25 05 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400f15:	eb 19                	jmp    400f30 &lt;phase_2+0x34&gt;</span><br><span class="line">  400f17:	8b 43 fc             	mov    eax,DWORD PTR [rbx-0x4]</span><br><span class="line">  400f1a:	01 c0                	add    eax,eax</span><br><span class="line">  400f1c:	39 03                	cmp    DWORD PTR [rbx],eax</span><br><span class="line">  400f1e:	74 05                	je     400f25 &lt;phase_2+0x29&gt;</span><br><span class="line">  400f20:	e8 15 05 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400f25:	48 83 c3 04          	add    rbx,0x4</span><br><span class="line">  400f29:	48 39 eb             	cmp    rbx,rbp</span><br><span class="line">  400f2c:	75 e9                	jne    400f17 &lt;phase_2+0x1b&gt;</span><br><span class="line">  400f2e:	eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt;</span><br><span class="line">  400f30:	48 8d 5c 24 04       	lea    rbx,[rsp+0x4]             ;将(rsp)+0x4赋值给rbx</span><br><span class="line">  400f35:	48 8d 6c 24 18       	lea    rbp,[rsp+0x18]</span><br><span class="line">  400f3a:	eb db                	jmp    400f17 &lt;phase_2+0x1b&gt;</span><br><span class="line">  400f3c:	48 83 c4 28          	add    rsp,0x28</span><br><span class="line">  400f40:	5b                   	pop    rbx</span><br><span class="line">  400f41:	5d                   	pop    rbp</span><br><span class="line">  400f42:	c3                   	ret    </span><br></pre></td></tr></table></figure>
+
+<p>不太熟悉lea指令，先学一下。</p>
+<p>lea是“load effective address”的缩写，把一个内存变量的有效地址送给指定的寄存器，简单地说lea指令可以用来将一个内存地址直接赋值给目的操作数。lea eax,[ebx+8]是将ebx+8这个值直接赋值给eax，与之相似的mov指令，mov eax,[ebx+8]是将内存地址为ebx+8处的数据赋值给eax。对于lea指令，lea eax，eax是会报错的，只能lea eax，[eax] 等同于mov eax,eax其实就是【eax】就是eax的值。</p>
+<p>理一下逻辑：</p>
+<p>1.调用函数，接收六个数字</p>
+<p>2.[rsp]和0x1对比，所以(rsp)&#x3D;1</p>
+<p>3.如果相等则进行跳转，不相等则爆炸！！！</p>
+<p>4.将rsp+4和rsp+0x18分别赋值给rbx和rbp</p>
+<p>5.跳转，将地址为rbx-4处的数据赋值给eax</p>
+<p>6.将eax乘2</p>
+<p>7.[rbx]和eax进行比较</p>
+<p>8.相等则将rbx+4，不相等则爆炸！！！！</p>
+<p>9.比较rbx和rbp，如果相等则结束程序（success），如果不相等则跳转到步骤5.</p>
+<p>第四行的指令mov rsi，rsp，rsi是传递第二个参数的寄存器，他保存的是什么值？保存的是栈指针，也就是栈顶地址。那么第一个参数呢，我们有理由怀疑我们的输入是第一个参数，正如pgase1中，根据函数名我们可以判断，读入六个数字。</p>
+<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425144102.png"></p>
+<p>可以看到他将第二个参数赋值给了rdx，然后下面的rsi+4和rsi+0x14，0x14&#x3D;&#x3D;24，通过lea指令将距离栈顶第二个元素的地址和第七个元素的地址（末尾标志）传入了相关寄存器，注意这里的[rsi],因为前面提到过，rsi里存放的是栈顶地址，所以可以这么解释。这么复杂加上后面的sscanf大概猜测一下，就是将我们输入的6个数字放入首地址为rsp的内存空间中。我么可以查看一下mov esi,0x4025c3这条指令输入的十六个整型。</p>
+<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425154617.png"></p>
+<p>回到phase2函数，再调用完读取函数之后，进行了一次比较，如果输入的第一个数不是0x1则爆炸。继续往下，将输入的第二个数（【rsp+4】）送入rbp，将[rsp+0x18]送入rbp（栈帧寄存器），下面其实是个循环，通过比较指令和跳转指令来实现，add    rbx,0x4这条指令相当于一个计数器。大致实现的逻辑是将第二个如放入rbx，将钱一个数字放入rax，将rax进行乘2操作，进行比较。其实只要看出这一题的循环，很多东西都是水到渠成的顺出来的。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cmp    rbx,rbp</span><br><span class="line">75 e9                	jne    400f17 &lt;phase_2+0x1b&gt;</span><br><span class="line">eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt;</span><br></pre></td></tr></table></figure>
+
+<p>每比较一次都会对rbx+4，当rbx+4与我们设置的末尾表值相同时就会结束循环。0x4–&gt;0x18,差为24，正好循环六次</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> arr[<span class="number">6</span>]=&#123;<span class="number">1</span>&#125;;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">6</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        arr[i+<span class="number">1</span>]=arr[i]*<span class="number">2</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d &quot;</span>,arr[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">;<span class="number">1</span> <span class="number">2</span> <span class="number">4</span> <span class="number">8</span> <span class="number">16</span> <span class="number">32</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="phase-3"><a href="#phase-3" class="headerlink" title="phase_3"></a>phase_3</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400f43 &lt;phase_3&gt;:</span><br><span class="line">  400f43:	48 83 ec 18          	sub    rsp,0x18</span><br><span class="line">  400f47:	48 8d 4c 24 0c       	lea    rcx,[rsp+0xc]           ;参数4     0x00</span><br><span class="line">  400f4c:	48 8d 54 24 08       	lea    rdx,[rsp+0x8]           ;参数3</span><br><span class="line">  400f51:	be cf 25 40 00       	mov    esi,0x4025cf            ;参数2查看之后是%d，诡异的是接收两个整形</span><br><span class="line">  400f56:	b8 00 00 00 00       	mov    eax,0x0                 ;应该是个计数器</span><br><span class="line">  400f5b:	e8 90 fc ff ff       	call   400bf0 &lt;__isoc99_sscanf@plt&gt;；读取我们的input作为scand的参数</span><br><span class="line">  400f60:	83 f8 01             	cmp    eax,0x1                 ;eax里的值和1比较，eax存放的是函数的返回值</span><br><span class="line">  400f63:	7f 05                	jg     400f6a &lt;phase_3+0x27&gt;   ;如果大于一则跳转     jg是由符号运算大于则跳转</span><br><span class="line">  400f65:	e8 d0 04 00 00       	call   40143a &lt;explode_bomb&gt;   ;不大于一直接爆炸</span><br><span class="line">  400f6a:	83 7c 24 08 07       	cmp    DWORD PTR [rsp+0x8],0x7 ;调准到此处，与0x7进行比较</span><br><span class="line">  400f6f:	77 3c                	ja     400fad &lt;phase_3+0x6a&gt;   ;无符号大于则跳转，爆炸</span><br><span class="line">  400f71:	8b 44 24 08          	mov    eax,DWORD PTR [rsp+0x8] </span><br><span class="line">  400f75:	ff 24 c5 70 24 40 00 	jmp    QWORD PTR [rax*8+0x402470];用x/x查明之后，是机器码0xb9，对应的汇编指令是MOV cx,immed16</span><br><span class="line">  400f7c:	b8 cf 00 00 00       	mov    eax,0xcf</span><br><span class="line">  400f81:	eb 3b                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f83:	b8 c3 02 00 00       	mov    eax,0x2c3</span><br><span class="line">  400f88:	eb 34                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f8a:	b8 00 01 00 00       	mov    eax,0x100</span><br><span class="line">  400f8f:	eb 2d                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f91:	b8 85 01 00 00       	mov    eax,0x185</span><br><span class="line">  400f96:	eb 26                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f98:	b8 ce 00 00 00       	mov    eax,0xce</span><br><span class="line">  400f9d:	eb 1f                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f9f:	b8 aa 02 00 00       	mov    eax,0x2aa</span><br><span class="line">  400fa4:	eb 18                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fa6:	b8 47 01 00 00       	mov    eax,0x147</span><br><span class="line">  400fab:	eb 11                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fad:	e8 88 04 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fb2:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  400fb7:	eb 05                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fb9:	b8 37 01 00 00       	mov    eax,0x137</span><br><span class="line">  400fbe:	3b 44 24 0c          	cmp    eax,DWORD PTR [rsp+0xc]</span><br><span class="line">  400fc2:	74 05                	je     400fc9 &lt;phase_3+0x86&gt;</span><br><span class="line">  400fc4:	e8 71 04 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fc9:	48 83 c4 18          	add    rsp,0x18</span><br><span class="line">  400fcd:	c3                   	ret    </span><br></pre></td></tr></table></figure>
+
+<p>通过传到esi里的参数我们可以看出，这次接受的输入是两个整形，下面一堆东西是属比较抽象，静态看实在有点头大，于是多下了几个断点一步一步来，输入2 2尝试一下。cmp eax，0x1，eax里保存的是返回值，只要我们的输入大于一个应该就能正常跳转，下面的比较没太看明白，和0x7进行比较，试一下就知道，其实是和我们的第一个输入进行比较，只要不大于7就能正常跳转，我们接着向下，一步一步调试来到了最后的比较，cmp    eax,DWORD PTR [rsp+0xc]，很容易想到[rsp+0xc]其实就是我们的第二个输入，这是只要我们查看一下寄存器的值，就知道如何进行比较<img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425212410.png"></p>
+<p>可以看到rax的值为707，推出之后重新运行，输入2 707果然正确。通过这题目的名字可以看出他考察的是分支，关键的没看懂的地方其实是jmp    QWORD PTR [rax*8+0x402470]，这一步大概率是根据我们的输入进行不同的跳转的函数。至于我们的输入为什么被放在了[rsp,0xc]和[rsp+0x8]中，我的猜测是这是函数的参数用来指定将接收的输入放置的位置。 __isoc99_sscanf@plt(rdi,rsi,n1,n2,n3…)其中参数rdi保存的是我们input里的输入，rsi保存的是%d之类的，以什么形式接收多少，后面就是放置的位置吧。</p>
+<p>看了网上的题解之后，才明白这原来就是个switch分支啊，我们可以通过x命令来查看一下0x402470的内容，这是个跳转表，在《汇编语言》接触过</p>
+<p>通过x&#x2F;8xg<img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425222247.png"></p>
+<p>细说一下x命令，很好用。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">格式        x/nfu  addr</span><br><span class="line">n是正数表示要显示的数量</span><br><span class="line">f该表的是输出格式，常用的有字符串s，十六进制x，十进制d，字符c</span><br><span class="line">u代表一多少个字节作为一个内存单元来显示，<span class="attribute">b</span>=1byte,h=2 bytes,<span class="attribute">w</span>=4 bytes,<span class="attribute">g</span>=8 bytes</span><br><span class="line">addr代表内存单元地址</span><br><span class="line"> x/8xg 0x402470</span><br><span class="line">这条指令的意思就是从内存地址0x402470处，以十六进制形式8个字节为一个单位显示8组数</span><br><span class="line">为什么这里要用8呢，因为跳转那里是qword也就是两个字，一个字32为两个字就是8字节</span><br></pre></td></tr></table></figure>
+
+<h3 id="phase-4"><a href="#phase-4" class="headerlink" title="phase_4"></a>phase_4</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400fce &lt;func4&gt;:</span><br><span class="line">  400fce:	48 83 ec 08          	sub    rsp,0x8</span><br><span class="line">  400fd2:	89 d0                	mov    eax,edx  ;0x0e</span><br><span class="line">  400fd4:	29 f0                	sub    eax,esi  ;0x0</span><br><span class="line">  400fd6:	89 c1                	mov    ecx,eax   </span><br><span class="line">  400fd8:	c1 e9 1f             	shr    ecx,0x1f  ;右移0x1f</span><br><span class="line">  400fdb:	01 c8                	add    eax,ecx   ;</span><br><span class="line">  400fdd:	d1 f8                	sar    eax,1     ;算术右移</span><br><span class="line">  400fdf:	8d 0c 30             	lea    ecx,[rax+rsi*1]   ;</span><br><span class="line">  400fe2:	39 f9                	cmp    ecx,edi</span><br><span class="line">  400fe4:	7e 0c                	jle    400ff2 &lt;func4+0x24&gt;      ;有符号小于等于</span><br><span class="line">  400fe6:	8d 51 ff             	lea    edx,[rcx-0x1]</span><br><span class="line">  400fe9:	e8 e0 ff ff ff       	call   400fce &lt;func4&gt;      ;调用自身  递归</span><br><span class="line">  400fee:	01 c0                	add    eax,eax</span><br><span class="line">  400ff0:	eb 15                	jmp    401007 &lt;func4+0x39&gt;</span><br><span class="line">  400ff2:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  400ff7:	39 f9                	cmp    ecx,edi</span><br><span class="line">  400ff9:	7d 0c                	jge    401007 &lt;func4+0x39&gt;;有符号大于等于</span><br><span class="line">  400ffb:	8d 71 01             	lea    esi,[rcx+0x1]</span><br><span class="line">  400ffe:	e8 cb ff ff ff       	call   400fce &lt;func4&gt;</span><br><span class="line">  401003:	8d 44 00 01          	lea    eax,[rax+rax*1+0x1]</span><br><span class="line">  401007:	48 83 c4 08          	add    rsp,0x8</span><br><span class="line">  40100b:	c3                   	ret    </span><br><span class="line"></span><br><span class="line">000000000040100c &lt;phase_4&gt;:</span><br><span class="line">  40100c:	48 83 ec 18          	sub    rsp,0x18</span><br><span class="line">  401010:	48 8d 4c 24 0c       	lea    rcx,[rsp+0xc]      ;第二个输入</span><br><span class="line">  401015:	48 8d 54 24 08       	lea    rdx,[rsp+0x8]      ;第一个输入</span><br><span class="line">  40101a:	be cf 25 40 00       	mov    esi,0x4025cf       ;接收两个整型</span><br><span class="line">  40101f:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  401024:	e8 c7 fb ff ff       	call   400bf0 &lt;__isoc99_sscanf@plt&gt;</span><br><span class="line">  401029:	83 f8 02             	cmp    eax,0x2            ;如果输入不为2就爆炸</span><br><span class="line">  40102c:	75 07                	jne    401035 &lt;phase_4+0x29&gt;</span><br><span class="line">  40102e:	83 7c 24 08 0e       	cmp    DWORD PTR [rsp+0x8],0xe  ;第一个输入和0xe进行比较</span><br><span class="line">  401033:	76 05                	jbe    40103a &lt;phase_4+0x2e&gt;    ;无符号小于等于则跳转，所以我们的输入必须小于等于14</span><br><span class="line">  401035:	e8 00 04 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  40103a:	ba 0e 00 00 00       	mov    edx,0xe</span><br><span class="line">  40103f:	be 00 00 00 00       	mov    esi,0x0</span><br><span class="line">  401044:	8b 7c 24 08          	mov    edi,DWORD PTR [rsp+0x8]   ;------------函数传参</span><br><span class="line">  401048:	e8 81 ff ff ff       	call   400fce &lt;func4&gt;      ;调用func4</span><br><span class="line">  40104d:	85 c0                	test   eax,eax            ;and操作不过不改变不敌寄存器的值，为0时标志寄存器置0</span><br><span class="line">  40104f:	75 07                	jne    401058 &lt;phase_4+0x4c&gt;    ;如果上面eax的值为0则不发生跳转（哦按段是否相等是检测其差是否为0）</span><br><span class="line">  401051:	83 7c 24 0c 00       	cmp    DWORD PTR [rsp+0xc],0x0   ;将第二个参数与0进行比较</span><br><span class="line">  401056:	74 05                	je     40105d &lt;phase_4+0x51&gt;      ;相等则成功，否则爆炸！！！</span><br><span class="line">  401058:	e8 dd 03 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  40105d:	48 83 c4 18          	add    rsp,0x18</span><br><span class="line">  401061:	c3                   	ret    </span><br></pre></td></tr></table></figure>
+
+<p>看着汇编用c语言大致实现了一遍。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">func4</span><span class="params">(<span class="type">int</span> di, <span class="type">int</span> si, <span class="type">int</span> dx)</span><span class="comment">//</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> ax = dx;</span><br><span class="line">    ax = ax - si;</span><br><span class="line">    <span class="type">int</span> cx = ax;</span><br><span class="line">    cx = cx &gt;&gt; <span class="number">0x1f</span>; <span class="comment">//逻辑</span></span><br><span class="line">    ax = ax + cx;</span><br><span class="line">    ax = ax &gt;&gt; <span class="number">1</span>; <span class="comment">//算数</span></span><br><span class="line">    cx = (ax + si);</span><br><span class="line">    <span class="keyword">if</span> (cx &lt;= di)</span><br><span class="line">    &#123;</span><br><span class="line">        ax = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (cx &gt;= di)</span><br><span class="line">            <span class="keyword">return</span> ax;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            si = (cx + <span class="number">1</span>);</span><br><span class="line">            ax=func4(di, si, dx);</span><br><span class="line">            ax = (ax + ax + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">return</span> ax;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        dx = (cx - <span class="number">1</span>);</span><br><span class="line">        ax = func4(di, si, dx);</span><br><span class="line">        ax = ax+ax;</span><br><span class="line">        <span class="keyword">return</span> ax;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> g = <span class="number">0</span>;</span><br><span class="line">    scanf_s(<span class="string">&quot;%d&quot;</span>, &amp;i);</span><br><span class="line">    scanf_s(<span class="string">&quot;%d&quot;</span>, &amp;g);</span><br><span class="line">    <span class="keyword">if</span> (i &lt;= <span class="number">0xe</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;yes&quot;</span>);</span><br><span class="line">        <span class="type">int</span> x=func4(i, <span class="number">0</span>, <span class="number">0xe</span>);</span><br><span class="line">        <span class="keyword">if</span> (x != <span class="number">0</span>)</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;bomb!!&quot;</span>);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">if</span> (g == <span class="number">0</span>)</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;success!!!&quot;</span>);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;bomb!!!!!!!!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;bomb&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>本来tmd早就可以结束的，在test那里出了点问题，test eax,eax; jne bomb 意思是如果返回值eax的值为零，那么爆炸，woc简直了，把c语言的判断写成了         if（ex&#x3D;&#x3D;0）则爆炸。。。这一题的解题思路不同于上两个，是直接通过代码实现的，经过验证（0~14）其中可行的是0，1，3，7第二个输入是固定的0。</p>
+<h3 id="phase-5"><a href="#phase-5" class="headerlink" title="phase_5"></a>phase_5</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000401062 &lt;phase_5&gt;:</span><br><span class="line">  401062:	53                   	push   rbx</span><br><span class="line">  401063:	48 83 ec 20          	sub    rsp,0x20</span><br><span class="line">  401067:	48 89 fb             	mov    rbx,rdi</span><br><span class="line">  40106a:	64 48 8b 04 25 28 00 	mov    rax,QWORD PTR fs:0x28</span><br><span class="line">  401071:	00 00 </span><br><span class="line">  401073:	48 89 44 24 18       	mov    QWORD PTR [rsp+0x18],rax</span><br><span class="line">  401078:	31 c0                	xor    eax,eax</span><br><span class="line">  40107a:	e8 9c 02 00 00       	call   40131b &lt;string_length&gt; </span><br><span class="line">  40107f:	83 f8 06             	cmp    eax,0x6                ;如果输入的字符串长度不等于6，则爆炸</span><br><span class="line">  401082:	74 4e                	je     4010d2 &lt;phase_5+0x70&gt;      </span><br><span class="line">  401084:	e8 b1 03 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  401089:	eb 47                	jmp    4010d2 &lt;phase_5+0x70&gt;</span><br><span class="line">  40108b:	0f b6 0c 03          	movzx  ecx,BYTE PTR [rbx+rax*1]     ;将我们的输入逐字节传送到ecx</span><br><span class="line">  40108f:	88 0c 24             	mov    BYTE PTR [rsp],cl            ;送入【rsp】</span><br><span class="line">  401092:	48 8b 14 24          	mov    rdx,QWORD PTR [rsp]          ;送入rdx</span><br><span class="line">  401096:	83 e2 0f             	and    edx,0xf                      ;将我们的输入and上0xf</span><br><span class="line">  401099:	0f b6 92 b0 24 40 00 	movzx  edx,BYTE PTR [rdx+0x4024b0]       ;把该地址处的值存入edx，0扩展并传送（无符号扩展）到edx</span><br><span class="line">  4010a0:	88 54 04 10          	mov    BYTE PTR [rsp+rax*1+0x10],dl       ;将修改过的输入传入指定位置</span><br><span class="line">  4010a4:	48 83 c0 01          	add    rax,0x1                          ;eax+1</span><br><span class="line">  4010a8:	48 83 f8 06          	cmp    rax,0x6                           ;eax的值与6进行比较</span><br><span class="line">  4010ac:	75 dd                	jne    40108b &lt;phase_5+0x29&gt;             ;因为在前面eax已经置零，所以这里就是循环六次上面的操作</span><br><span class="line">  4010ae:	c6 44 24 16 00       	mov    BYTE PTR [rsp+0x16],0x0         ;向指定位置送个0，像是结尾标志</span><br><span class="line">  4010b3:	be 5e 24 40 00       	mov    esi,0x40245e                    ;将比较字符串“flyers”送入</span><br><span class="line">  4010b8:	48 8d 7c 24 10       	lea    rdi,[rsp+0x10]                  ;</span><br><span class="line">  4010bd:	e8 76 02 00 00       	call   401338 &lt;strings_not_equal&gt;        ;如果不相等则为真返回1否则返回0</span><br><span class="line">  4010c2:	85 c0                	test   eax,eax                           </span><br><span class="line">  4010c4:	74 13                	je     4010d9 &lt;phase_5+0x77&gt;              ;如果返回值rax为0则进行跳转，否则爆炸</span><br><span class="line">  4010c6:	e8 6f 03 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  4010cb:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]               </span><br><span class="line">  4010d0:	eb 07                	jmp    4010d9 &lt;phase_5+0x77&gt;</span><br><span class="line">  4010d2:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  4010d7:	eb b2                	jmp    40108b &lt;phase_5+0x29&gt;</span><br><span class="line">  4010d9:	48 8b 44 24 18       	mov    rax,QWORD PTR [rsp+0x18]         ;</span><br><span class="line">  4010de:	64 48 33 04 25 28 00 	xor    rax,QWORD PTR fs:0x28            ;异或操作，实际上是进行比较，其实是进行栈溢出检测</span><br><span class="line">  4010e5:	00 00 </span><br><span class="line">  4010e7:	74 05                	je     4010ee &lt;phase_5+0x8c&gt;            ;如果相等则异或结果为零跳转，成功。</span><br><span class="line">  4010e9:	e8 42 fa ff ff       	call   400b30 &lt;__stack_chk_fail@plt&gt;</span><br><span class="line">  4010ee:	48 83 c4 20          	add    rsp,0x20</span><br><span class="line">  4010f2:	5b                   	pop    rbx</span><br><span class="line">  4010f3:	c3                   	ret    </span><br></pre></td></tr></table></figure>
+
+<p>这里其实是个多解题目，其实输入的是六个索引值。0x4024b0那里就是字符表(在字符表后发现了隐藏的炸弹好阴险)，最后的栈溢出检测浪费了很长时间，应该就是将其和金丝雀值进行对比，通过调试也可以看出，栈是随机化的。</p>
+<h3 id="phase-6"><a href="#phase-6" class="headerlink" title="phase_6"></a>phase_6</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004010f4 &lt;phase_6&gt;:</span><br><span class="line">  4010f4:	41 56                	push   r14</span><br><span class="line">  4010f6:	41 55                	push   r13</span><br><span class="line">  4010f8:	41 54                	push   r12</span><br><span class="line">  4010fa:	55                   	push   rbp</span><br><span class="line">  4010fb:	53                   	push   rbx</span><br><span class="line">  4010fc:	48 83 ec 50          	sub    rsp,0x50</span><br><span class="line">  401100:	49 89 e5             	mov    r13,rsp</span><br><span class="line">  401103:	48 89 e6             	mov    rsi,rsp      ;第二个参数  存放输入的首地址</span><br><span class="line">  401106:	e8 51 03 00 00       	call   40145c &lt;read_six_numbers&gt;</span><br><span class="line">  40110b:	49 89 e6             	mov    r14,rsp      ;将栈顶地址赋值给r14</span><br><span class="line">  40110e:	41 bc 00 00 00 00    	mov    r12d,0x0     ;</span><br><span class="line">  401114:	4c 89 ed             	mov    rbp,r13      ;将栈顶地址赋值给rbp</span><br><span class="line">  401117:	41 8b 45 00          	mov    eax,DWORD PTR [r13+0x0]   ;把输入1送入eax</span><br><span class="line">  40111b:	83 e8 01             	sub    eax,0x1          ;将eax减去1</span><br><span class="line">  40111e:	83 f8 05             	cmp    eax,0x5          ;和5进行比较</span><br><span class="line">  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt;  ;无符号小于等于跳转</span><br><span class="line">  401123:	e8 12 03 00 00       	call   40143a &lt;explode_bomb&gt;  ;第一个输入不能大于6</span><br><span class="line">  401128:	41 83 c4 01          	add    r12d,0x1      ;给计数器加1</span><br><span class="line">  40112c:	41 83 fc 06          	cmp    r12d,0x6      ;与6进行比较</span><br><span class="line">  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt; ;相等则跳转</span><br><span class="line">  401132:	44 89 e3             	mov    ebx,r12d     ;</span><br><span class="line">  401135:	48 63 c3             	movsxd rax,ebx      ;符号扩展</span><br><span class="line">  401138:	8b 04 84             	mov    eax,DWORD PTR [rsp+rax*4];将输入送入eax</span><br><span class="line">  40113b:	39 45 00             	cmp    DWORD PTR [rbp+0x0],eax;与输入1进行对比</span><br><span class="line">  40113e:	75 05                	jne    401145 &lt;phase_6+0x51&gt;;不相等跳转</span><br><span class="line">  401140:	e8 f5 02 00 00       	call   40143a &lt;explode_bomb&gt;;相等爆炸</span><br><span class="line">  401145:	83 c3 01             	add    ebx,0x1  ;2</span><br><span class="line">  401148:	83 fb 05             	cmp    ebx,0x5   ;比较，循环5次知道ebx=6</span><br><span class="line">  40114b:	7e e8                	jle    401135 &lt;phase_6+0x41&gt; ;有符号小于等于跳转</span><br><span class="line">  40114d:	49 83 c5 04          	add    r13,0x4  ;r13指向第2个输入</span><br><span class="line">  401151:	eb c1                	jmp    401114 &lt;phase_6+0x20&gt;</span><br><span class="line">  401153:	48 8d 74 24 18       	lea    rsi,[rsp+0x18]   ;第六个输入的后一个的地址</span><br><span class="line">  401158:	4c 89 f0             	mov    rax,r14</span><br><span class="line">  40115b:	b9 07 00 00 00       	mov    ecx,0x7</span><br><span class="line">  401160:	89 ca                	mov    edx,ecx</span><br><span class="line">  401162:	2b 10                	sub    edx,DWORD PTR [rax]</span><br><span class="line">  401164:	89 10                	mov    DWORD PTR [rax],edx</span><br><span class="line">  401166:	48 83 c0 04          	add    rax,0x4</span><br><span class="line">  40116a:	48 39 f0             	cmp    rax,rsi</span><br><span class="line">  40116d:	75 f1                	jne    401160 &lt;phase_6+0x6c&gt;    ;又是一个循环</span><br><span class="line">  40116f:	be 00 00 00 00       	mov    esi,0x0          </span><br><span class="line">  401174:	eb 21                	jmp    401197 &lt;phase_6+0xa3&gt;</span><br><span class="line">  401176:	48 8b 52 08          	mov    rdx,QWORD PTR [rdx+0x8]</span><br><span class="line">  40117a:	83 c0 01             	add    eax,0x1</span><br><span class="line">  40117d:	39 c8                	cmp    eax,ecx</span><br><span class="line">  40117f:	75 f5                	jne    401176 &lt;phase_6+0x82&gt;</span><br><span class="line">  401181:	eb 05                	jmp    401188 &lt;phase_6+0x94&gt;</span><br><span class="line">  401183:	ba d0 32 60 00       	mov    edx,0x6032d0</span><br><span class="line">  401188:	48 89 54 74 20       	mov    QWORD PTR [rsp+rsi*2+0x20],rdx</span><br><span class="line">  40118d:	48 83 c6 04          	add    rsi,0x4</span><br><span class="line">  401191:	48 83 fe 18          	cmp    rsi,0x18</span><br><span class="line">  401195:	74 14                	je     4011ab &lt;phase_6+0xb7&gt;</span><br><span class="line">  401197:	8b 0c 34             	mov    ecx,DWORD PTR [rsp+rsi*1]</span><br><span class="line">  40119a:	83 f9 01             	cmp    ecx,0x1</span><br><span class="line">  40119d:	7e e4                	jle    401183 &lt;phase_6+0x8f&gt;</span><br><span class="line">  40119f:	b8 01 00 00 00       	mov    eax,0x1</span><br><span class="line">  4011a4:	ba d0 32 60 00       	mov    edx,0x6032d0</span><br><span class="line">  4011a9:	eb cb                	jmp    401176 &lt;phase_6+0x82&gt;</span><br><span class="line">  4011ab:	48 8b 5c 24 20       	mov    rbx,QWORD PTR [rsp+0x20]</span><br><span class="line">  4011b0:	48 8d 44 24 28       	lea    rax,[rsp+0x28]</span><br><span class="line">  4011b5:	48 8d 74 24 50       	lea    rsi,[rsp+0x50]</span><br><span class="line">  4011ba:	48 89 d9             	mov    rcx,rbx</span><br><span class="line">  4011bd:	48 8b 10             	mov    rdx,QWORD PTR [rax]</span><br><span class="line">  4011c0:	48 89 51 08          	mov    QWORD PTR [rcx+0x8],rdx</span><br><span class="line">  4011c4:	48 83 c0 08          	add    rax,0x8</span><br><span class="line">  4011c8:	48 39 f0             	cmp    rax,rsi</span><br><span class="line">  4011cb:	74 05                	je     4011d2 &lt;phase_6+0xde&gt;</span><br><span class="line">  4011cd:	48 89 d1             	mov    rcx,rdx</span><br><span class="line">  4011d0:	eb eb                	jmp    4011bd &lt;phase_6+0xc9&gt;</span><br><span class="line">  4011d2:	48 c7 42 08 00 00 00 	mov    QWORD PTR [rdx+0x8],0x0</span><br><span class="line">  4011d9:	00 </span><br><span class="line">  4011da:	bd 05 00 00 00       	mov    ebp,0x5</span><br><span class="line">  4011df:	48 8b 43 08          	mov    rax,QWORD PTR [rbx+0x8]</span><br><span class="line">  4011e3:	8b 00                	mov    eax,DWORD PTR [rax]</span><br><span class="line">  4011e5:	39 03                	cmp    DWORD PTR [rbx],eax</span><br><span class="line">  4011e7:	7d 05                	jge    4011ee &lt;phase_6+0xfa&gt;</span><br><span class="line">  4011e9:	e8 4c 02 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  4011ee:	48 8b 5b 08          	mov    rbx,QWORD PTR [rbx+0x8]</span><br><span class="line">  4011f2:	83 ed 01             	sub    ebp,0x1</span><br><span class="line">  4011f5:	75 e8                	jne    4011df &lt;phase_6+0xeb&gt;</span><br><span class="line">  4011f7:	48 83 c4 50          	add    rsp,0x50</span><br><span class="line">  4011fb:	5b                   	pop    rbx</span><br><span class="line">  4011fc:	5d                   	pop    rbp</span><br><span class="line">  4011fd:	41 5c                	pop    r12</span><br><span class="line">  4011ff:	41 5d                	pop    r13</span><br><span class="line">  401201:	41 5e                	pop    r14</span><br><span class="line">  401203:	c3                   	ret    </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span>  _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> arr[]=<span class="string">&quot;193456&quot;</span>;</span><br><span class="line">	<span class="type">int</span> rsp=<span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> ebp;</span><br><span class="line">	<span class="type">int</span> ecx = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> edx = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> esi = <span class="number">0</span>;</span><br><span class="line">	<span class="type">char</span>* r14 = arr;<span class="comment">//	mov    r14,rsp                  将输入的首地址放在r14</span></span><br><span class="line">	<span class="type">char</span>* rsp = arr;                 <span class="comment">//                 将输入的首地址放在rsp</span></span><br><span class="line">	<span class="type">int</span> r12d = <span class="number">0</span>;<span class="comment">//mov    r12d,0x0</span></span><br><span class="line">	<span class="type">char</span>* r13 = arr;                           <span class="comment">//       将输入的首地址放在r13</span></span><br><span class="line">jump401114:<span class="type">char</span>* rbp = r13;<span class="comment">//mov    rbp,r13        （第一次）首地址  （第二次）第二个输入     </span></span><br><span class="line">	<span class="type">int</span> eax = *(r13 + <span class="number">0</span>);<span class="comment">//mov    eax,DWORD PTR [r13+0x0]    将我们的一个输入放入eax中（第一个）  （第二次）第二个</span></span><br><span class="line">	eax = eax - <span class="number">1</span>;<span class="comment">//	sub    eax,0x1                       将（第一个）输入减一 我们的第一个输入必须小于等于6  （第二个也小于6）</span></span><br><span class="line">	<span class="type">int</span> ebx = <span class="number">0</span>;      </span><br><span class="line">	<span class="keyword">if</span> (eax &lt;= <span class="number">5</span>)<span class="comment">//	cmp    eax,0x5  //jbe    401128 &lt;phase_6+0x34&gt;     </span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">goto</span> jump4001128;</span><br><span class="line">		jump4001128:</span><br><span class="line">		r12d = r12d + <span class="number">1</span>;<span class="comment">//add    r12d,0x1            （第一次路过）r12d=1   第六次路过就是6啦（非常的聪明）</span></span><br><span class="line">		<span class="keyword">if</span> (r12d == <span class="number">6</span>)<span class="comment">//cmp  r12d,0x6 //je     401153 &lt;phase_6+0x5f&gt;    很明显循环五次 经历过五次循环 前数与后数不相同0123456的排列组合，满足条件则进入</span></span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">//////////////////////////////////////////////////////////////////满足初始的0~6条件进入（第一次判断）</span></span><br><span class="line">			<span class="keyword">goto</span> jump4001153;</span><br><span class="line">			jump4001153:</span><br><span class="line">			<span class="type">int</span> rsi = <span class="number">0</span>;<span class="comment">//lea    rsi,[rsp+0x18]             第六个输入的后一个地址，应该是用来结束 rsi结束地址！！！！！！！！！！</span></span><br><span class="line">			eax = *r14;<span class="comment">//	mov    rax,r14                   eax存放输入的首地址</span></span><br><span class="line">			ecx = <span class="number">0x7</span>;<span class="comment">//mov    ecx,0x7                     ecx是7</span></span><br><span class="line">jump401160: edx = ecx;<span class="comment">//	mov    edx,ecx                 （第一次）edx=7    </span></span><br><span class="line">			edx = edx - eax;<span class="comment">//sub    edx,DWORD PTR [rax]    （第一次）edx=7-input1   （第二次）edx=7-input2     （第五次）edx=7-input5  （第六次）edx=7-input6</span></span><br><span class="line">			eax = edx;<span class="comment">//mov    DWORD PTR [rax],edx           将edx的值放入input1的位置    （第二次）放到input2的位置          （第六次）input6的位置</span></span><br><span class="line">			eax = eax + <span class="number">4</span>;<span class="comment">//add    rax,0x4                   （第一次）rax指向input2   （第二次）input3    （第5次）input6       （第六次）rsi所在的位置</span></span><br><span class="line">			<span class="keyword">if</span> (eax == rsi)<span class="comment">//cmp    rax, rsi              如果eax等于最后一个输入后面的地址  </span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="comment">///////////////////////////////////////////////////////////用7减去满足条件的数存放在以rsp为首的位置（rsp~rsp+0x14）</span></span><br><span class="line">				rsi = <span class="number">0</span>;<span class="comment">//mov    esi,0x0                     将esi置零，用作计数器</span></span><br><span class="line">				<span class="keyword">goto</span> jump401197;</span><br><span class="line">	jump401197: ecx = *(rsp + rsi);<span class="comment">//mov  ecx,DWORD PTR [rsp+rsi*1]     （第一次）ecx=input1</span></span><br><span class="line">				<span class="keyword">if</span> (ecx &lt;= <span class="number">1</span>)<span class="comment">//cmp  ecx,0x1  7-6=1                只可能是输入为6的情况啊   </span></span><br><span class="line">				&#123;</span><br><span class="line">					edx = <span class="number">0x6032d0</span>;<span class="comment">//	mov    edx,0x6032d0</span></span><br><span class="line">					<span class="keyword">goto</span> jump401188;<span class="comment">////jle   401183 &lt;phase_6+0x8f&gt;     输入为6进行跳转</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span>            <span class="comment">//输入5 4 3 2 1 0 的情况      （假设input=2即输入为5）</span></span><br><span class="line">				&#123;</span><br><span class="line">					eax = <span class="number">1</span>;<span class="comment">//mov    eax,0x1                       </span></span><br><span class="line">					edx = <span class="number">0x6032d0</span>;<span class="comment">//mov    edx,0x6032d0</span></span><br><span class="line">					<span class="keyword">goto</span> jump401176;</span><br><span class="line">				jump401176:</span><br><span class="line">					edx = edx + <span class="number">0x8</span>;<span class="comment">//	mov  rdx,QWORD PTR [rdx+0x8]   0x6032d8处的内容  </span></span><br><span class="line">					eax = eax + <span class="number">1</span>;<span class="comment">//add    eax,0x1             此时的input1为2（加1次8）   input为5（加4次8）</span></span><br><span class="line">					<span class="keyword">if</span> (eax != ecx)<span class="comment">//cmp eax,ecx        </span></span><br><span class="line">					&#123;</span><br><span class="line">						<span class="keyword">goto</span> jump401176;<span class="comment">//jne 401176 &lt;phase_6+0x82&gt;</span></span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span> <span class="comment">//	jmp    401188 &lt;phase_6+0x94&gt;</span></span><br><span class="line">					&#123;</span><br><span class="line">						<span class="keyword">goto</span> jump401188;</span><br><span class="line">					jump401188:</span><br><span class="line">						rsp = edx;<span class="comment">//mov    QWORD PTR [rsp+rsi*2+0x20],rdx      将rdx（0x6032d8）的数据存入 rsp+0+0x20处    </span></span><br><span class="line">						rsi = rsi + <span class="number">4</span>;<span class="comment">//add    rsi,0x4                4 8</span></span><br><span class="line">						<span class="keyword">if</span> (rsi == <span class="number">0x18</span>)<span class="comment">//je  4011ab &lt;phase_6+0xb7&gt;    循环6次 第一次到这里是4 第六次是0x18</span></span><br><span class="line">						&#123;</span><br><span class="line">							<span class="comment">/////////////////////////////////////////将6个数据分类讨论后进入（第三次筛选）</span></span><br><span class="line">							<span class="keyword">goto</span> jump4011ab;</span><br><span class="line">						jump4011ab:</span><br><span class="line">							ebx = rsp+<span class="number">0x20</span>;<span class="comment">//ebx=    mov    rbx,QWORD PTR [rsp+0x20]        将fake 1载入ebx</span></span><br><span class="line">							eax = rsp+<span class="number">0x28</span>;<span class="comment">//rax= 	lea    rax,[rsp+0x28]                   将fake 2的地址载入rax</span></span><br><span class="line">							rsi = rsp+<span class="number">0x50</span>;<span class="comment">//rsi=  lea    rsi,[rsp+0x50]                    将结束地址载入rsi</span></span><br><span class="line">							ecx = ebx;<span class="comment">//	mov    rcx,rbx                                  将fake 1载入rcx</span></span><br><span class="line">		jump4011bd:			edx = eax; <span class="comment">//mov    rdx, QWORD PTR[rax]                         将fake x值载入rdx x=2 3 4 5 6</span></span><br><span class="line">							ecx = edx;<span class="comment">//	mov    QWORD PTR [rcx+0x8],rdx                  将rdx   值载入fake y+8的位置 y=1 2 3 4 5</span></span><br><span class="line">							eax = eax + <span class="number">8</span>;                                               <span class="comment">// eax指向下一个fake </span></span><br><span class="line">							<span class="keyword">if</span> (eax == rsi)                                     </span><br><span class="line">							&#123;</span><br><span class="line">								<span class="keyword">goto</span> jump4011d2;</span><br><span class="line">							jump4011d2:</span><br><span class="line">								edx = <span class="number">0</span>;<span class="comment">//mov    QWORD PTR [rdx+0x8],0x0          （第一轮）将0载入fake 6 的位置</span></span><br><span class="line">								ebp = <span class="number">5</span>;<span class="comment">//mov    ebp,0x5                           计数器</span></span><br><span class="line">	      jump4011df:			eax=ebx;<span class="comment">//mov    rax,QWORD PTR [rbx+0x8]           将（fake y）载入rax x=2 3 4 5 6</span></span><br><span class="line">								eax = eax;<span class="comment">//mov    eax,DWORD PTR [rax]              </span></span><br><span class="line">								ebx = eax;<span class="comment">//cmp    DWORD PTR[rbx], eax              </span></span><br><span class="line">								<span class="keyword">if</span> (ebx &gt;= eax)<span class="comment">//jge    4011ee &lt;phase_6+0xfa&gt;</span></span><br><span class="line">								&#123;</span><br><span class="line">									<span class="keyword">goto</span> jump4011ee;</span><br><span class="line">								jump4011ee:</span><br><span class="line">									<span class="comment">//mov    rbx,QWORD PTR [rbx+0x8]      将fake2载入rbx</span></span><br><span class="line">									ebp = ebp - <span class="number">1</span>;<span class="comment">//sub    ebp,0x1</span></span><br><span class="line">									<span class="keyword">if</span> (ebp != <span class="number">1</span>)    <span class="comment">// 满足最后一轮循环后即可乱杀</span></span><br><span class="line">									&#123;</span><br><span class="line">										<span class="keyword">goto</span> jump4011df;</span><br><span class="line">									&#125;</span><br><span class="line">									<span class="keyword">else</span></span><br><span class="line">									&#123;</span><br><span class="line">										<span class="built_in">printf</span>(<span class="string">&quot;w1n!!!_y0u_@r3_my_her0!!!!&quot;</span>);</span><br><span class="line">										<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">									&#125;</span><br><span class="line">								&#125;</span><br><span class="line">								<span class="keyword">else</span>                <span class="comment">//如果小于则爆炸</span></span><br><span class="line">								&#123;</span><br><span class="line">									<span class="keyword">goto</span> bomb;</span><br><span class="line">								&#125;</span><br><span class="line">							&#125;</span><br><span class="line">							<span class="keyword">else</span></span><br><span class="line">							&#123;</span><br><span class="line">								<span class="comment">//mov    rcx,rdx</span></span><br><span class="line">								<span class="keyword">goto</span> jump4011bd;</span><br><span class="line">							&#125;</span><br><span class="line">						&#125;</span><br><span class="line">						<span class="keyword">else</span></span><br><span class="line">						&#123;</span><br><span class="line">							ecx = rsp + <span class="number">4</span>;<span class="comment">//mov ecx, DWORD PTR[rsp + rsi * 1]       （第一次）把第二个输入传给ecx   第三个</span></span><br><span class="line">							<span class="keyword">if</span> (ecx &lt;= <span class="number">1</span>)<span class="comment">//jle    401183 &lt;phase_6+0x8f&gt;     （查看第二个输入）（原为6）</span></span><br><span class="line">							&#123;</span><br><span class="line">								<span class="comment">//mov    edx,0x6032d0</span></span><br><span class="line">								<span class="keyword">goto</span> jump401188;</span><br><span class="line">							&#125;</span><br><span class="line">							<span class="keyword">else</span> </span><br><span class="line">							&#123;</span><br><span class="line">								eax = <span class="number">1</span>;<span class="comment">//mov    eax,0x1</span></span><br><span class="line">								edx = <span class="number">0x6032d0</span>;<span class="comment">//mov    edx,0x6032d0</span></span><br><span class="line">								<span class="keyword">goto</span> jump401176;</span><br><span class="line">							<span class="comment">////////////////////////////////jump401176:</span></span><br><span class="line">							<span class="comment">////////////////////////////////	//mov    rdx,QWORD PTR [rdx+0x8]</span></span><br><span class="line">							<span class="comment">////////////////////////////////	//add    eax,0x1</span></span><br><span class="line">							<span class="comment">////////////////////////////////	if (eax == ecx)</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#123;</span></span><br><span class="line">							<span class="comment">////////////////////////////////		goto jump401188;</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#125;</span></span><br><span class="line">							<span class="comment">////////////////////////////////	else</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#123;</span></span><br><span class="line">							<span class="comment">////////////////////////////////		goto jump401176;</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#125;</span></span><br><span class="line"></span><br><span class="line">							&#125;</span><br><span class="line"></span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">goto</span> jump401160;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">			ebx = r12d;<span class="comment">//mov    ebx,r12d     （第一次）ebx=1   （第二次）r12d=2</span></span><br><span class="line"> jump401135:eax = ebx;<span class="comment">//movsxd rax,ebx        （第一次）eax=1 （第一个输入4次小循环）  (第二次) eax=2</span></span><br><span class="line">			eax = *(rsp + eax);<span class="comment">//mov    eax,DWORD PTR [rsp+rax*4] （第一次）eax=第二个输入   (第二次第3个输入)</span></span><br><span class="line">			<span class="keyword">if</span> (*(rbp) == eax)         <span class="comment">//（第一次路过）如果输入1、2相等   （第二次）如果2、3相等</span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="built_in">printf</span>(<span class="string">&quot;401140 bomb!!!&quot;</span>);</span><br><span class="line">				<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span><span class="comment">//jne    401145 &lt;phase_6+0x51&gt;</span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">goto</span> jump401145;</span><br><span class="line">				jump401145:</span><br><span class="line">				ebx = ebx + <span class="number">1</span>;<span class="comment">//add    ebx,0x1     （第一次路过）ebx=2  （第二次路过）ebx=3 （第三次）ebx=4 （第四次）ebx=5</span></span><br><span class="line">				<span class="keyword">if</span> (ebx &lt;= <span class="number">5</span>)<span class="comment">//jle    401135 &lt;phase_6+0x41&gt; 很明显循环4次  这里针对的是前四个输入 </span></span><br><span class="line">				&#123;</span><br><span class="line">					<span class="keyword">goto</span> jump401135;  <span class="comment">//（）</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span></span><br><span class="line">				&#123;</span><br><span class="line">					r13 = r13 + <span class="number">1</span>;<span class="comment">//add    r13,0x4</span></span><br><span class="line">					<span class="keyword">goto</span> jump401114;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;bomb!&quot;</span>);</span><br><span class="line">	    <span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>, *r13 );</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">bomb:<span class="built_in">printf</span>(<span class="string">&quot;bomb!!!!!&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一题做的非常的。。。。。。。。怎么说呢，做完了看看别人的解题思路才发现这是个链表，我是直接把汇编还原成c语言，不是完全的还原，只是看着像的那种还原，这样做有一个好处是比直接看汇编简单一点，因为那个跳来跳去的，这样跳转到哪里，跳转条件至少清楚一点。第一层：检测六个数是否都小于等于6，第二层：用7减去原数据放在原始位置上，第三层：将0x6032d0处数据每隔8字节分别复制到栈中，这个复制顺序和我们的输入有关，比如说我们第一个输入是6，7-6&#x3D;1，就是将0x6032d0+0*8处的数据复制到第一个位置，第二个输入是3，7-3&#x3D;4，那么将0x6032d0+3*8处的数据复制到第二个位置。第四层：将复制到栈中的数据进行比较，大的在前。查看内存</p>
+<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230505155410.png"></p>
+<p>后面是序号，前面是数据，从大到小排列是345612，这个顺序是被7减过后的，所以原来的是432165</p>
+<p>这种做法算是比较粗野的一种，说一下这次做题中遇到的问题，首先是【】的问题，现在在知道了，出现[]一般是要访问内存了，其二注意数据的长度，有dw，qw，b啥的。还有，有时候看不懂的时候就带入具体的数据看一看，比如说第三层那里，看不懂它是将哪里的数据复制到哪里，最后带入654321这样的具体数据一眼就看出了它是如何操作的。</p>
+<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230505134616.png"></p>
+]]></content>
+  </entry>
+  <entry>
     <title>angr学习</title>
     <url>/2023/05/28/angr%E5%AD%A6%E4%B9%A0/</url>
     <content><![CDATA[<p>早就听闻了angr，之前看wp也有大佬使用了angr，上一次打开angrctf一头雾水，还要装环境啥的，就先搁置了。现在趁着军训开始angr的学习。</p>
@@ -1541,141 +1679,6 @@
       <tags>
         <tag>lab</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>bomblab</title>
-    <url>/2023/06/02/bomblab/</url>
-    <content><![CDATA[<p>解压完出现了三个文件bomb、bomb.c、readme，其中bomb.c是实验的源代码，不过他最重要的部分被删除了。我们可以通过将可执行文件bomb反汇编来查看内部情况。通过objdump -d bomb &gt; bomb.asm我们获得了一个新的文件，内容是bomb的汇编代码。</p>
-<span id="more"></span>
-
-<h2 id="gdb的使用"><a href="#gdb的使用" class="headerlink" title="gdb的使用"></a>gdb的使用</h2><table>
-<thead>
-<tr>
-<th>基本命令</th>
-<th></th>
-<th></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1.进入调试状态</td>
-<td>gdb bomb</td>
-<td>后面的bomb是我们要调试的程序</td>
-</tr>
-<tr>
-<td>2.查看源码</td>
-<td>(gdb) l</td>
-<td>前面的（gdb）代表已经进入调试状态，后面的l，将源码按行号显示</td>
-</tr>
-<tr>
-<td>3.设置断点</td>
-<td>(gdb) b   6</td>
-<td>意思是运行到源码的第六行时停止（第六行的指令没有执行）</td>
-</tr>
-<tr>
-<td>4.查看断点情况</td>
-<td>(gdb) info b</td>
-<td>将我们设置的断点列举出来</td>
-</tr>
-<tr>
-<td>5.运行代码</td>
-<td>(gdb) r</td>
-<td></td>
-</tr>
-<tr>
-<td>6.显示变量值</td>
-<td>(gdb) p n</td>
-<td>p（print）变量名</td>
-</tr>
-<tr>
-<td>7.单步运行</td>
-<td>(gdb) n</td>
-<td>next</td>
-</tr>
-<tr>
-<td>8.程序继续运行</td>
-<td>(gdb) c</td>
-<td>continue</td>
-</tr>
-<tr>
-<td>9.退出</td>
-<td>(gdb) q</td>
-<td>quit</td>
-</tr>
-<tr>
-<td>10.访问内存</td>
-<td>x&#x2F;参数 &lt;地址&gt;</td>
-<td>参数s是输出为字符串，d为十进制输出，x为十六进制输出</td>
-</tr>
-<tr>
-<td>11.跟踪寄存器</td>
-<td>display&lt;$寄存器&gt;</td>
-<td>碰到断点停下时显示所有跟踪寄存器的值</td>
-</tr>
-</tbody></table>
-<p>用$前缀表示一个立即数</p>
-<p>函数传参：当参数个数小于等于6个时，使用寄存器<strong>rdi,rsi,rdx,rcx,r8,r9，从第7个参数开始通过栈传递，顺序为从右往左入栈。</strong>csapp 3.7</p>
-<h2 id="实验部分"><a href="#实验部分" class="headerlink" title="实验部分"></a>实验部分</h2><h3 id="phase-1"><a href="#phase-1" class="headerlink" title="phase_1"></a>phase_1</h3><p>这就是第一个炸弹</p>
-<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230424151255.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400ee0 &lt;phase_1&gt;:</span><br><span class="line">  400ee0:	48 83 ec 08          	sub    $0x8,%rsp                   ;创建栈帧</span><br><span class="line">  400ee4:	be 00 24 40 00       	mov    $0x402400,%esi              ;将0x402400复制到esi中，前去查看</span><br><span class="line">  400ee9:	e8 4a 04 00 00       	call   401338 &lt;strings_not_equal&gt;  ;根据名字来看，调用比较函数</span><br><span class="line">  400eee:	85 c0                	test   %eax,%eax                    </span><br><span class="line">  400ef0:	74 05                	je     400ef7 &lt;phase_1+0x17&gt;        ;相等则跳转</span><br><span class="line">  400ef2:	e8 43 05 00 00       	call   40143a &lt;explode_bomb&gt;        ;爆炸</span><br><span class="line">  400ef7:	48 83 c4 08          	add    $0x8,%rsp                    ;恢复栈帧</span><br><span class="line">  400efb:	c3                   	ret    </span><br></pre></td></tr></table></figure>
-
-<p>test执行过程与and相似，但他只设置条件码寄存器，不改变目的寄存器中的值。这里的用法是，如果返回值为零，则条件码寄存器置1，je进行跳转。</p>
-<p>我们用x&#x2F;s 0x402400查看以0x402400为首地址的字符串。</p>
-<p>先把一个值（字符串的地址）放到了%esi里，而放到%edi里的就是我们输入的字符串地址，记住传参顺序，di、si、dx、cx、r8、r9.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">(gdb) x/s 0x402400</span><br><span class="line">0x402400:       &quot;Border relations with Canada have never been better.&quot;</span><br></pre></td></tr></table></figure>
-
-<h3 id="phase-2"><a href="#phase-2" class="headerlink" title="phase_2"></a>phase_2</h3><p>第二个</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400efc &lt;phase_2&gt;:</span><br><span class="line">  400efc:	55                   	push   rbp                     ;保存栈帧寄存器</span><br><span class="line">  400efd:	53                   	push   rbx                </span><br><span class="line">  400efe:	48 83 ec 28          	sub    rsp,0x28                </span><br><span class="line">  400f02:	48 89 e6             	mov    rsi,rsp        ;-------------------为函数的调用做准备</span><br><span class="line">  400f05:	e8 52 05 00 00       	call   40145c &lt;read_six_numbers&gt;</span><br><span class="line">  400f0a:	83 3c 24 01          	cmp    DWORD PTR [rsp],0x1</span><br><span class="line">  400f0e:	74 20                	je     400f30 &lt;phase_2+0x34&gt;</span><br><span class="line">  400f10:	e8 25 05 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400f15:	eb 19                	jmp    400f30 &lt;phase_2+0x34&gt;</span><br><span class="line">  400f17:	8b 43 fc             	mov    eax,DWORD PTR [rbx-0x4]</span><br><span class="line">  400f1a:	01 c0                	add    eax,eax</span><br><span class="line">  400f1c:	39 03                	cmp    DWORD PTR [rbx],eax</span><br><span class="line">  400f1e:	74 05                	je     400f25 &lt;phase_2+0x29&gt;</span><br><span class="line">  400f20:	e8 15 05 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400f25:	48 83 c3 04          	add    rbx,0x4</span><br><span class="line">  400f29:	48 39 eb             	cmp    rbx,rbp</span><br><span class="line">  400f2c:	75 e9                	jne    400f17 &lt;phase_2+0x1b&gt;</span><br><span class="line">  400f2e:	eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt;</span><br><span class="line">  400f30:	48 8d 5c 24 04       	lea    rbx,[rsp+0x4]             ;将(rsp)+0x4赋值给rbx</span><br><span class="line">  400f35:	48 8d 6c 24 18       	lea    rbp,[rsp+0x18]</span><br><span class="line">  400f3a:	eb db                	jmp    400f17 &lt;phase_2+0x1b&gt;</span><br><span class="line">  400f3c:	48 83 c4 28          	add    rsp,0x28</span><br><span class="line">  400f40:	5b                   	pop    rbx</span><br><span class="line">  400f41:	5d                   	pop    rbp</span><br><span class="line">  400f42:	c3                   	ret    </span><br></pre></td></tr></table></figure>
-
-<p>不太熟悉lea指令，先学一下。</p>
-<p>lea是“load effective address”的缩写，把一个内存变量的有效地址送给指定的寄存器，简单地说lea指令可以用来将一个内存地址直接赋值给目的操作数。lea eax,[ebx+8]是将ebx+8这个值直接赋值给eax，与之相似的mov指令，mov eax,[ebx+8]是将内存地址为ebx+8处的数据赋值给eax。对于lea指令，lea eax，eax是会报错的，只能lea eax，[eax] 等同于mov eax,eax其实就是【eax】就是eax的值。</p>
-<p>理一下逻辑：</p>
-<p>1.调用函数，接收六个数字</p>
-<p>2.[rsp]和0x1对比，所以(rsp)&#x3D;1</p>
-<p>3.如果相等则进行跳转，不相等则爆炸！！！</p>
-<p>4.将rsp+4和rsp+0x18分别赋值给rbx和rbp</p>
-<p>5.跳转，将地址为rbx-4处的数据赋值给eax</p>
-<p>6.将eax乘2</p>
-<p>7.[rbx]和eax进行比较</p>
-<p>8.相等则将rbx+4，不相等则爆炸！！！！</p>
-<p>9.比较rbx和rbp，如果相等则结束程序（success），如果不相等则跳转到步骤5.</p>
-<p>第四行的指令mov rsi，rsp，rsi是传递第二个参数的寄存器，他保存的是什么值？保存的是栈指针，也就是栈顶地址。那么第一个参数呢，我们有理由怀疑我们的输入是第一个参数，正如pgase1中，根据函数名我们可以判断，读入六个数字。</p>
-<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425144102.png"></p>
-<p>可以看到他将第二个参数赋值给了rdx，然后下面的rsi+4和rsi+0x14，0x14&#x3D;&#x3D;24，通过lea指令将距离栈顶第二个元素的地址和第七个元素的地址（末尾标志）传入了相关寄存器，注意这里的[rsi],因为前面提到过，rsi里存放的是栈顶地址，所以可以这么解释。这么复杂加上后面的sscanf大概猜测一下，就是将我们输入的6个数字放入首地址为rsp的内存空间中。我么可以查看一下mov esi,0x4025c3这条指令输入的十六个整型。</p>
-<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425154617.png"></p>
-<p>回到phase2函数，再调用完读取函数之后，进行了一次比较，如果输入的第一个数不是0x1则爆炸。继续往下，将输入的第二个数（【rsp+4】）送入rbp，将[rsp+0x18]送入rbp（栈帧寄存器），下面其实是个循环，通过比较指令和跳转指令来实现，add    rbx,0x4这条指令相当于一个计数器。大致实现的逻辑是将第二个如放入rbx，将钱一个数字放入rax，将rax进行乘2操作，进行比较。其实只要看出这一题的循环，很多东西都是水到渠成的顺出来的。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cmp    rbx,rbp</span><br><span class="line">75 e9                	jne    400f17 &lt;phase_2+0x1b&gt;</span><br><span class="line">eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt;</span><br></pre></td></tr></table></figure>
-
-<p>每比较一次都会对rbx+4，当rbx+4与我们设置的末尾表值相同时就会结束循环。0x4–&gt;0x18,差为24，正好循环六次</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> arr[<span class="number">6</span>]=&#123;<span class="number">1</span>&#125;;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">6</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        arr[i+<span class="number">1</span>]=arr[i]*<span class="number">2</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d &quot;</span>,arr[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">;<span class="number">1</span> <span class="number">2</span> <span class="number">4</span> <span class="number">8</span> <span class="number">16</span> <span class="number">32</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="phase-3"><a href="#phase-3" class="headerlink" title="phase_3"></a>phase_3</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400f43 &lt;phase_3&gt;:</span><br><span class="line">  400f43:	48 83 ec 18          	sub    rsp,0x18</span><br><span class="line">  400f47:	48 8d 4c 24 0c       	lea    rcx,[rsp+0xc]           ;参数4     0x00</span><br><span class="line">  400f4c:	48 8d 54 24 08       	lea    rdx,[rsp+0x8]           ;参数3</span><br><span class="line">  400f51:	be cf 25 40 00       	mov    esi,0x4025cf            ;参数2查看之后是%d，诡异的是接收两个整形</span><br><span class="line">  400f56:	b8 00 00 00 00       	mov    eax,0x0                 ;应该是个计数器</span><br><span class="line">  400f5b:	e8 90 fc ff ff       	call   400bf0 &lt;__isoc99_sscanf@plt&gt;；读取我们的input作为scand的参数</span><br><span class="line">  400f60:	83 f8 01             	cmp    eax,0x1                 ;eax里的值和1比较，eax存放的是函数的返回值</span><br><span class="line">  400f63:	7f 05                	jg     400f6a &lt;phase_3+0x27&gt;   ;如果大于一则跳转     jg是由符号运算大于则跳转</span><br><span class="line">  400f65:	e8 d0 04 00 00       	call   40143a &lt;explode_bomb&gt;   ;不大于一直接爆炸</span><br><span class="line">  400f6a:	83 7c 24 08 07       	cmp    DWORD PTR [rsp+0x8],0x7 ;调准到此处，与0x7进行比较</span><br><span class="line">  400f6f:	77 3c                	ja     400fad &lt;phase_3+0x6a&gt;   ;无符号大于则跳转，爆炸</span><br><span class="line">  400f71:	8b 44 24 08          	mov    eax,DWORD PTR [rsp+0x8] </span><br><span class="line">  400f75:	ff 24 c5 70 24 40 00 	jmp    QWORD PTR [rax*8+0x402470];用x/x查明之后，是机器码0xb9，对应的汇编指令是MOV cx,immed16</span><br><span class="line">  400f7c:	b8 cf 00 00 00       	mov    eax,0xcf</span><br><span class="line">  400f81:	eb 3b                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f83:	b8 c3 02 00 00       	mov    eax,0x2c3</span><br><span class="line">  400f88:	eb 34                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f8a:	b8 00 01 00 00       	mov    eax,0x100</span><br><span class="line">  400f8f:	eb 2d                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f91:	b8 85 01 00 00       	mov    eax,0x185</span><br><span class="line">  400f96:	eb 26                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f98:	b8 ce 00 00 00       	mov    eax,0xce</span><br><span class="line">  400f9d:	eb 1f                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400f9f:	b8 aa 02 00 00       	mov    eax,0x2aa</span><br><span class="line">  400fa4:	eb 18                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fa6:	b8 47 01 00 00       	mov    eax,0x147</span><br><span class="line">  400fab:	eb 11                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fad:	e8 88 04 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fb2:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  400fb7:	eb 05                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fb9:	b8 37 01 00 00       	mov    eax,0x137</span><br><span class="line">  400fbe:	3b 44 24 0c          	cmp    eax,DWORD PTR [rsp+0xc]</span><br><span class="line">  400fc2:	74 05                	je     400fc9 &lt;phase_3+0x86&gt;</span><br><span class="line">  400fc4:	e8 71 04 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fc9:	48 83 c4 18          	add    rsp,0x18</span><br><span class="line">  400fcd:	c3                   	ret    </span><br></pre></td></tr></table></figure>
-
-<p>通过传到esi里的参数我们可以看出，这次接受的输入是两个整形，下面一堆东西是属比较抽象，静态看实在有点头大，于是多下了几个断点一步一步来，输入2 2尝试一下。cmp eax，0x1，eax里保存的是返回值，只要我们的输入大于一个应该就能正常跳转，下面的比较没太看明白，和0x7进行比较，试一下就知道，其实是和我们的第一个输入进行比较，只要不大于7就能正常跳转，我们接着向下，一步一步调试来到了最后的比较，cmp    eax,DWORD PTR [rsp+0xc]，很容易想到[rsp+0xc]其实就是我们的第二个输入，这是只要我们查看一下寄存器的值，就知道如何进行比较<img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425212410.png"></p>
-<p>可以看到rax的值为707，推出之后重新运行，输入2 707果然正确。通过这题目的名字可以看出他考察的是分支，关键的没看懂的地方其实是jmp    QWORD PTR [rax*8+0x402470]，这一步大概率是根据我们的输入进行不同的跳转的函数。至于我们的输入为什么被放在了[rsp,0xc]和[rsp+0x8]中，我的猜测是这是函数的参数用来指定将接收的输入放置的位置。 __isoc99_sscanf@plt(rdi,rsi,n1,n2,n3…)其中参数rdi保存的是我们input里的输入，rsi保存的是%d之类的，以什么形式接收多少，后面就是放置的位置吧。</p>
-<p>看了网上的题解之后，才明白这原来就是个switch分支啊，我们可以通过x命令来查看一下0x402470的内容，这是个跳转表，在《汇编语言》接触过</p>
-<p>通过x&#x2F;8xg<img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230425222247.png"></p>
-<p>细说一下x命令，很好用。</p>
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">格式        x/nfu  addr</span><br><span class="line">n是正数表示要显示的数量</span><br><span class="line">f该表的是输出格式，常用的有字符串s，十六进制x，十进制d，字符c</span><br><span class="line">u代表一多少个字节作为一个内存单元来显示，<span class="attribute">b</span>=1byte,h=2 bytes,<span class="attribute">w</span>=4 bytes,<span class="attribute">g</span>=8 bytes</span><br><span class="line">addr代表内存单元地址</span><br><span class="line"> x/8xg 0x402470</span><br><span class="line">这条指令的意思就是从内存地址0x402470处，以十六进制形式8个字节为一个单位显示8组数</span><br><span class="line">为什么这里要用8呢，因为跳转那里是qword也就是两个字，一个字32为两个字就是8字节</span><br></pre></td></tr></table></figure>
-
-<h3 id="phase-4"><a href="#phase-4" class="headerlink" title="phase_4"></a>phase_4</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400fce &lt;func4&gt;:</span><br><span class="line">  400fce:	48 83 ec 08          	sub    rsp,0x8</span><br><span class="line">  400fd2:	89 d0                	mov    eax,edx  ;0x0e</span><br><span class="line">  400fd4:	29 f0                	sub    eax,esi  ;0x0</span><br><span class="line">  400fd6:	89 c1                	mov    ecx,eax   </span><br><span class="line">  400fd8:	c1 e9 1f             	shr    ecx,0x1f  ;右移0x1f</span><br><span class="line">  400fdb:	01 c8                	add    eax,ecx   ;</span><br><span class="line">  400fdd:	d1 f8                	sar    eax,1     ;算术右移</span><br><span class="line">  400fdf:	8d 0c 30             	lea    ecx,[rax+rsi*1]   ;</span><br><span class="line">  400fe2:	39 f9                	cmp    ecx,edi</span><br><span class="line">  400fe4:	7e 0c                	jle    400ff2 &lt;func4+0x24&gt;      ;有符号小于等于</span><br><span class="line">  400fe6:	8d 51 ff             	lea    edx,[rcx-0x1]</span><br><span class="line">  400fe9:	e8 e0 ff ff ff       	call   400fce &lt;func4&gt;      ;调用自身  递归</span><br><span class="line">  400fee:	01 c0                	add    eax,eax</span><br><span class="line">  400ff0:	eb 15                	jmp    401007 &lt;func4+0x39&gt;</span><br><span class="line">  400ff2:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  400ff7:	39 f9                	cmp    ecx,edi</span><br><span class="line">  400ff9:	7d 0c                	jge    401007 &lt;func4+0x39&gt;;有符号大于等于</span><br><span class="line">  400ffb:	8d 71 01             	lea    esi,[rcx+0x1]</span><br><span class="line">  400ffe:	e8 cb ff ff ff       	call   400fce &lt;func4&gt;</span><br><span class="line">  401003:	8d 44 00 01          	lea    eax,[rax+rax*1+0x1]</span><br><span class="line">  401007:	48 83 c4 08          	add    rsp,0x8</span><br><span class="line">  40100b:	c3                   	ret    </span><br><span class="line"></span><br><span class="line">000000000040100c &lt;phase_4&gt;:</span><br><span class="line">  40100c:	48 83 ec 18          	sub    rsp,0x18</span><br><span class="line">  401010:	48 8d 4c 24 0c       	lea    rcx,[rsp+0xc]      ;第二个输入</span><br><span class="line">  401015:	48 8d 54 24 08       	lea    rdx,[rsp+0x8]      ;第一个输入</span><br><span class="line">  40101a:	be cf 25 40 00       	mov    esi,0x4025cf       ;接收两个整型</span><br><span class="line">  40101f:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  401024:	e8 c7 fb ff ff       	call   400bf0 &lt;__isoc99_sscanf@plt&gt;</span><br><span class="line">  401029:	83 f8 02             	cmp    eax,0x2            ;如果输入不为2就爆炸</span><br><span class="line">  40102c:	75 07                	jne    401035 &lt;phase_4+0x29&gt;</span><br><span class="line">  40102e:	83 7c 24 08 0e       	cmp    DWORD PTR [rsp+0x8],0xe  ;第一个输入和0xe进行比较</span><br><span class="line">  401033:	76 05                	jbe    40103a &lt;phase_4+0x2e&gt;    ;无符号小于等于则跳转，所以我们的输入必须小于等于14</span><br><span class="line">  401035:	e8 00 04 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  40103a:	ba 0e 00 00 00       	mov    edx,0xe</span><br><span class="line">  40103f:	be 00 00 00 00       	mov    esi,0x0</span><br><span class="line">  401044:	8b 7c 24 08          	mov    edi,DWORD PTR [rsp+0x8]   ;------------函数传参</span><br><span class="line">  401048:	e8 81 ff ff ff       	call   400fce &lt;func4&gt;      ;调用func4</span><br><span class="line">  40104d:	85 c0                	test   eax,eax            ;and操作不过不改变不敌寄存器的值，为0时标志寄存器置0</span><br><span class="line">  40104f:	75 07                	jne    401058 &lt;phase_4+0x4c&gt;    ;如果上面eax的值为0则不发生跳转（哦按段是否相等是检测其差是否为0）</span><br><span class="line">  401051:	83 7c 24 0c 00       	cmp    DWORD PTR [rsp+0xc],0x0   ;将第二个参数与0进行比较</span><br><span class="line">  401056:	74 05                	je     40105d &lt;phase_4+0x51&gt;      ;相等则成功，否则爆炸！！！</span><br><span class="line">  401058:	e8 dd 03 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  40105d:	48 83 c4 18          	add    rsp,0x18</span><br><span class="line">  401061:	c3                   	ret    </span><br></pre></td></tr></table></figure>
-
-<p>看着汇编用c语言大致实现了一遍。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">func4</span><span class="params">(<span class="type">int</span> di, <span class="type">int</span> si, <span class="type">int</span> dx)</span><span class="comment">//</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> ax = dx;</span><br><span class="line">    ax = ax - si;</span><br><span class="line">    <span class="type">int</span> cx = ax;</span><br><span class="line">    cx = cx &gt;&gt; <span class="number">0x1f</span>; <span class="comment">//逻辑</span></span><br><span class="line">    ax = ax + cx;</span><br><span class="line">    ax = ax &gt;&gt; <span class="number">1</span>; <span class="comment">//算数</span></span><br><span class="line">    cx = (ax + si);</span><br><span class="line">    <span class="keyword">if</span> (cx &lt;= di)</span><br><span class="line">    &#123;</span><br><span class="line">        ax = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (cx &gt;= di)</span><br><span class="line">            <span class="keyword">return</span> ax;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            si = (cx + <span class="number">1</span>);</span><br><span class="line">            ax=func4(di, si, dx);</span><br><span class="line">            ax = (ax + ax + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">return</span> ax;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        dx = (cx - <span class="number">1</span>);</span><br><span class="line">        ax = func4(di, si, dx);</span><br><span class="line">        ax = ax+ax;</span><br><span class="line">        <span class="keyword">return</span> ax;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> g = <span class="number">0</span>;</span><br><span class="line">    scanf_s(<span class="string">&quot;%d&quot;</span>, &amp;i);</span><br><span class="line">    scanf_s(<span class="string">&quot;%d&quot;</span>, &amp;g);</span><br><span class="line">    <span class="keyword">if</span> (i &lt;= <span class="number">0xe</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;yes&quot;</span>);</span><br><span class="line">        <span class="type">int</span> x=func4(i, <span class="number">0</span>, <span class="number">0xe</span>);</span><br><span class="line">        <span class="keyword">if</span> (x != <span class="number">0</span>)</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;bomb!!&quot;</span>);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">if</span> (g == <span class="number">0</span>)</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;success!!!&quot;</span>);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;bomb!!!!!!!!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;bomb&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>本来tmd早就可以结束的，在test那里出了点问题，test eax,eax; jne bomb 意思是如果返回值eax的值为零，那么爆炸，woc简直了，把c语言的判断写成了         if（ex&#x3D;&#x3D;0）则爆炸。。。这一题的解题思路不同于上两个，是直接通过代码实现的，经过验证（0~14）其中可行的是0，1，3，7第二个输入是固定的0。</p>
-<h3 id="phase-5"><a href="#phase-5" class="headerlink" title="phase_5"></a>phase_5</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000401062 &lt;phase_5&gt;:</span><br><span class="line">  401062:	53                   	push   rbx</span><br><span class="line">  401063:	48 83 ec 20          	sub    rsp,0x20</span><br><span class="line">  401067:	48 89 fb             	mov    rbx,rdi</span><br><span class="line">  40106a:	64 48 8b 04 25 28 00 	mov    rax,QWORD PTR fs:0x28</span><br><span class="line">  401071:	00 00 </span><br><span class="line">  401073:	48 89 44 24 18       	mov    QWORD PTR [rsp+0x18],rax</span><br><span class="line">  401078:	31 c0                	xor    eax,eax</span><br><span class="line">  40107a:	e8 9c 02 00 00       	call   40131b &lt;string_length&gt; </span><br><span class="line">  40107f:	83 f8 06             	cmp    eax,0x6                ;如果输入的字符串长度不等于6，则爆炸</span><br><span class="line">  401082:	74 4e                	je     4010d2 &lt;phase_5+0x70&gt;      </span><br><span class="line">  401084:	e8 b1 03 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  401089:	eb 47                	jmp    4010d2 &lt;phase_5+0x70&gt;</span><br><span class="line">  40108b:	0f b6 0c 03          	movzx  ecx,BYTE PTR [rbx+rax*1]     ;将我们的输入逐字节传送到ecx</span><br><span class="line">  40108f:	88 0c 24             	mov    BYTE PTR [rsp],cl            ;送入【rsp】</span><br><span class="line">  401092:	48 8b 14 24          	mov    rdx,QWORD PTR [rsp]          ;送入rdx</span><br><span class="line">  401096:	83 e2 0f             	and    edx,0xf                      ;将我们的输入and上0xf</span><br><span class="line">  401099:	0f b6 92 b0 24 40 00 	movzx  edx,BYTE PTR [rdx+0x4024b0]       ;把该地址处的值存入edx，0扩展并传送（无符号扩展）到edx</span><br><span class="line">  4010a0:	88 54 04 10          	mov    BYTE PTR [rsp+rax*1+0x10],dl       ;将修改过的输入传入指定位置</span><br><span class="line">  4010a4:	48 83 c0 01          	add    rax,0x1                          ;eax+1</span><br><span class="line">  4010a8:	48 83 f8 06          	cmp    rax,0x6                           ;eax的值与6进行比较</span><br><span class="line">  4010ac:	75 dd                	jne    40108b &lt;phase_5+0x29&gt;             ;因为在前面eax已经置零，所以这里就是循环六次上面的操作</span><br><span class="line">  4010ae:	c6 44 24 16 00       	mov    BYTE PTR [rsp+0x16],0x0         ;向指定位置送个0，像是结尾标志</span><br><span class="line">  4010b3:	be 5e 24 40 00       	mov    esi,0x40245e                    ;将比较字符串“flyers”送入</span><br><span class="line">  4010b8:	48 8d 7c 24 10       	lea    rdi,[rsp+0x10]                  ;</span><br><span class="line">  4010bd:	e8 76 02 00 00       	call   401338 &lt;strings_not_equal&gt;        ;如果不相等则为真返回1否则返回0</span><br><span class="line">  4010c2:	85 c0                	test   eax,eax                           </span><br><span class="line">  4010c4:	74 13                	je     4010d9 &lt;phase_5+0x77&gt;              ;如果返回值rax为0则进行跳转，否则爆炸</span><br><span class="line">  4010c6:	e8 6f 03 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  4010cb:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]               </span><br><span class="line">  4010d0:	eb 07                	jmp    4010d9 &lt;phase_5+0x77&gt;</span><br><span class="line">  4010d2:	b8 00 00 00 00       	mov    eax,0x0</span><br><span class="line">  4010d7:	eb b2                	jmp    40108b &lt;phase_5+0x29&gt;</span><br><span class="line">  4010d9:	48 8b 44 24 18       	mov    rax,QWORD PTR [rsp+0x18]         ;</span><br><span class="line">  4010de:	64 48 33 04 25 28 00 	xor    rax,QWORD PTR fs:0x28            ;异或操作，实际上是进行比较，其实是进行栈溢出检测</span><br><span class="line">  4010e5:	00 00 </span><br><span class="line">  4010e7:	74 05                	je     4010ee &lt;phase_5+0x8c&gt;            ;如果相等则异或结果为零跳转，成功。</span><br><span class="line">  4010e9:	e8 42 fa ff ff       	call   400b30 &lt;__stack_chk_fail@plt&gt;</span><br><span class="line">  4010ee:	48 83 c4 20          	add    rsp,0x20</span><br><span class="line">  4010f2:	5b                   	pop    rbx</span><br><span class="line">  4010f3:	c3                   	ret    </span><br></pre></td></tr></table></figure>
-
-<p>这里其实是个多解题目，其实输入的是六个索引值。0x4024b0那里就是字符表(在字符表后发现了隐藏的炸弹好阴险)，最后的栈溢出检测浪费了很长时间，应该就是将其和金丝雀值进行对比，通过调试也可以看出，栈是随机化的。</p>
-<h3 id="phase-6"><a href="#phase-6" class="headerlink" title="phase_6"></a>phase_6</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004010f4 &lt;phase_6&gt;:</span><br><span class="line">  4010f4:	41 56                	push   r14</span><br><span class="line">  4010f6:	41 55                	push   r13</span><br><span class="line">  4010f8:	41 54                	push   r12</span><br><span class="line">  4010fa:	55                   	push   rbp</span><br><span class="line">  4010fb:	53                   	push   rbx</span><br><span class="line">  4010fc:	48 83 ec 50          	sub    rsp,0x50</span><br><span class="line">  401100:	49 89 e5             	mov    r13,rsp</span><br><span class="line">  401103:	48 89 e6             	mov    rsi,rsp      ;第二个参数  存放输入的首地址</span><br><span class="line">  401106:	e8 51 03 00 00       	call   40145c &lt;read_six_numbers&gt;</span><br><span class="line">  40110b:	49 89 e6             	mov    r14,rsp      ;将栈顶地址赋值给r14</span><br><span class="line">  40110e:	41 bc 00 00 00 00    	mov    r12d,0x0     ;</span><br><span class="line">  401114:	4c 89 ed             	mov    rbp,r13      ;将栈顶地址赋值给rbp</span><br><span class="line">  401117:	41 8b 45 00          	mov    eax,DWORD PTR [r13+0x0]   ;把输入1送入eax</span><br><span class="line">  40111b:	83 e8 01             	sub    eax,0x1          ;将eax减去1</span><br><span class="line">  40111e:	83 f8 05             	cmp    eax,0x5          ;和5进行比较</span><br><span class="line">  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt;  ;无符号小于等于跳转</span><br><span class="line">  401123:	e8 12 03 00 00       	call   40143a &lt;explode_bomb&gt;  ;第一个输入不能大于6</span><br><span class="line">  401128:	41 83 c4 01          	add    r12d,0x1      ;给计数器加1</span><br><span class="line">  40112c:	41 83 fc 06          	cmp    r12d,0x6      ;与6进行比较</span><br><span class="line">  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt; ;相等则跳转</span><br><span class="line">  401132:	44 89 e3             	mov    ebx,r12d     ;</span><br><span class="line">  401135:	48 63 c3             	movsxd rax,ebx      ;符号扩展</span><br><span class="line">  401138:	8b 04 84             	mov    eax,DWORD PTR [rsp+rax*4];将输入送入eax</span><br><span class="line">  40113b:	39 45 00             	cmp    DWORD PTR [rbp+0x0],eax;与输入1进行对比</span><br><span class="line">  40113e:	75 05                	jne    401145 &lt;phase_6+0x51&gt;;不相等跳转</span><br><span class="line">  401140:	e8 f5 02 00 00       	call   40143a &lt;explode_bomb&gt;;相等爆炸</span><br><span class="line">  401145:	83 c3 01             	add    ebx,0x1  ;2</span><br><span class="line">  401148:	83 fb 05             	cmp    ebx,0x5   ;比较，循环5次知道ebx=6</span><br><span class="line">  40114b:	7e e8                	jle    401135 &lt;phase_6+0x41&gt; ;有符号小于等于跳转</span><br><span class="line">  40114d:	49 83 c5 04          	add    r13,0x4  ;r13指向第2个输入</span><br><span class="line">  401151:	eb c1                	jmp    401114 &lt;phase_6+0x20&gt;</span><br><span class="line">  401153:	48 8d 74 24 18       	lea    rsi,[rsp+0x18]   ;第六个输入的后一个的地址</span><br><span class="line">  401158:	4c 89 f0             	mov    rax,r14</span><br><span class="line">  40115b:	b9 07 00 00 00       	mov    ecx,0x7</span><br><span class="line">  401160:	89 ca                	mov    edx,ecx</span><br><span class="line">  401162:	2b 10                	sub    edx,DWORD PTR [rax]</span><br><span class="line">  401164:	89 10                	mov    DWORD PTR [rax],edx</span><br><span class="line">  401166:	48 83 c0 04          	add    rax,0x4</span><br><span class="line">  40116a:	48 39 f0             	cmp    rax,rsi</span><br><span class="line">  40116d:	75 f1                	jne    401160 &lt;phase_6+0x6c&gt;    ;又是一个循环</span><br><span class="line">  40116f:	be 00 00 00 00       	mov    esi,0x0          </span><br><span class="line">  401174:	eb 21                	jmp    401197 &lt;phase_6+0xa3&gt;</span><br><span class="line">  401176:	48 8b 52 08          	mov    rdx,QWORD PTR [rdx+0x8]</span><br><span class="line">  40117a:	83 c0 01             	add    eax,0x1</span><br><span class="line">  40117d:	39 c8                	cmp    eax,ecx</span><br><span class="line">  40117f:	75 f5                	jne    401176 &lt;phase_6+0x82&gt;</span><br><span class="line">  401181:	eb 05                	jmp    401188 &lt;phase_6+0x94&gt;</span><br><span class="line">  401183:	ba d0 32 60 00       	mov    edx,0x6032d0</span><br><span class="line">  401188:	48 89 54 74 20       	mov    QWORD PTR [rsp+rsi*2+0x20],rdx</span><br><span class="line">  40118d:	48 83 c6 04          	add    rsi,0x4</span><br><span class="line">  401191:	48 83 fe 18          	cmp    rsi,0x18</span><br><span class="line">  401195:	74 14                	je     4011ab &lt;phase_6+0xb7&gt;</span><br><span class="line">  401197:	8b 0c 34             	mov    ecx,DWORD PTR [rsp+rsi*1]</span><br><span class="line">  40119a:	83 f9 01             	cmp    ecx,0x1</span><br><span class="line">  40119d:	7e e4                	jle    401183 &lt;phase_6+0x8f&gt;</span><br><span class="line">  40119f:	b8 01 00 00 00       	mov    eax,0x1</span><br><span class="line">  4011a4:	ba d0 32 60 00       	mov    edx,0x6032d0</span><br><span class="line">  4011a9:	eb cb                	jmp    401176 &lt;phase_6+0x82&gt;</span><br><span class="line">  4011ab:	48 8b 5c 24 20       	mov    rbx,QWORD PTR [rsp+0x20]</span><br><span class="line">  4011b0:	48 8d 44 24 28       	lea    rax,[rsp+0x28]</span><br><span class="line">  4011b5:	48 8d 74 24 50       	lea    rsi,[rsp+0x50]</span><br><span class="line">  4011ba:	48 89 d9             	mov    rcx,rbx</span><br><span class="line">  4011bd:	48 8b 10             	mov    rdx,QWORD PTR [rax]</span><br><span class="line">  4011c0:	48 89 51 08          	mov    QWORD PTR [rcx+0x8],rdx</span><br><span class="line">  4011c4:	48 83 c0 08          	add    rax,0x8</span><br><span class="line">  4011c8:	48 39 f0             	cmp    rax,rsi</span><br><span class="line">  4011cb:	74 05                	je     4011d2 &lt;phase_6+0xde&gt;</span><br><span class="line">  4011cd:	48 89 d1             	mov    rcx,rdx</span><br><span class="line">  4011d0:	eb eb                	jmp    4011bd &lt;phase_6+0xc9&gt;</span><br><span class="line">  4011d2:	48 c7 42 08 00 00 00 	mov    QWORD PTR [rdx+0x8],0x0</span><br><span class="line">  4011d9:	00 </span><br><span class="line">  4011da:	bd 05 00 00 00       	mov    ebp,0x5</span><br><span class="line">  4011df:	48 8b 43 08          	mov    rax,QWORD PTR [rbx+0x8]</span><br><span class="line">  4011e3:	8b 00                	mov    eax,DWORD PTR [rax]</span><br><span class="line">  4011e5:	39 03                	cmp    DWORD PTR [rbx],eax</span><br><span class="line">  4011e7:	7d 05                	jge    4011ee &lt;phase_6+0xfa&gt;</span><br><span class="line">  4011e9:	e8 4c 02 00 00       	call   40143a &lt;explode_bomb&gt;</span><br><span class="line">  4011ee:	48 8b 5b 08          	mov    rbx,QWORD PTR [rbx+0x8]</span><br><span class="line">  4011f2:	83 ed 01             	sub    ebp,0x1</span><br><span class="line">  4011f5:	75 e8                	jne    4011df &lt;phase_6+0xeb&gt;</span><br><span class="line">  4011f7:	48 83 c4 50          	add    rsp,0x50</span><br><span class="line">  4011fb:	5b                   	pop    rbx</span><br><span class="line">  4011fc:	5d                   	pop    rbp</span><br><span class="line">  4011fd:	41 5c                	pop    r12</span><br><span class="line">  4011ff:	41 5d                	pop    r13</span><br><span class="line">  401201:	41 5e                	pop    r14</span><br><span class="line">  401203:	c3                   	ret    </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span>  _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> arr[]=<span class="string">&quot;193456&quot;</span>;</span><br><span class="line">	<span class="type">int</span> rsp=<span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> ebp;</span><br><span class="line">	<span class="type">int</span> ecx = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> edx = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> esi = <span class="number">0</span>;</span><br><span class="line">	<span class="type">char</span>* r14 = arr;<span class="comment">//	mov    r14,rsp                  将输入的首地址放在r14</span></span><br><span class="line">	<span class="type">char</span>* rsp = arr;                 <span class="comment">//                 将输入的首地址放在rsp</span></span><br><span class="line">	<span class="type">int</span> r12d = <span class="number">0</span>;<span class="comment">//mov    r12d,0x0</span></span><br><span class="line">	<span class="type">char</span>* r13 = arr;                           <span class="comment">//       将输入的首地址放在r13</span></span><br><span class="line">jump401114:<span class="type">char</span>* rbp = r13;<span class="comment">//mov    rbp,r13        （第一次）首地址  （第二次）第二个输入     </span></span><br><span class="line">	<span class="type">int</span> eax = *(r13 + <span class="number">0</span>);<span class="comment">//mov    eax,DWORD PTR [r13+0x0]    将我们的一个输入放入eax中（第一个）  （第二次）第二个</span></span><br><span class="line">	eax = eax - <span class="number">1</span>;<span class="comment">//	sub    eax,0x1                       将（第一个）输入减一 我们的第一个输入必须小于等于6  （第二个也小于6）</span></span><br><span class="line">	<span class="type">int</span> ebx = <span class="number">0</span>;      </span><br><span class="line">	<span class="keyword">if</span> (eax &lt;= <span class="number">5</span>)<span class="comment">//	cmp    eax,0x5  //jbe    401128 &lt;phase_6+0x34&gt;     </span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">goto</span> jump4001128;</span><br><span class="line">		jump4001128:</span><br><span class="line">		r12d = r12d + <span class="number">1</span>;<span class="comment">//add    r12d,0x1            （第一次路过）r12d=1   第六次路过就是6啦（非常的聪明）</span></span><br><span class="line">		<span class="keyword">if</span> (r12d == <span class="number">6</span>)<span class="comment">//cmp  r12d,0x6 //je     401153 &lt;phase_6+0x5f&gt;    很明显循环五次 经历过五次循环 前数与后数不相同0123456的排列组合，满足条件则进入</span></span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">//////////////////////////////////////////////////////////////////满足初始的0~6条件进入（第一次判断）</span></span><br><span class="line">			<span class="keyword">goto</span> jump4001153;</span><br><span class="line">			jump4001153:</span><br><span class="line">			<span class="type">int</span> rsi = <span class="number">0</span>;<span class="comment">//lea    rsi,[rsp+0x18]             第六个输入的后一个地址，应该是用来结束 rsi结束地址！！！！！！！！！！</span></span><br><span class="line">			eax = *r14;<span class="comment">//	mov    rax,r14                   eax存放输入的首地址</span></span><br><span class="line">			ecx = <span class="number">0x7</span>;<span class="comment">//mov    ecx,0x7                     ecx是7</span></span><br><span class="line">jump401160: edx = ecx;<span class="comment">//	mov    edx,ecx                 （第一次）edx=7    </span></span><br><span class="line">			edx = edx - eax;<span class="comment">//sub    edx,DWORD PTR [rax]    （第一次）edx=7-input1   （第二次）edx=7-input2     （第五次）edx=7-input5  （第六次）edx=7-input6</span></span><br><span class="line">			eax = edx;<span class="comment">//mov    DWORD PTR [rax],edx           将edx的值放入input1的位置    （第二次）放到input2的位置          （第六次）input6的位置</span></span><br><span class="line">			eax = eax + <span class="number">4</span>;<span class="comment">//add    rax,0x4                   （第一次）rax指向input2   （第二次）input3    （第5次）input6       （第六次）rsi所在的位置</span></span><br><span class="line">			<span class="keyword">if</span> (eax == rsi)<span class="comment">//cmp    rax, rsi              如果eax等于最后一个输入后面的地址  </span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="comment">///////////////////////////////////////////////////////////用7减去满足条件的数存放在以rsp为首的位置（rsp~rsp+0x14）</span></span><br><span class="line">				rsi = <span class="number">0</span>;<span class="comment">//mov    esi,0x0                     将esi置零，用作计数器</span></span><br><span class="line">				<span class="keyword">goto</span> jump401197;</span><br><span class="line">	jump401197: ecx = *(rsp + rsi);<span class="comment">//mov  ecx,DWORD PTR [rsp+rsi*1]     （第一次）ecx=input1</span></span><br><span class="line">				<span class="keyword">if</span> (ecx &lt;= <span class="number">1</span>)<span class="comment">//cmp  ecx,0x1  7-6=1                只可能是输入为6的情况啊   </span></span><br><span class="line">				&#123;</span><br><span class="line">					edx = <span class="number">0x6032d0</span>;<span class="comment">//	mov    edx,0x6032d0</span></span><br><span class="line">					<span class="keyword">goto</span> jump401188;<span class="comment">////jle   401183 &lt;phase_6+0x8f&gt;     输入为6进行跳转</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span>            <span class="comment">//输入5 4 3 2 1 0 的情况      （假设input=2即输入为5）</span></span><br><span class="line">				&#123;</span><br><span class="line">					eax = <span class="number">1</span>;<span class="comment">//mov    eax,0x1                       </span></span><br><span class="line">					edx = <span class="number">0x6032d0</span>;<span class="comment">//mov    edx,0x6032d0</span></span><br><span class="line">					<span class="keyword">goto</span> jump401176;</span><br><span class="line">				jump401176:</span><br><span class="line">					edx = edx + <span class="number">0x8</span>;<span class="comment">//	mov  rdx,QWORD PTR [rdx+0x8]   0x6032d8处的内容  </span></span><br><span class="line">					eax = eax + <span class="number">1</span>;<span class="comment">//add    eax,0x1             此时的input1为2（加1次8）   input为5（加4次8）</span></span><br><span class="line">					<span class="keyword">if</span> (eax != ecx)<span class="comment">//cmp eax,ecx        </span></span><br><span class="line">					&#123;</span><br><span class="line">						<span class="keyword">goto</span> jump401176;<span class="comment">//jne 401176 &lt;phase_6+0x82&gt;</span></span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span> <span class="comment">//	jmp    401188 &lt;phase_6+0x94&gt;</span></span><br><span class="line">					&#123;</span><br><span class="line">						<span class="keyword">goto</span> jump401188;</span><br><span class="line">					jump401188:</span><br><span class="line">						rsp = edx;<span class="comment">//mov    QWORD PTR [rsp+rsi*2+0x20],rdx      将rdx（0x6032d8）的数据存入 rsp+0+0x20处    </span></span><br><span class="line">						rsi = rsi + <span class="number">4</span>;<span class="comment">//add    rsi,0x4                4 8</span></span><br><span class="line">						<span class="keyword">if</span> (rsi == <span class="number">0x18</span>)<span class="comment">//je  4011ab &lt;phase_6+0xb7&gt;    循环6次 第一次到这里是4 第六次是0x18</span></span><br><span class="line">						&#123;</span><br><span class="line">							<span class="comment">/////////////////////////////////////////将6个数据分类讨论后进入（第三次筛选）</span></span><br><span class="line">							<span class="keyword">goto</span> jump4011ab;</span><br><span class="line">						jump4011ab:</span><br><span class="line">							ebx = rsp+<span class="number">0x20</span>;<span class="comment">//ebx=    mov    rbx,QWORD PTR [rsp+0x20]        将fake 1载入ebx</span></span><br><span class="line">							eax = rsp+<span class="number">0x28</span>;<span class="comment">//rax= 	lea    rax,[rsp+0x28]                   将fake 2的地址载入rax</span></span><br><span class="line">							rsi = rsp+<span class="number">0x50</span>;<span class="comment">//rsi=  lea    rsi,[rsp+0x50]                    将结束地址载入rsi</span></span><br><span class="line">							ecx = ebx;<span class="comment">//	mov    rcx,rbx                                  将fake 1载入rcx</span></span><br><span class="line">		jump4011bd:			edx = eax; <span class="comment">//mov    rdx, QWORD PTR[rax]                         将fake x值载入rdx x=2 3 4 5 6</span></span><br><span class="line">							ecx = edx;<span class="comment">//	mov    QWORD PTR [rcx+0x8],rdx                  将rdx   值载入fake y+8的位置 y=1 2 3 4 5</span></span><br><span class="line">							eax = eax + <span class="number">8</span>;                                               <span class="comment">// eax指向下一个fake </span></span><br><span class="line">							<span class="keyword">if</span> (eax == rsi)                                     </span><br><span class="line">							&#123;</span><br><span class="line">								<span class="keyword">goto</span> jump4011d2;</span><br><span class="line">							jump4011d2:</span><br><span class="line">								edx = <span class="number">0</span>;<span class="comment">//mov    QWORD PTR [rdx+0x8],0x0          （第一轮）将0载入fake 6 的位置</span></span><br><span class="line">								ebp = <span class="number">5</span>;<span class="comment">//mov    ebp,0x5                           计数器</span></span><br><span class="line">	      jump4011df:			eax=ebx;<span class="comment">//mov    rax,QWORD PTR [rbx+0x8]           将（fake y）载入rax x=2 3 4 5 6</span></span><br><span class="line">								eax = eax;<span class="comment">//mov    eax,DWORD PTR [rax]              </span></span><br><span class="line">								ebx = eax;<span class="comment">//cmp    DWORD PTR[rbx], eax              </span></span><br><span class="line">								<span class="keyword">if</span> (ebx &gt;= eax)<span class="comment">//jge    4011ee &lt;phase_6+0xfa&gt;</span></span><br><span class="line">								&#123;</span><br><span class="line">									<span class="keyword">goto</span> jump4011ee;</span><br><span class="line">								jump4011ee:</span><br><span class="line">									<span class="comment">//mov    rbx,QWORD PTR [rbx+0x8]      将fake2载入rbx</span></span><br><span class="line">									ebp = ebp - <span class="number">1</span>;<span class="comment">//sub    ebp,0x1</span></span><br><span class="line">									<span class="keyword">if</span> (ebp != <span class="number">1</span>)    <span class="comment">// 满足最后一轮循环后即可乱杀</span></span><br><span class="line">									&#123;</span><br><span class="line">										<span class="keyword">goto</span> jump4011df;</span><br><span class="line">									&#125;</span><br><span class="line">									<span class="keyword">else</span></span><br><span class="line">									&#123;</span><br><span class="line">										<span class="built_in">printf</span>(<span class="string">&quot;w1n!!!_y0u_@r3_my_her0!!!!&quot;</span>);</span><br><span class="line">										<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">									&#125;</span><br><span class="line">								&#125;</span><br><span class="line">								<span class="keyword">else</span>                <span class="comment">//如果小于则爆炸</span></span><br><span class="line">								&#123;</span><br><span class="line">									<span class="keyword">goto</span> bomb;</span><br><span class="line">								&#125;</span><br><span class="line">							&#125;</span><br><span class="line">							<span class="keyword">else</span></span><br><span class="line">							&#123;</span><br><span class="line">								<span class="comment">//mov    rcx,rdx</span></span><br><span class="line">								<span class="keyword">goto</span> jump4011bd;</span><br><span class="line">							&#125;</span><br><span class="line">						&#125;</span><br><span class="line">						<span class="keyword">else</span></span><br><span class="line">						&#123;</span><br><span class="line">							ecx = rsp + <span class="number">4</span>;<span class="comment">//mov ecx, DWORD PTR[rsp + rsi * 1]       （第一次）把第二个输入传给ecx   第三个</span></span><br><span class="line">							<span class="keyword">if</span> (ecx &lt;= <span class="number">1</span>)<span class="comment">//jle    401183 &lt;phase_6+0x8f&gt;     （查看第二个输入）（原为6）</span></span><br><span class="line">							&#123;</span><br><span class="line">								<span class="comment">//mov    edx,0x6032d0</span></span><br><span class="line">								<span class="keyword">goto</span> jump401188;</span><br><span class="line">							&#125;</span><br><span class="line">							<span class="keyword">else</span> </span><br><span class="line">							&#123;</span><br><span class="line">								eax = <span class="number">1</span>;<span class="comment">//mov    eax,0x1</span></span><br><span class="line">								edx = <span class="number">0x6032d0</span>;<span class="comment">//mov    edx,0x6032d0</span></span><br><span class="line">								<span class="keyword">goto</span> jump401176;</span><br><span class="line">							<span class="comment">////////////////////////////////jump401176:</span></span><br><span class="line">							<span class="comment">////////////////////////////////	//mov    rdx,QWORD PTR [rdx+0x8]</span></span><br><span class="line">							<span class="comment">////////////////////////////////	//add    eax,0x1</span></span><br><span class="line">							<span class="comment">////////////////////////////////	if (eax == ecx)</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#123;</span></span><br><span class="line">							<span class="comment">////////////////////////////////		goto jump401188;</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#125;</span></span><br><span class="line">							<span class="comment">////////////////////////////////	else</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#123;</span></span><br><span class="line">							<span class="comment">////////////////////////////////		goto jump401176;</span></span><br><span class="line">							<span class="comment">////////////////////////////////	&#125;</span></span><br><span class="line"></span><br><span class="line">							&#125;</span><br><span class="line"></span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">goto</span> jump401160;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">			ebx = r12d;<span class="comment">//mov    ebx,r12d     （第一次）ebx=1   （第二次）r12d=2</span></span><br><span class="line"> jump401135:eax = ebx;<span class="comment">//movsxd rax,ebx        （第一次）eax=1 （第一个输入4次小循环）  (第二次) eax=2</span></span><br><span class="line">			eax = *(rsp + eax);<span class="comment">//mov    eax,DWORD PTR [rsp+rax*4] （第一次）eax=第二个输入   (第二次第3个输入)</span></span><br><span class="line">			<span class="keyword">if</span> (*(rbp) == eax)         <span class="comment">//（第一次路过）如果输入1、2相等   （第二次）如果2、3相等</span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="built_in">printf</span>(<span class="string">&quot;401140 bomb!!!&quot;</span>);</span><br><span class="line">				<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span><span class="comment">//jne    401145 &lt;phase_6+0x51&gt;</span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">goto</span> jump401145;</span><br><span class="line">				jump401145:</span><br><span class="line">				ebx = ebx + <span class="number">1</span>;<span class="comment">//add    ebx,0x1     （第一次路过）ebx=2  （第二次路过）ebx=3 （第三次）ebx=4 （第四次）ebx=5</span></span><br><span class="line">				<span class="keyword">if</span> (ebx &lt;= <span class="number">5</span>)<span class="comment">//jle    401135 &lt;phase_6+0x41&gt; 很明显循环4次  这里针对的是前四个输入 </span></span><br><span class="line">				&#123;</span><br><span class="line">					<span class="keyword">goto</span> jump401135;  <span class="comment">//（）</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span></span><br><span class="line">				&#123;</span><br><span class="line">					r13 = r13 + <span class="number">1</span>;<span class="comment">//add    r13,0x4</span></span><br><span class="line">					<span class="keyword">goto</span> jump401114;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;bomb!&quot;</span>);</span><br><span class="line">	    <span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>, *r13 );</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">bomb:<span class="built_in">printf</span>(<span class="string">&quot;bomb!!!!!&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这一题做的非常的。。。。。。。。怎么说呢，做完了看看别人的解题思路才发现这是个链表，我是直接把汇编还原成c语言，不是完全的还原，只是看着像的那种还原，这样做有一个好处是比直接看汇编简单一点，因为那个跳来跳去的，这样跳转到哪里，跳转条件至少清楚一点。第一层：检测六个数是否都小于等于6，第二层：用7减去原数据放在原始位置上，第三层：将0x6032d0处数据每隔8字节分别复制到栈中，这个复制顺序和我们的输入有关，比如说我们第一个输入是6，7-6&#x3D;1，就是将0x6032d0+0*8处的数据复制到第一个位置，第二个输入是3，7-3&#x3D;4，那么将0x6032d0+3*8处的数据复制到第二个位置。第四层：将复制到栈中的数据进行比较，大的在前。查看内存</p>
-<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230505155410.png"></p>
-<p>后面是序号，前面是数据，从大到小排列是345612，这个顺序是被7减过后的，所以原来的是432165</p>
-<p>这种做法算是比较粗野的一种，说一下这次做题中遇到的问题，首先是【】的问题，现在在知道了，出现[]一般是要访问内存了，其二注意数据的长度，有dw，qw，b啥的。还有，有时候看不懂的时候就带入具体的数据看一看，比如说第三层那里，看不懂它是将哪里的数据复制到哪里，最后带入654321这样的具体数据一眼就看出了它是如何操作的。</p>
-<p><img src="/2023/06/02/bomblab/QQ%E6%88%AA%E5%9B%BE20230505134616.png"></p>
-]]></content>
   </entry>
   <entry>
     <title>csapp-shlab</title>
@@ -2051,6 +2054,24 @@
       </tags>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/2022/12/18/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>idapython用法</title>
     <url>/2024/03/13/idapython%E7%94%A8%E6%B3%95/</url>
     <content><![CDATA[<h3 id="去除简单的花指令"><a href="#去除简单的花指令" class="headerlink" title="去除简单的花指令"></a>去除简单的花指令</h3><p>在main函数存在多个这样的花指令<img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240301201158.png"></p>
@@ -2075,72 +2096,6 @@
 ]]></content>
       <tags>
         <tag>idapython</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2022/12/18/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h2 id><a href="#" class="headerlink" title></a><span id="more"></span></h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a><!--more--></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>初识OLLVM</title>
-    <url>/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/</url>
-    <content><![CDATA[<h3 id="OLLVM"><a href="#OLLVM" class="headerlink" title="OLLVM"></a>OLLVM</h3><p>OLLVM是一个基于LLVM的框架的混淆器，主要功能有三：指令替换、混淆控制流、控制流平坦化。一言以蔽之，ollvm可以用来混淆程序，增加逆向难度。</p>
-<span id="more"></span>
-
-<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>那么什么是LLVM呢？LLVM（low level virtual machine）是一个编译器框架，是一系列模块化、可重用的编译器及工具链技术的集合。</p>
-<p><img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20231230213344.png"></p>
-<p>通过这张图，可以很好的理解llvm的作用。</p>
-<p>第一部分：Clang作为前端接收C（各种语言）源文件，生成中间代码IR<img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/QQ%E6%88%AA%E5%9B%BE20231230213931.png"></p>
-<p>第二部分：中间代码IR经pass的优化处理得到新的IR，不同的PASS对应不同的优化</p>
-<p>第三部分：生成机器码</p>
-<h3 id="OLLVM原理"><a href="#OLLVM原理" class="headerlink" title="OLLVM原理"></a>OLLVM原理</h3><p>费这么大篇幅介绍LLVM肯定是有用的，前面讲了OLLVM是基于LLVM，最大的区别在于PASS不同，我的理解是LLVM的pass是用来优化的，而OLLVM的PASS是用来混淆的。</p>
-<h3 id="OLLVM的环境搭建"><a href="#OLLVM的环境搭建" class="headerlink" title="OLLVM的环境搭建"></a>OLLVM的环境搭建</h3><p>涉及到gcc、g++以及各种环境，建议直接在Ubuntu使用docker一步到位</p>
-<p><a href="https://www.bilibili.com/read/cv13148903/">跟着铁头干混淆3 ubuntu下用docker编译ollvm(保证成功) - 哔哩哔哩 (bilibili.com)</a></p>
-<h3 id="OLLVM的使用"><a href="#OLLVM的使用" class="headerlink" title="OLLVM的使用"></a>OLLVM的使用</h3><h4 id="控制流平坦化"><a href="#控制流平坦化" class="headerlink" title="控制流平坦化"></a>控制流平坦化</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -fla : 激活控制流平坦化</li>
-<li>-mllvm -split : 激活基本块分割</li>
-<li>-mllvm -split_num&#x3D;3 : 指定基本块分割的数目</li>
-</ul>
-<p>语法</p>
-<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">clang 选项一 选项二 选项<span class="built_in">N</span> 原码 -o 可执行文件</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">clang -mllvm -fla test.c -o test</span><br></pre></td></tr></table></figure>
-
-<h4 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -bcf : 激活虚假控制流</li>
-<li>-mllvm -bcf_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1</li>
-<li>-mllvm -bcf_prob&#x3D;40 : 每个基本块被混淆的概率，这里每个基本块被混淆的概率为40%，默认为 30 %</li>
-</ul>
-<p>语法同上</p>
-<h4 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h4><p>可用选项：</p>
-<ul>
-<li>-mllvm -sub : 激活指令替代</li>
-<li>-mllvm -sub_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1次</li>
-</ul>
-<p>语法同上</p>
-<p>下一篇文章介绍各个混淆实现的效果。</p>
-<p>参考链接：</p>
-<p><a href="https://jev0n.com/2022/07/07/ollvm-0.html">OLLVM混淆学习（0）——环境搭建及混淆初体验 - 思泉 | Jev0n</a></p>
-<p><a href="https://www.cnblogs.com/lqerio/p/16009042.html#Clang">LLVM 简介 （一） - Erio - 博客园 (cnblogs.com)</a></p>
-]]></content>
-      <tags>
-        <tag>OLLVM</tag>
       </tags>
   </entry>
   <entry>
@@ -2250,6 +2205,54 @@
       </tags>
   </entry>
   <entry>
+    <title>初识OLLVM</title>
+    <url>/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/</url>
+    <content><![CDATA[<h3 id="OLLVM"><a href="#OLLVM" class="headerlink" title="OLLVM"></a>OLLVM</h3><p>OLLVM是一个基于LLVM的框架的混淆器，主要功能有三：指令替换、混淆控制流、控制流平坦化。一言以蔽之，ollvm可以用来混淆程序，增加逆向难度。</p>
+<span id="more"></span>
+
+<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>那么什么是LLVM呢？LLVM（low level virtual machine）是一个编译器框架，是一系列模块化、可重用的编译器及工具链技术的集合。</p>
+<p><img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20231230213344.png"></p>
+<p>通过这张图，可以很好的理解llvm的作用。</p>
+<p>第一部分：Clang作为前端接收C（各种语言）源文件，生成中间代码IR<img src="/2023/12/30/%E5%88%9D%E8%AF%86OLLVM/QQ%E6%88%AA%E5%9B%BE20231230213931.png"></p>
+<p>第二部分：中间代码IR经pass的优化处理得到新的IR，不同的PASS对应不同的优化</p>
+<p>第三部分：生成机器码</p>
+<h3 id="OLLVM原理"><a href="#OLLVM原理" class="headerlink" title="OLLVM原理"></a>OLLVM原理</h3><p>费这么大篇幅介绍LLVM肯定是有用的，前面讲了OLLVM是基于LLVM，最大的区别在于PASS不同，我的理解是LLVM的pass是用来优化的，而OLLVM的PASS是用来混淆的。</p>
+<h3 id="OLLVM的环境搭建"><a href="#OLLVM的环境搭建" class="headerlink" title="OLLVM的环境搭建"></a>OLLVM的环境搭建</h3><p>涉及到gcc、g++以及各种环境，建议直接在Ubuntu使用docker一步到位</p>
+<p><a href="https://www.bilibili.com/read/cv13148903/">跟着铁头干混淆3 ubuntu下用docker编译ollvm(保证成功) - 哔哩哔哩 (bilibili.com)</a></p>
+<h3 id="OLLVM的使用"><a href="#OLLVM的使用" class="headerlink" title="OLLVM的使用"></a>OLLVM的使用</h3><h4 id="控制流平坦化"><a href="#控制流平坦化" class="headerlink" title="控制流平坦化"></a>控制流平坦化</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -fla : 激活控制流平坦化</li>
+<li>-mllvm -split : 激活基本块分割</li>
+<li>-mllvm -split_num&#x3D;3 : 指定基本块分割的数目</li>
+</ul>
+<p>语法</p>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">clang 选项一 选项二 选项<span class="built_in">N</span> 原码 -o 可执行文件</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">clang -mllvm -fla test.c -o test</span><br></pre></td></tr></table></figure>
+
+<h4 id="虚假控制流"><a href="#虚假控制流" class="headerlink" title="虚假控制流"></a>虚假控制流</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -bcf : 激活虚假控制流</li>
+<li>-mllvm -bcf_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1</li>
+<li>-mllvm -bcf_prob&#x3D;40 : 每个基本块被混淆的概率，这里每个基本块被混淆的概率为40%，默认为 30 %</li>
+</ul>
+<p>语法同上</p>
+<h4 id="指令替换"><a href="#指令替换" class="headerlink" title="指令替换"></a>指令替换</h4><p>可用选项：</p>
+<ul>
+<li>-mllvm -sub : 激活指令替代</li>
+<li>-mllvm -sub_loop&#x3D;3 : 混淆次数，这里一个函数会被混淆3次，默认为 1次</li>
+</ul>
+<p>语法同上</p>
+<p>下一篇文章介绍各个混淆实现的效果。</p>
+<p>参考链接：</p>
+<p><a href="https://jev0n.com/2022/07/07/ollvm-0.html">OLLVM混淆学习（0）——环境搭建及混淆初体验 - 思泉 | Jev0n</a></p>
+<p><a href="https://www.cnblogs.com/lqerio/p/16009042.html#Clang">LLVM 简介 （一） - Erio - 博客园 (cnblogs.com)</a></p>
+]]></content>
+      <tags>
+        <tag>OLLVM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>动态链接库（DLL）及其工作原理</title>
     <url>/2023/08/21/%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%EF%BC%88DLL%EF%BC%89%E5%8F%8A%E5%85%B6%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h3 id="动态链接库"><a href="#动态链接库" class="headerlink" title="动态链接库"></a><strong>动态链接库</strong></h3><blockquote>
@@ -2305,6 +2308,60 @@
 ]]></content>
       <tags>
         <tag>DLL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据结构（考试篇）</title>
+    <url>/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/</url>
+    <content><![CDATA[<h3 id="二叉树的先序遍历、后序遍历、中序遍历"><a href="#二叉树的先序遍历、后序遍历、中序遍历" class="headerlink" title="二叉树的先序遍历、后序遍历、中序遍历"></a>二叉树的先序遍历、后序遍历、中序遍历</h3><p><strong>先序遍历：</strong>根节点—&gt;左节点–&gt;右节点</p>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108092718.png"></p>
+<span id="more"></span>
+
+<p>这个过程是递归的，比如说访问了左节点B之后不是去访问右节点C，而是去访问了以B为根节点的左节点D。顺序有个规律，可以看作是这个小人逆时针跑了一圈：A B D H I E J E C F K G</p>
+<p><strong>后序遍历：</strong>左节点–&gt;右节点–&gt;根节点</p>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108093513.png"></p>
+<p>按照递归<strong>左右根</strong>就能排出来，排序小技巧是如图所示，当成一串葡萄，逆时针剪下最外面的一个单一葡萄。</p>
+<p><strong>中序遍历：</strong>左节点–&gt;根节点–&gt;右节点</p>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108094014.png"></p>
+<p>小技巧是看作竖直方向上的投影，其顺序是：HDIBEJAFKCG</p>
+<p>参考：<a href="https://blog.csdn.net/chinesekobe/article/details/110874773">数据结构——二叉树先序、中序、后序及层次四种遍历（C语言版）_中序遍历-CSDN博客</a></p>
+<h3 id="度、节点计算"><a href="#度、节点计算" class="headerlink" title="度、节点计算"></a><strong>度、节点计算</strong></h3><p><strong>入度</strong>为0则为根节点，其余节点入度为1</p>
+<p><strong>出度</strong>则是子节点的个数，可取0、1、2。</p>
+<p>总入度&#x3D;节点总数-1，总入度&#x3D;总出度</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">记节点出度为0、1、2的节点数分别为n0、n1、n2</span><br><span class="line">则总出度<span class="attribute">N</span>=n1+n2*2</span><br><span class="line">总结点数=n0+n1+n2</span><br><span class="line">根据 总入度=节点总数-1，总入度=总出度</span><br><span class="line">则n0+n1+<span class="attribute">n2-1</span>=n2*2+n1</span><br><span class="line">所以<span class="attribute">n0</span>=n2+1</span><br></pre></td></tr></table></figure>
+
+<p>一棵二叉树有十个度为2的节点，5个度为1的节点，求节点总数。10*2+5&#x3D;n-1     n&#x3D;25+1&#x3D;26   26&#x3D;15&#x3D;11     </p>
+<p>节点总数等于度1+度2+度0，因此求出度为0的节点即可，即度2+1，所以10+1&#x3D;11个。</p>
+<p>参考：<a href="https://blog.csdn.net/qq_41126936/article/details/126539411">【精选】二叉树——度以及节点数的计算_二叉树节点和度的计算_不想做咸鱼的霉霉的博客-CSDN博客</a></p>
+<h3 id="计算时间复杂度"><a href="#计算时间复杂度" class="headerlink" title="计算时间复杂度"></a>计算时间复杂度</h3><ul>
+<li>用常数1取代所有加法常数 O(199)—-&gt;O(1)</li>
+<li>只保留最高阶O(n^2+n)—&gt;O(n^2)</li>
+<li>去除最高阶常数O(2*N^2)—-&gt;O(N^2)</li>
+</ul>
+<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108104447.png"></p>
+<p>O(2*N+10)—-&gt;O(N)</p>
+<figure class="highlight gcode"><table><tr><td class="code"><pre><span class="line">下面程序段的时间复杂度为（）。</span><br><span class="line"></span><br><span class="line">i=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span><span class="comment">(i&lt;=n)</span></span><br><span class="line"></span><br><span class="line">i=i*<span class="number">3</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">(A)</span> O<span class="comment">(n)</span>       <span class="comment">(B)</span> O<span class="comment">(3n)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">(C)</span> O<span class="comment">(log3n)</span>   <span class="comment">(D)</span> O<span class="comment">(n3)</span></span><br></pre></td></tr></table></figure>
+
+<p>正确答案是c，3^log3n&#x3D;n。</p>
+<h3 id="存取结构"><a href="#存取结构" class="headerlink" title="存取结构"></a>存取结构</h3><p>顺序存取和随机存取</p>
+<p><strong>随机存取（Random Access）</strong>，指的是当存储器中的数据被读取或写入时，所需要的时间与该数据所在的物理地址无关，数组采用的就是随机存取，通过下标进行存取，存取arr[1]和存取arr[100]没有时间上的区别</p>
+<p><strong>顺序存取（Sequential access）</strong>是一种按记录的逻辑顺序进行读写操作的存取方法，所需的时间与数据所在的位置有关。</p>
+<h3 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h3><p>顺序、链式、索引、哈希存储，后三个可以归为随机存储。</p>
+<h4 id="顺序存储："><a href="#顺序存储：" class="headerlink" title="顺序存储："></a>顺序存储：</h4><p>相邻的数据存储在物理位置上相邻的存储单元。</p>
+<p>优点：节省存储空间、可以实现随机存取</p>
+<p>缺点：修改不方便、产生磁盘碎片</p>
+<p><strong>随机存储：</strong></p>
+<p>相邻的数据物理位置可以不相邻。</p>
+<p>优点：不会产生磁盘碎片、修改数据方便</p>
+<p>缺点：占用空间大、查找时比顺序存储慢，且只能实现顺序存取</p>
+<h3 id="树和森林"><a href="#树和森林" class="headerlink" title="树和森林"></a>树和森林</h3><p><strong>树</strong>是一种非线性数据结构，树由唯一的根和若干互不相交的子树组成。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095442.png"></p>
+<p><strong>森林</strong>是树的集合。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095612.png"></p>
+<p><strong>树到二叉树</strong>的转化规则是：左孩子右兄弟。每个节点左指针指向第一个孩子，右指针指向他在树中相邻的兄弟。根节点没有兄弟，所以对应的二叉树无右子树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115101837.png"></p>
+<p>森林到二叉树，先将森林里的每棵树转为二叉树，然后再第一棵树转换的二叉树的右子树接上第二棵树转化的二叉树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115102215.png"></p>
+<p>参考：<a href="https://blog.csdn.net/mynaiskey/article/details/124842989">树、森林与二叉树的转换_已知树的结点数怎么求森林的左右子数-CSDN博客</a></p>
+]]></content>
+      <tags>
+        <tag>数据结构</tag>
       </tags>
   </entry>
   <entry>
@@ -2384,58 +2441,47 @@
       </tags>
   </entry>
   <entry>
-    <title>数据结构（考试篇）</title>
-    <url>/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/</url>
-    <content><![CDATA[<h3 id="二叉树的先序遍历、后序遍历、中序遍历"><a href="#二叉树的先序遍历、后序遍历、中序遍历" class="headerlink" title="二叉树的先序遍历、后序遍历、中序遍历"></a>二叉树的先序遍历、后序遍历、中序遍历</h3><p><strong>先序遍历：</strong>根节点—&gt;左节点–&gt;右节点</p>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108092718.png"></p>
-<span id="more"></span>
+    <title>破解010Editor</title>
+    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
+    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
+<p>去官网按照自己的需求下载</p>
+<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
 
-<p>这个过程是递归的，比如说访问了左节点B之后不是去访问右节点C，而是去访问了以B为根节点的左节点D。顺序有个规律，可以看作是这个小人逆时针跑了一圈：A B D H I E J E C F K G</p>
-<p><strong>后序遍历：</strong>左节点–&gt;右节点–&gt;根节点</p>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108093513.png"></p>
-<p>按照递归<strong>左右根</strong>就能排出来，排序小技巧是如图所示，当成一串葡萄，逆时针剪下最外面的一个单一葡萄。</p>
-<p><strong>中序遍历：</strong>左节点–&gt;根节点–&gt;右节点</p>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108094014.png"></p>
-<p>小技巧是看作竖直方向上的投影，其顺序是：HDIBEJAFKCG</p>
-<p>参考：<a href="https://blog.csdn.net/chinesekobe/article/details/110874773">数据结构——二叉树先序、中序、后序及层次四种遍历（C语言版）_中序遍历-CSDN博客</a></p>
-<h3 id="度、节点计算"><a href="#度、节点计算" class="headerlink" title="度、节点计算"></a><strong>度、节点计算</strong></h3><p><strong>入度</strong>为0则为根节点，其余节点入度为1</p>
-<p><strong>出度</strong>则是子节点的个数，可取0、1、2。</p>
-<p>总入度&#x3D;节点总数-1，总入度&#x3D;总出度</p>
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">记节点出度为0、1、2的节点数分别为n0、n1、n2</span><br><span class="line">则总出度<span class="attribute">N</span>=n1+n2*2</span><br><span class="line">总结点数=n0+n1+n2</span><br><span class="line">根据 总入度=节点总数-1，总入度=总出度</span><br><span class="line">则n0+n1+<span class="attribute">n2-1</span>=n2*2+n1</span><br><span class="line">所以<span class="attribute">n0</span>=n2+1</span><br></pre></td></tr></table></figure>
-
-<p>一棵二叉树有十个度为2的节点，5个度为1的节点，求节点总数。10*2+5&#x3D;n-1     n&#x3D;25+1&#x3D;26   26&#x3D;15&#x3D;11     </p>
-<p>节点总数等于度1+度2+度0，因此求出度为0的节点即可，即度2+1，所以10+1&#x3D;11个。</p>
-<p>参考：<a href="https://blog.csdn.net/qq_41126936/article/details/126539411">【精选】二叉树——度以及节点数的计算_二叉树节点和度的计算_不想做咸鱼的霉霉的博客-CSDN博客</a></p>
-<h3 id="计算时间复杂度"><a href="#计算时间复杂度" class="headerlink" title="计算时间复杂度"></a>计算时间复杂度</h3><ul>
-<li>用常数1取代所有加法常数 O(199)—-&gt;O(1)</li>
-<li>只保留最高阶O(n^2+n)—&gt;O(n^2)</li>
-<li>去除最高阶常数O(2*N^2)—-&gt;O(N^2)</li>
-</ul>
-<p><img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231108104447.png"></p>
-<p>O(2*N+10)—-&gt;O(N)</p>
-<figure class="highlight gcode"><table><tr><td class="code"><pre><span class="line">下面程序段的时间复杂度为（）。</span><br><span class="line"></span><br><span class="line">i=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span><span class="comment">(i&lt;=n)</span></span><br><span class="line"></span><br><span class="line">i=i*<span class="number">3</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">(A)</span> O<span class="comment">(n)</span>       <span class="comment">(B)</span> O<span class="comment">(3n)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">(C)</span> O<span class="comment">(log3n)</span>   <span class="comment">(D)</span> O<span class="comment">(n3)</span></span><br></pre></td></tr></table></figure>
-
-<p>正确答案是c，3^log3n&#x3D;n。</p>
-<h3 id="存取结构"><a href="#存取结构" class="headerlink" title="存取结构"></a>存取结构</h3><p>顺序存取和随机存取</p>
-<p><strong>随机存取（Random Access）</strong>，指的是当存储器中的数据被读取或写入时，所需要的时间与该数据所在的物理地址无关，数组采用的就是随机存取，通过下标进行存取，存取arr[1]和存取arr[100]没有时间上的区别</p>
-<p><strong>顺序存取（Sequential access）</strong>是一种按记录的逻辑顺序进行读写操作的存取方法，所需的时间与数据所在的位置有关。</p>
-<h3 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h3><p>顺序、链式、索引、哈希存储，后三个可以归为随机存储。</p>
-<h4 id="顺序存储："><a href="#顺序存储：" class="headerlink" title="顺序存储："></a>顺序存储：</h4><p>相邻的数据存储在物理位置上相邻的存储单元。</p>
-<p>优点：节省存储空间、可以实现随机存取</p>
-<p>缺点：修改不方便、产生磁盘碎片</p>
-<p><strong>随机存储：</strong></p>
-<p>相邻的数据物理位置可以不相邻。</p>
-<p>优点：不会产生磁盘碎片、修改数据方便</p>
-<p>缺点：占用空间大、查找时比顺序存储慢，且只能实现顺序存取</p>
-<h3 id="树和森林"><a href="#树和森林" class="headerlink" title="树和森林"></a>树和森林</h3><p><strong>树</strong>是一种非线性数据结构，树由唯一的根和若干互不相交的子树组成。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095442.png"></p>
-<p><strong>森林</strong>是树的集合。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115095612.png"></p>
-<p><strong>树到二叉树</strong>的转化规则是：左孩子右兄弟。每个节点左指针指向第一个孩子，右指针指向他在树中相邻的兄弟。根节点没有兄弟，所以对应的二叉树无右子树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115101837.png"></p>
-<p>森林到二叉树，先将森林里的每棵树转为二叉树，然后再第一棵树转换的二叉树的右子树接上第二棵树转化的二叉树。<img src="/2023/11/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%88%E8%80%83%E8%AF%95%E7%AF%87%EF%BC%89/QQ%E6%88%AA%E5%9B%BE20231115102215.png"></p>
-<p>参考：<a href="https://blog.csdn.net/mynaiskey/article/details/124842989">树、森林与二叉树的转换_已知树的结点数怎么求森林的左右子数-CSDN博客</a></p>
+<p>我是win64</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
+<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
+<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
+<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
+<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
+<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
+<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
+<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
+<p>查看流程图更加明了一点</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
+<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
+<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
+<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
+<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
+<p>然后我们将这个275修改成219</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
+<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
+<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
+<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
+<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
+<p>这个就算大功告成啦</p>
+<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
+<p>点击help –&gt; about 随意输入即可</p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
+<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
+<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
+<p>参考：</p>
+<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
 ]]></content>
-      <tags>
-        <tag>数据结构</tag>
-      </tags>
   </entry>
   <entry>
     <title>汇编语言</title>
@@ -2704,49 +2750,6 @@
       </tags>
   </entry>
   <entry>
-    <title>破解010Editor</title>
-    <url>/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/</url>
-    <content><![CDATA[<p>刚开始学安全的时候，以为逆向就是软件破解hhh，学习了也有段时间了，挑个软柿子捏捏吧。</p>
-<p>去官网按照自己的需求下载</p>
-<span id="more"></span>![](破解010Editor/QQ截图20230730115114.png)
-
-<p>我是win64</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730115747.png"></p>
-<p>不知道什么原因哈，我这个一打开是这样的，应为是破解完才写的博客，这个是我重新下载的一个，看这个名字和密码也是我之前随便输入的，不重要，直接上ida。</p>
-<p>直接字符串搜索，就搜索下面的文本就行“thank you”<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120246.png"></p>
-<p>双击之后x交叉引用<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120302.png"></p>
-<p>进入了流程图界面，按一下tab即可进入伪代码界面，代码不多，翻找一下即可找到<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120429.png"></p>
-<p>也就是v17只要满足这个判断就说明我们成功了。什么？你问为什么？</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120606.png"></p>
-<p>现在知道了吧hhh找到最近的v17点进去看看<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120710.png"></p>
-<p>我们只要使这个函数的返回值等于219即可，进入之后我们可以看到很多判断和ruturn<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730120814.png"></p>
-<p>查看流程图更加明了一点</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121003.png"></p>
-<p>直接从头开始，jz代表的是判断为0则跳转	，对应的就是这里<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121106.png"></p>
-<p>最简单的就是去掉这个判断条件，直接让他return然后把return的值修改一下即可。按空格进入汇编页面，选中jz那里（要多选择一行）然后右键点击fill with nops就行啦</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121528.png"></p>
-<p>修改之后整个函数就变得简单啦<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121710.png"></p>
-<p>再次查看刚在那个有很多return的函数发现变成这样了<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121753.png"></p>
-<p>然后我们将这个275修改成219</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730121935.png"></p>
-<p>就ok啦。最后edit–&gt;patch program –&gt;apply patch to input file</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122208.png"></p>
-<p>出现了一个permisson denied，拒绝访问，查了一下多是linux系统中权限的问题，好像换一个盘符也可以解决，我摸索了一下，直接将刚才下载的010Editor.exe复制到别的地方，不在原来的目录即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122808.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122841.png"></p>
-<p>然后这里的地址修改一下<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122912.png"></p>
-<p>出现<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730122558.png"></p>
-<p>这个就算大功告成啦</p>
-<p>然后将这个更改后的程序复制到之前的目录，选择替换即可<img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123134.png"></p>
-<p>点击help –&gt; about 随意输入即可</p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123059.png"></p>
-<p><img src="/2023/07/30/%E7%A0%B4%E8%A7%A3010Editor/QQ%E6%88%AA%E5%9B%BE20230730123105.png"></p>
-<p>其是毫无难度，应该也可以找到加密函数写注册机啥的。其实感觉这一年的学习下来，学会的最重要的技能就是使用搜索引擎了，遇到什么问题都不至于太慌乱，可以想象，要是之前的我遇到种种报错和权限问题肯定慌得不行，现在第一反应就是取edge一下，再不行就Google一下，再不行就问一下学长。加油！！！</p>
-<p>参考：</p>
-<p><a href="https://www.bilibili.com/read/cv12423453/">https://www.bilibili.com/read/cv12423453/</a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>第八章-异常控制流</title>
     <url>/2023/09/10/%E7%AC%AC%E5%85%AB%E7%AB%A0-%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81/</url>
     <content><![CDATA[<p><strong>控制流</strong> 简单来讲就是程序执行期间代码执行的顺序和方式，即程序从一个语句到另一个语句的跳转和执行顺序。</p>
@@ -2884,6 +2887,50 @@
       <tags>
         <tag>CSAPP</tag>
         <tag>ECF</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>花指令实现与对抗</title>
+    <url>/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/</url>
+    <content><![CDATA[<blockquote>
+<p>花指令（junk code）是一种专门用来迷惑反编译器的指令片段，这些指令片段不会影响程序的原有功能，但会使得反汇编器的结果出现偏差，从而使破解者分析失败。比较经典的花指令技巧有利用 <code>jmp</code> 、<code>call</code>、<code>ret</code> 指令改变执行流，从而使得反汇编器解析出与运行时不相符的错误代码。</p>
+<p>—CTF Wiki</p>
+</blockquote>
+<p>简单来讲花指令分为两大类，一种是会被执行的花指令，另一种是不会被执行的花指令。</p>
+<p>花指令出现的意义就是干扰机器进行反汇编，迫使人工进行分析。</p>
+<span id="more"></span>
+
+<h3 id="不会被执行的花指令"><a href="#不会被执行的花指令" class="headerlink" title="不会被执行的花指令"></a>不会被执行的花指令</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;xor %eax,%eax;&quot;</span></span><br><span class="line">        <span class="string">&quot;jz s;&quot;</span></span><br><span class="line">        <span class="string">&quot;add $0x11,%esp;&quot;</span>     <span class="comment">//让ida误认为栈不平衡，实则根本没有执行</span></span><br><span class="line">        <span class="string">&quot;s:;&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcode\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>内联汇编的语法，语句放在（）内，每条指令被””包裹，以分号结尾，如果要使用寄存器则要在寄存器前加上**%<strong>，如果使用立即数则在前面加上</strong>$**。</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012521.png"></p>
+<p>可以看到上方爆红。在汇编界面，直接将红框里的内容nop掉<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012625.png"></p>
+<p>修复后如下<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012800.png"></p>
+<h3 id="可以执行的花指令"><a href="#可以执行的花指令" class="headerlink" title="可以执行的花指令"></a>可以执行的花指令</h3><h4 id="破坏栈"><a href="#破坏栈" class="headerlink" title="破坏栈"></a>破坏栈</h4><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;call next;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;next:\n&quot;</span></span><br><span class="line">        <span class="string">&quot;movl $continue,(%esp);\n&quot;</span></span><br><span class="line">        <span class="string">&quot;ret;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;continue:\n&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcodes\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>内联汇编的内容实际上就是使用call进行跳转，实现的效果就是跳转到continue打印hello,junkcodes。这样为什么能使ida异常呢？我的理解是：call可以看作是push ip + jmp 指令，ret可以看作是pop ip指令，第一个call next在我们看来相当于一个简单的jmp跳转到了下一条指令，而ida肯定会将它当作函数进行分析，函数内执行了**movl $continue,(%esp);**这样一个操作，将continue的地址放入了esp寄存器中，然后ret指令将IP设为continue的地址，于是顺利执行printf指令。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023535.png"></p>
+<p>也就是在ret指令执行过后，esp并没有复原，但是不影响程序运行，这就导致ida认为堆栈不平衡，导致不能反汇编。我们直接将这样的垃圾指令nop掉即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023758.png"></p>
+<p>然后f5一下即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023834.png"></p>
+<p>代码从之前的</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023927.png"></p>
+<p>变为了</p>
+<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023948.png"></p>
+<p>参考：<a href="https://nnnewb.github.io/blog/p/learning-packer-07/">https://nnnewb.github.io/blog/p/learning-packer-07/</a></p>
+<h4 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h4><p>在vs上，选择x86，编译</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call sub7</span><br><span class="line">		_emit <span class="number">0xE8</span></span><br><span class="line">		jmp label7</span><br><span class="line">		sub7 :</span><br><span class="line">		add dword ptr[esp], <span class="number">1</span></span><br><span class="line">			retn</span><br><span class="line">			label7 :</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;hello,world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个emit相当于汇编中的<strong>db</strong>，作用是在当前位置直接插入数据，而我们插入的0xE8是call指令的机器码，于是紧挨着的几个字节会被当作地址处处理，这会导致反汇编的失败。</p>
+<p>这段代码的逻辑：调用sub7，执行add dword ptr[esp], 1，给[esp]+1，而【esp】保存的是call下面一条指令也就是_emit 0xE8的地址，经过这样的操作，在执行retn语句的时候，不会返回_emit 0xE8而是直接执行下面的jmp label7，于是程序正常运行。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129151334.png"></p>
+<p>直接把红框部分nop掉,然后在这个位置按下U也就是undefine<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165105.png"></p>
+<p>然后再按下c，将数据解析为代码，按下p创建函数，最后F5即可。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165256.png"></p>
+<p>赏心悦目<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165314.png"></p>
+<p>话有一种方法是将E8后面的数据给还原，源代码我们知道，E8后面是一条跳转指令，而不应该像现在这样被解析为数据，在此处按下U<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165430.png"></p>
+<p>光标放在这个位置按下C<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165601.png"></p>
+<p>得到<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165632.png"></p>
+<p>woc，又不行了（刚才不知道为什么阴差阳错这种办法也行），无语了。。。</p>
+]]></content>
+      <tags>
+        <tag>花指令</tag>
       </tags>
   </entry>
   <entry>
@@ -3143,50 +3190,6 @@
 ]]></content>
       <tags>
         <tag>计算机网络</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>花指令实现与对抗</title>
-    <url>/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/</url>
-    <content><![CDATA[<blockquote>
-<p>花指令（junk code）是一种专门用来迷惑反编译器的指令片段，这些指令片段不会影响程序的原有功能，但会使得反汇编器的结果出现偏差，从而使破解者分析失败。比较经典的花指令技巧有利用 <code>jmp</code> 、<code>call</code>、<code>ret</code> 指令改变执行流，从而使得反汇编器解析出与运行时不相符的错误代码。</p>
-<p>—CTF Wiki</p>
-</blockquote>
-<p>简单来讲花指令分为两大类，一种是会被执行的花指令，另一种是不会被执行的花指令。</p>
-<p>花指令出现的意义就是干扰机器进行反汇编，迫使人工进行分析。</p>
-<span id="more"></span>
-
-<h3 id="不会被执行的花指令"><a href="#不会被执行的花指令" class="headerlink" title="不会被执行的花指令"></a>不会被执行的花指令</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;xor %eax,%eax;&quot;</span></span><br><span class="line">        <span class="string">&quot;jz s;&quot;</span></span><br><span class="line">        <span class="string">&quot;add $0x11,%esp;&quot;</span>     <span class="comment">//让ida误认为栈不平衡，实则根本没有执行</span></span><br><span class="line">        <span class="string">&quot;s:;&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcode\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>内联汇编的语法，语句放在（）内，每条指令被””包裹，以分号结尾，如果要使用寄存器则要在寄存器前加上**%<strong>，如果使用立即数则在前面加上</strong>$**。</p>
-<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012521.png"></p>
-<p>可以看到上方爆红。在汇编界面，直接将红框里的内容nop掉<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012625.png"></p>
-<p>修复后如下<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128012800.png"></p>
-<h3 id="可以执行的花指令"><a href="#可以执行的花指令" class="headerlink" title="可以执行的花指令"></a>可以执行的花指令</h3><h4 id="破坏栈"><a href="#破坏栈" class="headerlink" title="破坏栈"></a>破坏栈</h4><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> (</span><br><span class="line">        <span class="string">&quot;call next;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;next:\n&quot;</span></span><br><span class="line">        <span class="string">&quot;movl $continue,(%esp);\n&quot;</span></span><br><span class="line">        <span class="string">&quot;ret;\n&quot;</span></span><br><span class="line">        <span class="string">&quot;continue:\n&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello,junkcodes\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>内联汇编的内容实际上就是使用call进行跳转，实现的效果就是跳转到continue打印hello,junkcodes。这样为什么能使ida异常呢？我的理解是：call可以看作是push ip + jmp 指令，ret可以看作是pop ip指令，第一个call next在我们看来相当于一个简单的jmp跳转到了下一条指令，而ida肯定会将它当作函数进行分析，函数内执行了**movl $continue,(%esp);**这样一个操作，将continue的地址放入了esp寄存器中，然后ret指令将IP设为continue的地址，于是顺利执行printf指令。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023535.png"></p>
-<p>也就是在ret指令执行过后，esp并没有复原，但是不影响程序运行，这就导致ida认为堆栈不平衡，导致不能反汇编。我们直接将这样的垃圾指令nop掉即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023758.png"></p>
-<p>然后f5一下即可<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023834.png"></p>
-<p>代码从之前的</p>
-<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023927.png"></p>
-<p>变为了</p>
-<p><img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231128023948.png"></p>
-<p>参考：<a href="https://nnnewb.github.io/blog/p/learning-packer-07/">https://nnnewb.github.io/blog/p/learning-packer-07/</a></p>
-<h4 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h4><p>在vs上，选择x86，编译</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call sub7</span><br><span class="line">		_emit <span class="number">0xE8</span></span><br><span class="line">		jmp label7</span><br><span class="line">		sub7 :</span><br><span class="line">		add dword ptr[esp], <span class="number">1</span></span><br><span class="line">			retn</span><br><span class="line">			label7 :</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;hello,world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这个emit相当于汇编中的<strong>db</strong>，作用是在当前位置直接插入数据，而我们插入的0xE8是call指令的机器码，于是紧挨着的几个字节会被当作地址处处理，这会导致反汇编的失败。</p>
-<p>这段代码的逻辑：调用sub7，执行add dword ptr[esp], 1，给[esp]+1，而【esp】保存的是call下面一条指令也就是_emit 0xE8的地址，经过这样的操作，在执行retn语句的时候，不会返回_emit 0xE8而是直接执行下面的jmp label7，于是程序正常运行。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129151334.png"></p>
-<p>直接把红框部分nop掉,然后在这个位置按下U也就是undefine<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165105.png"></p>
-<p>然后再按下c，将数据解析为代码，按下p创建函数，最后F5即可。<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165256.png"></p>
-<p>赏心悦目<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165314.png"></p>
-<p>话有一种方法是将E8后面的数据给还原，源代码我们知道，E8后面是一条跳转指令，而不应该像现在这样被解析为数据，在此处按下U<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165430.png"></p>
-<p>光标放在这个位置按下C<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165601.png"></p>
-<p>得到<img src="/2024/03/19/%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%AF%B9%E6%8A%97/QQ%E6%88%AA%E5%9B%BE20231129165632.png"></p>
-<p>woc，又不行了（刚才不知道为什么阴差阳错这种办法也行），无语了。。。</p>
-]]></content>
-      <tags>
-        <tag>花指令</tag>
       </tags>
   </entry>
 </search>
