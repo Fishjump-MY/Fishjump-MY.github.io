@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="vm题算是逆向中比较难的一种题型了，就在这里详细的记录一下。 原理程序运行时通过解释操作码（opcode）选择对应的函数（handle）执行。 vm_start进行初始化工作。在这个函数里，规定了有几个寄存器，以及有几种不同的操作。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GWCTF2019babyvm">
+<meta property="og:url" content="http://example.com/2024/03/25/GWCTF2019babyvm/index.html">
+<meta property="og:site_name" content="fishjump&#39;s blog">
+<meta property="og:description" content="vm题算是逆向中比较难的一种题型了，就在这里详细的记录一下。 原理程序运行时通过解释操作码（opcode）选择对应的函数（handle）执行。 vm_start进行初始化工作。在这个函数里，规定了有几个寄存器，以及有几种不同的操作。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325003128.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325003542.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325010151.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325010707.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325011346.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325011522.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325015338.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325021948.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325022159.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325022327.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325022438.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325023809.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325023915.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325180552.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325180702.png">
+<meta property="og:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325181250.png">
+<meta property="article:published_time" content="2024-03-25T10:44:20.000Z">
+<meta property="article:modified_time" content="2024-03-25T10:44:20.751Z">
+<meta property="article:author" content="fishjump">
+<meta property="article:tag" content="wp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325003128.png">
+
+<link rel="canonical" href="http://example.com/2024/03/25/GWCTF2019babyvm/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>GWCTF2019babyvm | fishjump's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="fishjump's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">fishjump's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">fly,fly,fly</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/03/25/GWCTF2019babyvm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GWCTF2019babyvm
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-03-25 18:44:20" itemprop="dateCreated datePublished" datetime="2024-03-25T18:44:20+08:00">2024-03-25</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>vm题算是逆向中比较难的一种题型了，就在这里详细的记录一下。</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>程序运行时通过解释操作码（opcode）选择对应的函数（handle）执行。</p>
+<h3 id="vm-start"><a href="#vm-start" class="headerlink" title="vm_start"></a>vm_start</h3><p>进行初始化工作。在这个函数里，规定了有几个寄存器，以及有几种不同的操作。<img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325003128.png"></p>
+<span id="more"></span>
+
+<p>这样看不明显，创建结构体修复一下，结构体长这个样子</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> R0;      <span class="comment">//寄存器</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> R1;    </span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> R2;   </span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> R4;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *rip;    <span class="comment">//指向正在解释的opcode地址</span></span><br><span class="line">    vm_opcode op_list[OPCODE_N];    <span class="comment">//opcode列表，存放了所有的opcode及其对应的处理函数</span></span><br><span class="line">&#125;vm_cpu;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> opcode;</span><br><span class="line">    <span class="type">void</span> (*handle)(<span class="type">void</span>*);</span><br><span class="line">&#125;vm_opcode;</span><br></pre></td></tr></table></figure>
+
+<p>修复完的初始化函数</p>
+<p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325003542.png"></p>
+<h3 id="vm-start-1"><a href="#vm-start-1" class="headerlink" title="vm_start"></a>vm_start</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">vm_start</span><span class="params">(vm_cpu *cpu)</span></span><br><span class="line">&#123;</span><br><span class="line">    </span><br><span class="line">    cpu-&gt;eip = (<span class="type">unsigned</span> <span class="type">char</span>*)opcodes;   <span class="comment">//这里不是在上面就初始化过了吗？？？</span></span><br><span class="line">    <span class="keyword">while</span>((*cpu-&gt;eip) != <span class="number">0xf4</span>)<span class="comment">//如果opcode不为RET，就调用vm_dispatcher来解释执行</span></span><br><span class="line">    &#123;</span><br><span class="line">        vm_dispatcher(*cpu-&gt;eip)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325010151.png"></p>
+<p>如果rip指向的操作码为F4就返回。</p>
+<h3 id="vm-dispatcher"><a href="#vm-dispatcher" class="headerlink" title="vm_dispatcher"></a>vm_dispatcher</h3><p>调度器，任务是根据opcode选择函数执行</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">vm_dispatcher</span><span class="params">(vm_cpu *cpu)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; OPCODE_N; i++)</span><br><span class="line">    &#123;    </span><br><span class="line">        <span class="keyword">if</span>(*cpu-&gt;eip == cpu-&gt;op_list[i].opcode)</span><br><span class="line">        &#123;</span><br><span class="line">            cpu-&gt;op_list[i].handle(cpu);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325010707.png"></p>
+<p>循环，找到opcode对应的函数。</p>
+<p>参考链接：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43876357/article/details/108570305">系统学习vm虚拟机逆向_vmware 逆向-CSDN博客</a></p>
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><p>【GWCTF2019babyvm】</p>
+<h3 id="分析opcode"><a href="#分析opcode" class="headerlink" title="分析opcode"></a>分析opcode</h3><p>知道了原理之后，就可以分析题目加深理解了。</p>
+<p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325011346.png"></p>
+<p>主要分析vm_ini函数，搞清楚opcode对应的操作。</p>
+<p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325011522.png"></p>
+<h4 id="0xF1"><a href="#0xF1" class="headerlink" title="0xF1"></a>0xF1</h4><p>可以把这个当作mov指令</p>
+<p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325015338.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v2 = (<span class="type">int</span> *)(a1-&gt;_rip + <span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+
+<p>v2指向当前指令往后偏移两个字节的位置。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a1-&gt;_rip += <span class="number">6LL</span>;</span><br></pre></td></tr></table></figure>
+
+<p>说明这条指令的大小为6字节。</p>
+<p>可以看出这条指令可以将复制一些值到寄存器，也可以将寄存器的值复制过去。</p>
+<p>拿第一组数据来看，a1-&gt;rip+1是0xE1，那么将input[*v2]的值存入寄存器R0，也就是R0&#x3D;input[0]</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">0xF1</span>, <span class="number">0</span>xE1, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00,</span><br></pre></td></tr></table></figure>
+
+<h4 id="0xF2"><a href="#0xF2" class="headerlink" title="0xF2"></a>0xF2</h4><p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325021948.png"></p>
+<p>R0&#x3D;R0^R1，指令长度1字节。</p>
+<h4 id="0xF5"><a href="#0xF5" class="headerlink" title="0xF5"></a>0xF5</h4><p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325022159.png"></p>
+<p>读取输入并判断长度。</p>
+<h4 id="0xF4"><a href="#0xF4" class="headerlink" title="0xF4"></a>0xF4</h4><p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325022327.png"></p>
+<p>空操作，nop，作用是将rip+1。</p>
+<h4 id="0xF7"><a href="#0xF7" class="headerlink" title="0xF7"></a>0xF7</h4><p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325022438.png"></p>
+<p>R0*&#x3D;R3，指令长度为1。</p>
+<h4 id="0xF8"><a href="#0xF8" class="headerlink" title="0xF8"></a>0xF8</h4><p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325023809.png"></p>
+<p>交换R0和R1的数值。</p>
+<h4 id="0xF6"><a href="#0xF6" class="headerlink" title="0xF6"></a>0xF6</h4><p><img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325023915.png"></p>
+<p>R0&#x3D;R2+2*R1+3*R0</p>
+<h3 id="翻译"><a href="#翻译" class="headerlink" title="翻译"></a>翻译</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">myswap</span><span class="params">(<span class="type">char</span>*a,<span class="type">char</span>*b)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> opcode[<span class="number">575</span>] = &#123;</span><br><span class="line">    <span class="number">0xF5</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, </span><br><span class="line">    <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x21</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x02</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x22</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x03</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, </span><br><span class="line">    <span class="number">0xE4</span>, <span class="number">0x23</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x04</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x24</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x05</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x25</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, </span><br><span class="line">    <span class="number">0xE1</span>, <span class="number">0x06</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x26</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x07</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x27</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x08</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, </span><br><span class="line">    <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x28</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x09</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x29</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0A</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x2A</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0B</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x2B</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0C</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x2C</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0D</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x2D</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0E</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, </span><br><span class="line">    <span class="number">0x2E</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0F</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x2F</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x10</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x30</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, </span><br><span class="line">    <span class="number">0x11</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x31</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x12</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x32</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x13</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, </span><br><span class="line">    <span class="number">0xE4</span>, <span class="number">0x33</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF4</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0xF5</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x02</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x02</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x03</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x02</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x03</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x04</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x03</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x04</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x05</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x04</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x05</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x06</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF2</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x05</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x06</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x07</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, </span><br><span class="line">    <span class="number">0xE3</span>, <span class="number">0x08</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE5</span>, <span class="number">0x0C</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF6</span>, <span class="number">0xF7</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x06</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x07</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x08</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, </span><br><span class="line">    <span class="number">0xE3</span>, <span class="number">0x09</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE5</span>, <span class="number">0x0C</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF6</span>, <span class="number">0xF7</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x07</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x08</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x09</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, </span><br><span class="line">    <span class="number">0xE3</span>, <span class="number">0x0A</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE5</span>, <span class="number">0x0C</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF6</span>, <span class="number">0xF7</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x08</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0D</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x13</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF8</span>, </span><br><span class="line">    <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x0D</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE7</span>, <span class="number">0x13</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0E</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x12</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF8</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x0E</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, </span><br><span class="line">    <span class="number">0xE7</span>, <span class="number">0x12</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE1</span>, <span class="number">0x0F</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE2</span>, <span class="number">0x11</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0xF8</span>, <span class="number">0xF1</span>, <span class="number">0xE4</span>, <span class="number">0x0F</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xF1</span>, <span class="number">0xE7</span>, <span class="number">0x11</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,<span class="number">0xf4</span>&#125;;</span><br><span class="line">    <span class="comment">//翻译</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">575</span>; )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (opcode[i] == <span class="number">0xf1</span>) <span class="comment">// mov</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">switch</span> (opcode[i+<span class="number">1</span>])</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">0xE1</span>:</span><br><span class="line">                <span class="comment">//a1-&gt;R0 = *((char *)input + *v2);</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;R0=input[%d]\n&quot;</span>,*(<span class="type">int</span>*)&amp;opcode[i+<span class="number">2</span>]);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">0xE2</span>:</span><br><span class="line">                <span class="comment">//a1-&gt;R1 = *((char *)input + *v2);</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;R1=input[%d]\n&quot;</span>,*(<span class="type">int</span>*)&amp;opcode[i+<span class="number">2</span>]);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">0xE3</span>:</span><br><span class="line">                <span class="comment">//a1-&gt;R2 = *((char *)input + *v2);</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;R2=input[%d]\n&quot;</span>,*(<span class="type">int</span>*)&amp;opcode[i+<span class="number">2</span>]);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">0xE4</span>:</span><br><span class="line">                <span class="comment">//*((_BYTE *)input + *v2) = a1-&gt;R0;</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;input[%d]=R0\n&quot;</span>,*(<span class="type">int</span>*)&amp;opcode[i+<span class="number">2</span>]);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">0xE5</span>:</span><br><span class="line">                <span class="comment">//a1-&gt;R3 = *((char *)input + *v2);</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;R3=input[%d]\n&quot;</span>,*(<span class="type">int</span>*)&amp;opcode[i+<span class="number">2</span>]);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">0xE7</span>:</span><br><span class="line">                <span class="comment">//*((_BYTE *)input + *v2) = a1-&gt;R1;</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;input[%d]=R1\n&quot;</span>,*(<span class="type">int</span>*)&amp;opcode[i+<span class="number">2</span>]);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;mov wrong!!!!!\n&quot;</span>);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            i+=<span class="number">6</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (opcode[i] == <span class="number">0xf2</span>) <span class="comment">// xor</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;R0=R0^R1\n&quot;</span>);</span><br><span class="line">            i+=<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (opcode[i] == <span class="number">0xf5</span>) <span class="comment">// scanf</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;please input:\n&quot;</span>);</span><br><span class="line">            i+=<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (opcode[i] == <span class="number">0xf4</span>) <span class="comment">// nop</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;0xF4 nop\n&quot;</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">            i+=<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (opcode[i] == <span class="number">0xf7</span>) <span class="comment">//*</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;R0*=R3\n&quot;</span>);</span><br><span class="line">            i+=<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (opcode[i] == <span class="number">0xf8</span>) <span class="comment">// change</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;change(R0,R1)\n&quot;</span>);</span><br><span class="line">            i+=<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (opcode[i] == <span class="number">0xf6</span>) <span class="comment">//</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;R0=R2+2*R1+3*R0\n&quot;</span>);</span><br><span class="line">            i+=<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(opcode[i]==<span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;nop\n&quot;</span>);</span><br><span class="line">            i++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;over!!&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到了两段程序，第一个是简单的异或</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">please <span class="selector-tag">input</span>:       R1=<span class="number">18</span></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[0]</span>        </span><br><span class="line">R0=R0^R1       <span class="comment">//input0^18</span></span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[32]</span>=R0      </span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[1]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[33]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[2]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[34]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[3]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[35]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[4]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[36]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[5]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[37]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[6]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[38]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[7]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[39]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[8]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[40]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[9]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[41]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[10]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[42]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[11]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[43]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[12]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[44]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[13]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[45]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[14]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[46]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[15]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[47]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[16]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[48]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[17]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[49]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[18]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[50]</span>=R0</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[19]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[51]</span>=R0</span><br><span class="line"><span class="number">0</span>xF4 nop</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">21</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>,cpdata[i]^<span class="number">18</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//This_is_not_flag_233</span></span><br></pre></td></tr></table></figure>
+
+<p>第二段</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line">please <span class="selector-tag">input</span>:</span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[0]</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[1]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[0]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[1]</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[2]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[1]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[2]</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[3]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[2]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[3]</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[4]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[3]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[4]</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[5]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[4]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[5]</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[6]</span></span><br><span class="line">R0=R0^R1</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[5]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[6]</span>          <span class="comment">//input[6]=</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[7]</span></span><br><span class="line">R2=<span class="selector-tag">input</span><span class="selector-attr">[8]</span></span><br><span class="line">R3=<span class="selector-tag">input</span><span class="selector-attr">[12]</span></span><br><span class="line">R0=R2+<span class="number">2</span>*R1+<span class="number">3</span>*R0</span><br><span class="line">R0*=R3</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[6]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[7]</span>              <span class="comment">//input[7]=</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[8]</span></span><br><span class="line">R2=<span class="selector-tag">input</span><span class="selector-attr">[9]</span></span><br><span class="line">R3=<span class="selector-tag">input</span><span class="selector-attr">[12]</span></span><br><span class="line">R0=R2+<span class="number">2</span>*R1+<span class="number">3</span>*R0</span><br><span class="line">R0*=R3</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[7]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[8]</span>                  <span class="comment">//input[8]=(input[8]/R3-2*input[9]-input[10])/4</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[9]</span></span><br><span class="line">R2=<span class="selector-tag">input</span><span class="selector-attr">[10]</span></span><br><span class="line">R3=<span class="selector-tag">input</span><span class="selector-attr">[12]</span></span><br><span class="line">R0=R2+<span class="number">2</span>*R1+<span class="number">3</span>*R0</span><br><span class="line">R0*=R3</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[8]</span>=R0</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[13]</span>      <span class="comment">//置换  13  19</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[19]</span></span><br><span class="line"><span class="function"><span class="title">change</span><span class="params">(R0,R1)</span></span></span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[13]</span>=R0</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[19]</span>=R1</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[14]</span>       <span class="comment">//置换14 18</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[18]</span></span><br><span class="line"><span class="function"><span class="title">change</span><span class="params">(R0,R1)</span></span></span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[14]</span>=R0</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[18]</span>=R1</span><br><span class="line"></span><br><span class="line">R0=<span class="selector-tag">input</span><span class="selector-attr">[15]</span>       <span class="comment">//置换15 17</span></span><br><span class="line">R1=<span class="selector-tag">input</span><span class="selector-attr">[17]</span></span><br><span class="line"><span class="function"><span class="title">change</span><span class="params">(R0,R1)</span></span></span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[15]</span>=R0</span><br><span class="line"><span class="selector-tag">input</span><span class="selector-attr">[17]</span>=R1</span><br><span class="line"><span class="number">0</span>xF4 nop   </span><br><span class="line"></span><br><span class="line">over!!</span><br></pre></td></tr></table></figure>
+
+<p>第二段的比较数据就在第一个比较数据的附近，在得到假flag之后，查看该处的数据<img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325180552.png"></p>
+<p>发现上面有一个可疑数据，查看它的交叉引用，可以跟进一个比较函数<img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325180702.png"></p>
+<p>但是比较奇怪的是，这个函数没有被调用过，之前做过actf的一道题，函数通过栈溢出覆盖了返回值，从而被调用，但是这一题就算输入了真正的flag，也不会调用这一处函数，所以感觉有点……，虽然有提示，虽然opcode有两个0xf5调用输入，但还是有些生硬了。<img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325181250.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">myswap</span><span class="params">(<span class="type">char</span>*a,<span class="type">char</span>*b)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">30</span>;i&lt;<span class="number">127</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(realdata[<span class="number">8</span>]==(<span class="type">unsigned</span> <span class="type">char</span>)((realdata[<span class="number">10</span>]+<span class="number">2</span>*realdata[<span class="number">9</span>]+<span class="number">3</span>*i)*realdata[<span class="number">12</span>]))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//printf(&quot;flag[8]==%c\n&quot;,i);</span></span><br><span class="line">            realdata[<span class="number">8</span>]=i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">30</span>;i&lt;<span class="number">127</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(realdata[<span class="number">7</span>]==(<span class="type">unsigned</span> <span class="type">char</span>)((realdata[<span class="number">9</span>]+<span class="number">2</span>*realdata[<span class="number">8</span>]+<span class="number">3</span>*i)*realdata[<span class="number">12</span>]))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//printf(&quot;flag[7]==%c\n&quot;,i);</span></span><br><span class="line">            realdata[<span class="number">7</span>]=i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">30</span>;i&lt;<span class="number">127</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">int</span> a=(realdata[<span class="number">8</span>]+<span class="number">2</span>*realdata[<span class="number">7</span>]+<span class="number">3</span>*i)*realdata[<span class="number">12</span>];</span><br><span class="line">        <span class="keyword">if</span>(realdata[<span class="number">6</span>]==(<span class="type">unsigned</span> <span class="type">char</span>)((realdata[<span class="number">8</span>]+<span class="number">2</span>*realdata[<span class="number">7</span>]+<span class="number">3</span>*i)*realdata[<span class="number">12</span>]))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//printf(&quot;flag[6]==%c\n&quot;,i);</span></span><br><span class="line">            realdata[<span class="number">6</span>]=i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    myswap(&amp;realdata[<span class="number">13</span>],&amp;realdata[<span class="number">19</span>]);</span><br><span class="line">    myswap(&amp;realdata[<span class="number">14</span>],&amp;realdata[<span class="number">18</span>]);</span><br><span class="line">    myswap(&amp;realdata[<span class="number">15</span>],&amp;realdata[<span class="number">17</span>]);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>,realdata[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">myswap</span><span class="params">(<span class="type">char</span>* a,<span class="type">char</span>* b)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">char</span> t=*a;</span><br><span class="line">   *a=*b;</span><br><span class="line">   *b=t;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//Y0u_hav3_r3v3rs3_1t!</span></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/wp/" rel="tag"># wp</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/03/21/CSAPP-%E7%AC%AC%E4%B8%83%E7%AB%A0%E2%80%94%E9%93%BE%E6%8E%A5/" rel="prev" title="CSAPP-第七章—链接">
+      <i class="fa fa-chevron-left"></i> CSAPP-第七章—链接
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#vm-start"><span class="nav-number">1.1.</span> <span class="nav-text">vm_start</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vm-start-1"><span class="nav-number">1.2.</span> <span class="nav-text">vm_start</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vm-dispatcher"><span class="nav-number">1.3.</span> <span class="nav-text">vm_dispatcher</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%88%98"><span class="nav-number">2.</span> <span class="nav-text">实战</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90opcode"><span class="nav-number">2.1.</span> <span class="nav-text">分析opcode</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#0xF1"><span class="nav-number">2.1.1.</span> <span class="nav-text">0xF1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#0xF2"><span class="nav-number">2.1.2.</span> <span class="nav-text">0xF2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#0xF5"><span class="nav-number">2.1.3.</span> <span class="nav-text">0xF5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#0xF4"><span class="nav-number">2.1.4.</span> <span class="nav-text">0xF4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#0xF7"><span class="nav-number">2.1.5.</span> <span class="nav-text">0xF7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#0xF8"><span class="nav-number">2.1.6.</span> <span class="nav-text">0xF8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#0xF6"><span class="nav-number">2.1.7.</span> <span class="nav-text">0xF6</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BF%BB%E8%AF%91"><span class="nav-number">2.2.</span> <span class="nav-text">翻译</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="fishjump"
+      src="/uploads/dog.jpg">
+  <p class="site-author-name" itemprop="name">fishjump</p>
+  <div class="site-description" itemprop="description">一万年太久，只争朝夕</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Fishjump-MY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Fishjump-MY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1745482102@qq.com" title="E-Mail → 1745482102@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!---->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">fishjump</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">81k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:53</span>
+</div>
+
+
+<script async="" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/fireworks.js"></script>
+  
+  
+</body>
+</html>
