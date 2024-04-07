@@ -182,6 +182,173 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/04/07/%E9%93%81%E4%BA%BA%E4%B8%89%E9%A1%B9baby-decomp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/04/07/%E9%93%81%E4%BA%BA%E4%B8%89%E9%A1%B9baby-decomp/" class="post-title-link" itemprop="url">铁人三项baby_decomp</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-04-07 20:29:19" itemprop="dateCreated datePublished" datetime="2024-04-07T20:29:19+08:00">2024-04-07</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>163</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>运行程序没有提示输入，直接输出Oops wrong path，尝试传参也没任何反应。</p>
+<p><img src="/2024/04/07/%E9%93%81%E4%BA%BA%E4%B8%89%E9%A1%B9baby-decomp/QQ%E6%88%AA%E5%9B%BE20240401101018.png"></p>
+<p>main函数就张这个样子，但是反编译一下就可以看到main远没这么简单</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/04/07/%E9%93%81%E4%BA%BA%E4%B8%89%E9%A1%B9baby-decomp/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/04/07/MallocLab/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/dog.jpg">
+      <meta itemprop="name" content="fishjump">
+      <meta itemprop="description" content="一万年太久，只争朝夕">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fishjump's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/04/07/MallocLab/" class="post-title-link" itemprop="url">MallocLab</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-04-07 20:28:33" itemprop="dateCreated datePublished" datetime="2024-04-07T20:28:33+08:00">2024-04-07</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><p>本lab大致的要求就是实现malloc、free、initial函数。initial函数就是要初始化堆。</p>
+<p>做这个lab之前，需要对一下知识有一个比较清晰的认知。</p>
+<ul>
+<li>组织：如何组织空闲块，也就是如何初始化堆。</li>
+<li>放置：如何放置一个新分配的块。</li>
+<li>分割：因分配的块放到空闲块之后，如何处理空闲块的剩余部分。</li>
+<li>合并：如何处理一个刚刚被释放的块。</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/04/07/MallocLab/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2024/03/25/GWCTF2019babyvm/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -196,7 +363,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2024/03/25/GWCTF2019babyvm/" class="post-title-link" itemprop="url">GWCTF2019babyvm</a>
+            <a href="/2024/03/25/GWCTF2019babyvm/" class="post-title-link" itemprop="url">VM逆向，一篇就够了（上）</a>
         </h2>
 
         <div class="post-meta">
@@ -208,6 +375,13 @@
 
               <time title="创建时间：2024-03-25 18:44:20" itemprop="dateCreated datePublished" datetime="2024-03-25T18:44:20+08:00">2024-03-25</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-03-28 01:06:13" itemprop="dateModified" datetime="2024-03-28T01:06:13+08:00">2024-03-28</time>
+              </span>
 
           <br>
             <span class="post-meta-item" title="本文字数">
@@ -215,14 +389,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.1k</span>
+              <span>5.2k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>8 分钟</span>
+              <span>19 分钟</span>
             </span>
 
         </div>
@@ -236,7 +410,7 @@
       
           <p>vm题算是逆向中比较难的一种题型了，就在这里详细的记录一下。</p>
 <h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>程序运行时通过解释操作码（opcode）选择对应的函数（handle）执行。</p>
-<h3 id="vm-start"><a href="#vm-start" class="headerlink" title="vm_start"></a>vm_start</h3><p>进行初始化工作。在这个函数里，规定了有几个寄存器，以及有几种不同的操作。<img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325003128.png"></p>
+<h3 id="vm-init"><a href="#vm-init" class="headerlink" title="vm_init"></a>vm_init</h3><p>进行初始化工作。在这个函数里，规定了有几个寄存器，以及有几种不同的操作。<img src="/2024/03/25/GWCTF2019babyvm/QQ%E6%88%AA%E5%9B%BE20240325003128.png"></p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/03/25/GWCTF2019babyvm/#more" rel="contents">
@@ -824,165 +998,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/03/19/DUBHEctf-Destination/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/dog.jpg">
-      <meta itemprop="name" content="fishjump">
-      <meta itemprop="description" content="一万年太久，只争朝夕">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fishjump's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/03/19/DUBHEctf-Destination/" class="post-title-link" itemprop="url">DUBHEctf_Destination</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-03-19 20:53:24" itemprop="dateCreated datePublished" datetime="2024-03-19T20:53:24+08:00">2024-03-19</time>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><img src="/2024/03/19/DUBHEctf-Destination/QQ%E6%88%AA%E5%9B%BE20240319002958.png"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/03/19/DUBHEctf-Destination/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/03/13/idapython%E7%94%A8%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/dog.jpg">
-      <meta itemprop="name" content="fishjump">
-      <meta itemprop="description" content="一万年太久，只争朝夕">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="fishjump's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/03/13/idapython%E7%94%A8%E6%B3%95/" class="post-title-link" itemprop="url">idapython用法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-03-13 01:10:13" itemprop="dateCreated datePublished" datetime="2024-03-13T01:10:13+08:00">2024-03-13</time>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>306</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="去除简单的花指令"><a href="#去除简单的花指令" class="headerlink" title="去除简单的花指令"></a>去除简单的花指令</h3><p>在main函数存在多个这样的花指令<img src="/2024/03/13/idapython%E7%94%A8%E6%B3%95/QQ%E6%88%AA%E5%9B%BE20240301201158.png"></p>
-<p>永真跳转导致ida解析失败，只需要将jz、jnz那里nop掉即可</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/03/13/idapython%E7%94%A8%E6%B3%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1054,7 +1069,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">44</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1105,12 +1120,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">81k</span>
+    <span title="站点总字数">87k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:53</span>
+    <span title="站点阅读时长">5:17</span>
 </div>
 
 
